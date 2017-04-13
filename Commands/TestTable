@@ -1,0 +1,24 @@
+﻿create Table oneMonth (
+	id int4 primary key,
+	pickup geometry(POINT,4326),
+	dropoff geometry(POINT,4326));
+	
+CREATE TABLE test (
+id int4 primary key,
+lonpickup double precision,
+latpickup double precision,
+londropoff double precision,
+latdropoff double precision
+);
+
+ALTER TABLE test ADD COLUMN geomDroppOff geometry(POINT, 4326);
+ALTER TABLE test ADD COLUMN geomPickUp geometry(POINT, 4326);
+
+UPDATE test SET geomDroppOff = ST_SetSRID(ST_MakePoint(londropoff, latdropoff) ,4326);
+UPDATE test SET geomPickUp = ST_SetSRID(ST_MakePoint(lonpickup, latpickup) ,4326);
+CREATE INDEX droppOff ON test USING GIST ( geomDroppOff );
+CREATE INDEX pickUp ON test USING GIST ( geomPickUp );
+
+
+SELECT ST_AsRaster(t.geomdroppoff, 0.1, -0.1, 100, 100, '32BSI')
+From test as t;

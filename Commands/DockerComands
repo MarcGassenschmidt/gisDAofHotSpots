@@ -1,0 +1,6 @@
+https://hub.docker.com/r/mdillon/postgis/
+docker run --name TestDB -e POSTGRES_PASSWORD=pw -d -p 5432:5432 mdillon/postgis
+docker ps
+docker exec -it fb02fa9f328b bash
+psql -U postgres
+docker stop fb02fa9f328b
