@@ -33,7 +33,8 @@ libraryDependencies ++= Seq(
   "net.postgis" % "postgis-jdbc" % "2.1.7.2",
   "com.typesafe.slick" % "slick_2.10.1" % "2.0.0-M1",
   "org.mockito" % "mockito-all" % "1.8.4",
-  "org.apache.spark" %% "spark-sql" % "2.0.1"
+  "org.apache.spark" %% "spark-sql" % "2.0.1",
+  "net.sf.opencsv" % "opencsv" % "2.3"
 
 )
 

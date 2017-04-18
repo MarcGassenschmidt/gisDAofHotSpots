@@ -5,7 +5,7 @@ import java.sql.Connection
 import geotrellis.raster._
 import geotrellis.spark._
 import org.apache.spark.{SparkConf, SparkContext}
-
+import db.ImportToDB
 import scala.slick.driver.PostgresDriver.simple._
 
 object Main {
@@ -13,9 +13,12 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     println(helloSentence)
-
+    val importScript = new ImportToDB()
+    importScript.copy()
+    //importScript.editCSVatom()
+    println("Import Finish")
     //testConnection()
-    setup()
+    //setup()
   }
 
   def testConnection(): Unit = {
