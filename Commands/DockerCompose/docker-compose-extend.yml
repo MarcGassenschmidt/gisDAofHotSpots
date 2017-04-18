@@ -1,0 +1,33 @@
+version: "2"
+
+services:
+  master:
+    image: singularities/spark
+    command: start-spark master
+    hostname: master
+    ports:
+      - "6066:6066"
+      - "7070:7070"
+      - "8080:8080"
+      - "50070:50070"
+  worker:
+    image: singularities/spark
+    command: start-spark worker master
+    environment:
+      SPARK_WORKER_CORES: 1
+      SPARK_WORKER_MEMORY: 2g
+    links:
+      - master
+      - postgis
+  postgis:
+    image: mdillon/postgis
+    environment:
+      - DEBUG=false
+      - DB_USER=postgres
+      - DB_PASS=pw
+      - DB_NAME=smallsample	
+    ports:
+      - "5432:5432"	
+	
+
+

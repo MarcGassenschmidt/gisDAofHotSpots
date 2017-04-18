@@ -4,3 +4,9 @@ docker ps
 docker exec -it fb02fa9f328b bash
 psql -U postgres
 docker stop fb02fa9f328b
+
+
+https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-14-04
+create File: docker-compose.yml
+Content: https://hub.docker.com/r/singularities/spark/
+Then run in the Directory: docker-compose up 
