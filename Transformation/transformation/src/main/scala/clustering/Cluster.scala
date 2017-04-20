@@ -4,38 +4,72 @@ import com.opencsv.CSVParser
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
+import scala.collection.immutable.TreeMap
+
+
 /**
   * Created by marc on 19.04.17.
   */
 class Cluster {
-  def test(sparkContext : SparkContext, file : String): Unit = {
-    val monthFile = sparkContext.textFile(file)
-    val withoutHeader : RDD[String] = dropHeader(monthFile)
-    var counter = 0;
-    val usedValues = monthFile.mapPartitions(lines => {
-      val parser = new CSVParser(',')
-      val map = lines.map(line => {
-        val cols = line.split(",").map(_.trim)
-        val result = new Row(counter, cols(5).toDouble, cols(6).toDouble)
-        counter += 1
-        result
+  def test(sparkContext : SparkContext, file : String, path : String): Unit = {
+    //TODO possible to set the partitions
+    val data = sparkContext.wholeTextFiles(path)
+    val files = data.map { case (filename, content) => filename}
+    val resultMap = new TreeMap[Int, RDD[Row]]()
+    val filteredData = files.map(file => getOneFile(sparkContext, file))
+    for(oneData <- filteredData){
+      for(oneSlice <- oneData) {
+        if (resultMap.contains(oneSlice._1)) {
+          resultMap.insert(oneSlice._1, oneSlice._2.union(resultMap(oneSlice._1)))
+        } else {
+          resultMap.insert(oneSlice._1, oneSlice._2)
+        }
+      }
+    }
+    //TODO other Context
+    //resultMap.foreach(x => x._2.saveAsTable())
+
+
+
+
+
+
+  }
+
+  def getOneFile(sparkContext: SparkContext, fileName : String): TreeMap[Int, RDD[Row]] = {
+
+      val monthFile = sparkContext.textFile(fileName);
+      val withoutHeader: RDD[String] = dropHeader(monthFile)
+      var counter = 0;
+      val usedValues = monthFile.mapPartitions(lines => {
+        val parser = new CSVParser(',')
+        val map = lines.map(line => {
+          val cols = line.split(",").map(_.trim)
+          val result = new Row(counter, cols(5).toFloat, cols(6).toFloat)
+          counter += 1
+          result
+        })
+
+        map
       })
 
-      map
-    })
-    val numberNodse = 4
+      val numberNodse = 4
+      val sqrtNodes = Math.sqrt(numberNodse).toInt
+      val latMin = usedValues.map(row => row.lat).min
+      val lonMin = usedValues.map(row => row.lon).min
+      val latMax = usedValues.map(row => row.lat).max
+      val lonMax = usedValues.map(row => row.lon).max
+      val partionSizeLat = (latMin + latMax) / sqrtNodes
+      val partionSizeLon = (lonMin + lonMax) / sqrtNodes
+      //TODO Hvie query with Cluster by
+      val resultMap = new TreeMap[Int, RDD[Row]]()
+      for (i <- 1 to sqrtNodes) {
+        for (j <- 1 to sqrtNodes) {
+          resultMap.insert((i + i * j), usedValues.filter(row => row.lat < partionSizeLat * j && row.lon < partionSizeLon * i))
+        }
 
-    val latMin = usedValues.map(row => row.lat).min
-    val lonMin = usedValues.map(row => row.lon).min
-    val latMax = usedValues.map(row => row.lat).max
-    val lonMax = usedValues.map(row => row.lon).max
-    val partionSizeLat = (latMin+latMax)/Math.sqrt(numberNodse)
-    val partionSizeLon = (lonMin+lonMax)/Math.sqrt(numberNodse)
-    usedValues.filter(row => row.lat>4545)
-    usedValues.filter(row => row.lat>4545)
-    usedValues.filter(row => row.lat>4545)
-    usedValues.filter(row => row.lat>4545)
-
+      }
+      resultMap
 
   }
 
