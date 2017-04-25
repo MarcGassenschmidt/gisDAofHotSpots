@@ -2,10 +2,12 @@ package demo
 
 import java.sql.Connection
 
+import clustering.Cluster
 import geotrellis.raster._
 import geotrellis.spark._
 import org.apache.spark.{SparkConf, SparkContext}
 import db.ImportToDB
+
 import scala.slick.driver.PostgresDriver.simple._
 
 object Main {
@@ -13,12 +15,14 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     println(helloSentence)
-    val importScript = new ImportToDB()
-    importScript.copy()
+    //val importScript = new ImportToDB()
+    //importScript.copy()
     //importScript.editCSVatom()
-    println("Import Finish")
+    //println("Import Finish")
     //testConnection()
-    //setup()
+    val context = setup()
+    val cluster = new Cluster();
+    cluster.test(context, "/downloads")
   }
 
   def testConnection(): Unit = {
@@ -33,10 +37,10 @@ object Main {
   }
 
   def setup(): SparkContext = {
-    val conf = new SparkConf().setAppName("Name")
-    //conf.setMaster()
+    val conf = new SparkConf().setAppName("Cluster 1")
     val spark = new SparkContext(conf)
     spark
+
   }
 
 

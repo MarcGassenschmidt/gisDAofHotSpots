@@ -11,23 +11,16 @@ import scala.collection.immutable.TreeMap
   * Created by marc on 19.04.17.
   */
 class Cluster {
-  def test(sparkContext : SparkContext, file : String, path : String): Unit = {
+  def test(sparkContext : SparkContext, path : String): Unit = {
     //TODO possible to set the partitions
     val data = sparkContext.wholeTextFiles(path)
     val files = data.map { case (filename, content) => filename}
     val resultMap = new TreeMap[Int, RDD[Row]]()
     val filteredData = files.map(file => getOneFile(sparkContext, file))
-    for(oneData <- filteredData){
-      for(oneSlice <- oneData) {
-        if (resultMap.contains(oneSlice._1)) {
-          resultMap.insert(oneSlice._1, oneSlice._2.union(resultMap(oneSlice._1)))
-        } else {
-          resultMap.insert(oneSlice._1, oneSlice._2)
-        }
-      }
-    }
+    mapUnion(resultMap, filteredData)
     //TODO other Context
-    //resultMap.foreach(x => x._2.saveAsTable())
+
+    println("End TODO saving")
 
 
 
@@ -36,8 +29,20 @@ class Cluster {
 
   }
 
-  def getOneFile(sparkContext: SparkContext, fileName : String): TreeMap[Int, RDD[Row]] = {
+  def mapUnion(resultMap: TreeMap[Int, RDD[Row]], filteredData: RDD[TreeMap[Int, RDD[Row]]]): TreeMap[Int, RDD[Row]] = {
+    for (oneData <- filteredData) {
+      for (oneSlice <- oneData) {
+        if (resultMap.contains(oneSlice._1)) {
+          resultMap.insert(oneSlice._1, oneSlice._2.union(resultMap(oneSlice._1)))
+        } else {
+          resultMap.insert(oneSlice._1, oneSlice._2)
+        }
+      }
+    }
+    resultMap
+  }
 
+  def getOneFile(sparkContext: SparkContext, fileName : String): TreeMap[Int, RDD[Row]] = {
       val monthFile = sparkContext.textFile(fileName);
       val withoutHeader: RDD[String] = dropHeader(monthFile)
       var counter = 0;
@@ -61,7 +66,7 @@ class Cluster {
       val lonMax = usedValues.map(row => row.lon).max
       val partionSizeLat = (latMin + latMax) / sqrtNodes
       val partionSizeLon = (lonMin + lonMax) / sqrtNodes
-      //TODO Hvie query with Cluster by
+      //TODO Hive query with Cluster by
       val resultMap = new TreeMap[Int, RDD[Row]]()
       for (i <- 1 to sqrtNodes) {
         for (j <- 1 to sqrtNodes) {
