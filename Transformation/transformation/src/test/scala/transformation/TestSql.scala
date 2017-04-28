@@ -15,11 +15,11 @@ class TestSql extends FunSuite with BeforeAndAfter {
   val connectionUrl = "jdbc:postgresql://localhost:5432/smallsample?user=postgres&password=pw"
   val db = Database.forURL(connectionUrl, driver = "org.postgresql.Driver")
   var connection : Connection = _
-  before {
-    connection = db.createConnection()
-  }
+//  before {
+//    connection = db.createConnection()
+//  }
 
-  test("Test if Connection exist"){
+  ignore("Test if Connection exist"){
     println(connection.getCatalog);
     val result = connection.createStatement().executeQuery("select * from test as t where t.id<20")
     assert(result.next()==true)

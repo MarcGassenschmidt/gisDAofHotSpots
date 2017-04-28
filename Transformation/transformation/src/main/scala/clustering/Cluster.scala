@@ -17,7 +17,7 @@ class Cluster {
     val files = data.map { case (filename, content) => filename}
     val resultMap = new TreeMap[Int, RDD[Row]]()
     val filteredData = files.map(file => getOneFile(sparkContext, file))
-    mapUnion(resultMap, filteredData)
+    //mapUnion(resultMap, filteredData)
     //TODO other Context
 
     println("End TODO saving")
@@ -42,7 +42,7 @@ class Cluster {
     resultMap
   }
 
-  def getOneFile(sparkContext: SparkContext, fileName : String): TreeMap[Int, RDD[Row]] = {
+  def getOneFile(sparkContext: SparkContext, fileName : String): Unit = {//TreeMap[Int, RDD[Row]] = {
       val monthFile = sparkContext.textFile(fileName);
       val withoutHeader: RDD[String] = dropHeader(monthFile)
       var counter = 0;
@@ -58,23 +58,23 @@ class Cluster {
         map
       })
 
-      val numberNodse = 4
-      val sqrtNodes = Math.sqrt(numberNodse).toInt
-      val latMin = usedValues.map(row => row.lat).min
-      val lonMin = usedValues.map(row => row.lon).min
-      val latMax = usedValues.map(row => row.lat).max
-      val lonMax = usedValues.map(row => row.lon).max
-      val partionSizeLat = (latMin + latMax) / sqrtNodes
-      val partionSizeLon = (lonMin + lonMax) / sqrtNodes
-      //TODO Hive query with Cluster by
-      val resultMap = new TreeMap[Int, RDD[Row]]()
-      for (i <- 1 to sqrtNodes) {
-        for (j <- 1 to sqrtNodes) {
-          resultMap.insert((i + i * j), usedValues.filter(row => row.lat < partionSizeLat * j && row.lon < partionSizeLon * i))
-        }
-
-      }
-      resultMap
+//      val numberNodse = 4
+//      val sqrtNodes = Math.sqrt(numberNodse).toInt
+//      val latMin = usedValues.map(row => row.lat).min
+//      val lonMin = usedValues.map(row => row.lon).min
+//      val latMax = usedValues.map(row => row.lat).max
+//      val lonMax = usedValues.map(row => row.lon).max
+//      val partionSizeLat = (latMin + latMax) / sqrtNodes
+//      val partionSizeLon = (lonMin + lonMax) / sqrtNodes
+//      //TODO Hive query with Cluster by
+//      val resultMap = new TreeMap[Int, RDD[Row]]()
+//      for (i <- 1 to sqrtNodes) {
+//        for (j <- 1 to sqrtNodes) {
+//          resultMap.insert((i + i * j), usedValues.filter(row => row.lat < partionSizeLat * j && row.lon < partionSizeLon * i))
+//        }
+//
+//      }
+//      resultMap
 
   }
 

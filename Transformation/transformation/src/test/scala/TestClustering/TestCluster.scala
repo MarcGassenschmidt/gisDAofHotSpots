@@ -1,13 +1,13 @@
-package transformation
+package TestClustering
 
+import clustering.Cluster
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
-
 /**
-  * Created by marc on 17.04.17.
+  * Created by marc on 25.04.17.
   */
-class TestSpark extends FunSuite with BeforeAndAfter {
+class TestCluster extends FunSuite with BeforeAndAfter {
   val conf = new SparkConf().setAppName("Test")
   conf.setMaster("local[1]")
   var spark : SparkContext = _
@@ -15,11 +15,10 @@ class TestSpark extends FunSuite with BeforeAndAfter {
     spark = SparkContext.getOrCreate(conf)
   }
 
-  ignore("Test Spark Configuration"){
-    assert(spark.parallelize(1 to 100).map(x=>x).reduce(_ + _)==5050)
+  test("Test Spark Configuration"){
+    val cluster = new Cluster()
+    cluster.test(spark, "/downloads")
   }
-
-
 
   after {
     spark.stop()

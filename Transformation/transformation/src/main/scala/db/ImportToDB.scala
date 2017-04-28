@@ -24,8 +24,6 @@ class ImportToDB {
     props
   }
 
-  val cf: () => Connection = JdbcUtils.createConnectionFactory(jdbcUrl, connectionProperties)
-
   def editCSV(context: SparkContext): Unit = {
 
   }
