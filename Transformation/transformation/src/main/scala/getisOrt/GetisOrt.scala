@@ -25,7 +25,12 @@ class GetisOrt {
     var sumP1 = 0
     for(i <- 1 to weight.rows){
       for(j <- 1 to weight.cols){
-        sumP1 += tile.get(index._1-xShift+i, index._2-yShift+j)*weight.get(i,j)
+        if(index._1-xShift+i<0 || index._1-xShift+i>weight.rows || index._2-yShift+j<0 || index._2-yShift+j>weight.cols){
+          //TODO handle bound Cases
+        } else {
+          sumP1 += tile.get(index._1-xShift+i, index._2-yShift+j)*weight.get(i,j)
+        }
+
       }
     }
     (sumP1-getXMean(tile)*getSummForTile(weight))
@@ -55,25 +60,25 @@ class GetisOrt {
     getSummForTile(tile)/tile.size
   }
 
-  def getSummOverTiles(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
-    layer.map(x=>x._2).reduce(_+_)
-  }
+//  def getSummOverTiles(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
+//    layer.map(x=>x._2).reduce(_+_)
+//  }
 
-  def xMean(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
-    val count = layer.count()
-    getSummOverTiles(layer)/count
-  }
+//  def xMean(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
+//    val count = layer.count()
+//    getSummOverTiles(layer)/count
+//  }
 
   def getPowerOfTwoForElementsAsSum(tile : Tile): Int ={
     tile.toArray().foldLeft(0)((x,y)=>x+y*y)
   }
 
-  def standartDeviation(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
-    val count = layer.count()
-    layer.map(x=>x._2).fold(IntConstantTile(0, 1, 1))((x, y)=>x+y*y)/count-(xMean(layer)*xMean(layer))
-  }
+//  def standartDeviation(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
+//    val count = layer.count()
+//    layer.map(x=>x._2).fold(IntConstantTile(0, 1, 1))((x, y)=>x+y*y)/count-(xMean(layer)*xMean(layer))
+//  }
 
-  def getWeightMatrix(): Array[Double] = {
+  def getWeightMatrix(): Array[Byte] = {
     //From R example
     val arrayTile = Array[Double](
        0.1, 0.3, 0.5, 0.3, 0.1,
@@ -81,11 +86,11 @@ class GetisOrt {
        0.5, 1.0, 1.0, 1.0, 0.5,
        0.3, 0.8, 1.0, 0.8, 0.3,
        0.1, 0.3, 0.5, 0.3, 0.1)
-    arrayTile
+    arrayTile.map(x => x.toByte)
   }
 
-  def get00(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
-    layer.map(x=>x._2).reduce((x,y)=>x.)
+  def get00(layer: RDD[(SpaceTimeKey, Tile)]): Unit ={
+//    layer.map(x=>x._2).reduce((x,y)=>x.)
   }
 
   def get01(): Unit ={
