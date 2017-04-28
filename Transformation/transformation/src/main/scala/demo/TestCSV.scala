@@ -1,8 +1,4 @@
 package demo
-
-import com.opencsv.CSVParser
-import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
 /**
   * Created by marc on 18.04.17.
   */
