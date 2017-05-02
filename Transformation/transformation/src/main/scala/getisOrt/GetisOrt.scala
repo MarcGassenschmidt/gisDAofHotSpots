@@ -37,7 +37,8 @@ class GetisOrt {
   }
 
   def getDenmonitor(tile: Tile, weight: Tile): Double = {
-    (getStandartDeviationForTile(tile)*Math.sqrt((getPowerOfTwoForElementsAsSum(weight)-getSummForTile(weight)*getSummForTile(weight))/(tile.size-1)))
+    //TODO handle negative values
+    (getStandartDeviationForTile(tile)*Math.sqrt((tile.size*getPowerOfTwoForElementsAsSum(weight)-getSummForTile(weight)*getSummForTile(weight))/(tile.size-1)))
   }
 
   def gStarForTile(tile : Tile, index : (Int, Int), weight: Tile) : Double ={
@@ -45,18 +46,22 @@ class GetisOrt {
   }
 
   def getStandartDeviationForTile(tile: Tile): Double ={
-    Math.sqrt(getPowerOfTwoForElementsAsSum(tile)/tile.size-getXMeanSquare(tile))
+    val deviation = Math.sqrt(getPowerOfTwoForElementsAsSum(tile).toFloat/tile.size.toFloat-getXMeanSquare(tile))
+    if(deviation<=0 || deviation==Double.NaN){
+      return 1 //TODO handle equal distribution case
+    }
+    deviation
   }
 
-  def getXMeanSquare(tile: Tile): Int ={
+  def getXMeanSquare(tile: Tile): Double ={
     getXMean(tile)*getXMean(tile)
   }
 
-  def getSummForTile(tile: Tile): Int ={
-    tile.toArray().reduce(_+_)
+  def getSummForTile(tile: Tile): Double ={
+    tile.toArrayDouble().reduce(_+_)
   }
 
-  def getXMean(tile: Tile) : Int ={
+  def getXMean(tile: Tile) : Double ={
     getSummForTile(tile)/tile.size
   }
 
@@ -69,8 +74,8 @@ class GetisOrt {
 //    getSummOverTiles(layer)/count
 //  }
 
-  def getPowerOfTwoForElementsAsSum(tile : Tile): Int ={
-    tile.toArray().foldLeft(0)((x,y)=>x+y*y)
+  def getPowerOfTwoForElementsAsSum(tile : Tile): Double ={
+    tile.toArrayDouble().foldLeft(0.0){(x,y)=>x+y*y}
   }
 
 //  def standartDeviation(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
@@ -78,7 +83,7 @@ class GetisOrt {
 //    layer.map(x=>x._2).fold(IntConstantTile(0, 1, 1))((x, y)=>x+y*y)/count-(xMean(layer)*xMean(layer))
 //  }
 
-  def getWeightMatrix(): Array[Byte] = {
+  def getWeightMatrix(): Array[Double] = {
     //From R example
     val arrayTile = Array[Double](
        0.1, 0.3, 0.5, 0.3, 0.1,
@@ -86,7 +91,7 @@ class GetisOrt {
        0.5, 1.0, 1.0, 1.0, 0.5,
        0.3, 0.8, 1.0, 0.8, 0.3,
        0.1, 0.3, 0.5, 0.3, 0.1)
-    arrayTile.map(x => x.toByte)
+    arrayTile
   }
 
   def get00(layer: RDD[(SpaceTimeKey, Tile)]): Unit ={
