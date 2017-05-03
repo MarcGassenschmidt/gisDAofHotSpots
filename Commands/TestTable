@@ -3,6 +3,11 @@
 	pickup geometry(POINT,4326),
 	dropoff geometry(POINT,4326));
 	
+CREATE TABLE pickupstring (
+id int4 primary key,
+lonpickup char(255),
+latpickup char(255))
+
 CREATE TABLE test (
 id int4 primary key,
 lonpickup double precision,
@@ -11,6 +16,7 @@ londropoff double precision,
 latdropoff double precision
 );
 
+CREATE EXTENSION postgis;
 ALTER TABLE test ADD COLUMN geomDroppOff geometry(POINT, 4326);
 ALTER TABLE test ADD COLUMN geomPickUp geometry(POINT, 4326);
 
@@ -22,3 +28,23 @@ CREATE INDEX pickUp ON test USING GIST ( geomPickUp );
 
 SELECT ST_AsRaster(t.geomdroppoff, 0.1, -0.1, 100, 100, '32BSI')
 From test as t;
+
+http://geospatialelucubrations.blogspot.de/2014/05/a-guide-to-rasterization-of-vector.html
+CREATE TABLE forestheight_rast AS
+SELECT ST_Union(ST_AsRaster(t.geompickup, 5, -5, 200, 200, '16BUI')) rast
+FROM test as t;
+
+SELECT (ST_Union(ST_AsRaster(t.geompickup, 0.1, -0.1, 10, 10, '8BUI'))) rast
+FROM test as t where t.id < 1000
+
+SELECT ST_AsPNG(rast) As rastpng
+FROM forestheight_rast;
+
+SELECT count(t.geompickup), t.geompickup
+FROM test as t where t.id < 5000
+GROUP BY t.geompickup
+Order by count(t.geompickup) desc
+
+SELECT ST_Tile((ST_Union(ST_AsRaster(t.geompickup, 0.1, -0.1, 10, 10, '8BUI'))),300,300) rast
+FROM test as t
+

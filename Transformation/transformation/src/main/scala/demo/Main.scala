@@ -6,7 +6,7 @@ import clustering.Cluster
 import geotrellis.raster._
 import geotrellis.spark._
 import org.apache.spark.{SparkConf, SparkContext}
-import db.ImportToDB
+import db.{ImportToDB, QueryDb}
 
 import scala.slick.driver.PostgresDriver.simple._
 
@@ -15,14 +15,9 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     println(helloSentence)
-    //val importScript = new ImportToDB()
-    //importScript.copy()
-    //importScript.editCSVatom()
-    //println("Import Finish")
-    //testConnection()
-    val context = setup()
-    val cluster = new Cluster();
-    cluster.test(context, "/downloads")
+    val db  = new QueryDb()
+    db.getRaster()
+    println("End")
   }
 
   def testConnection(): Unit = {
