@@ -1,6 +1,6 @@
 package gisOrt
 
-import geotrellis.raster.{IntArrayTile, IntConstantTile, Tile}
+import geotrellis.raster.{DoubleRawArrayTile, IntArrayTile, IntConstantTile, Tile}
 import geotrellis.raster.mapalgebra.focal.{Neighborhood, Square}
 import geotrellis.spark.{Metadata, SpaceTimeKey, SpatialKey, TileLayerMetadata}
 import org.apache.spark.rdd.RDD
@@ -41,6 +41,10 @@ class GetisOrt {
     (getStandartDeviationForTile(tile)*Math.sqrt((tile.size*getPowerOfTwoForElementsAsSum(weight)-getSummForTile(weight)*getSummForTile(weight))/(tile.size-1)))
   }
 
+  def gStarForTile(tile : Tile, index : (Int, Int)) : Double ={
+    val weightTile = new DoubleRawArrayTile(getWeightMatrix(), 3,3)
+    gStarForTile(tile, index,weightTile)
+  }
   def gStarForTile(tile : Tile, index : (Int, Int), weight: Tile) : Double ={
     getNumerator(tile, weight, index)/getDenmonitor(tile, weight)
   }

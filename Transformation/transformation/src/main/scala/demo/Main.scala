@@ -7,6 +7,7 @@ import geotrellis.raster._
 import geotrellis.spark._
 import org.apache.spark.{SparkConf, SparkContext}
 import db.{ImportToDB, QueryDb}
+import gisOrt.GetisOrt
 
 import scala.slick.driver.PostgresDriver.simple._
 
@@ -16,7 +17,9 @@ object Main {
   def main(args: Array[String]): Unit = {
     println(helloSentence)
     val db  = new QueryDb()
-    db.getRaster()
+    val ort = new GetisOrt()
+    val tile = db.getRaster()
+    println(ort.gStarForTile(tile, (100, 100)))
     println("End")
   }
 

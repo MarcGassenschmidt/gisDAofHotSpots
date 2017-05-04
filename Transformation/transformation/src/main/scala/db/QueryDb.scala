@@ -34,18 +34,19 @@ class QueryDb {
 
 
   def getRaster(): ArrayTile ={
-    val query = "SELECT ST_Tile((ST_Union(ST_AsRaster(t.geompickup, 0.1, -0.1, 10, 10, '4BUI'))),300,300) rast FROM test as t  where t.id < 100"
+    val query = "SELECT ST_AsBinary((ST_Union(ST_AsRaster(t.geompickup, 0.1, -0.1, 100, 100, '8BUI')))) rast FROM test as t  where t.id < 10000"
+    val statistics = "SELECT ST_SummaryStats((ST_Union(ST_AsRaster(t.geompickup, 0.1, -0.1, 100, 100, '8BUI')))) rast FROM test as t  where t.id < 10000\n"
     val connectionUrl = "jdbc:postgresql://localhost:5432/Test?user=postgres&password=pw"
     val db = Database.forURL(connectionUrl, driver = "org.postgresql.Driver")
     val connection = db.createConnection()
     val res = connection.createStatement().executeQuery(query)
-    var tile: ArrayTile = ???
+    var tile: ArrayTile = null
     while (res.next()){
-      val byteArray = res.getArray(1).toString.getBytes
-
-      var tile = ArrayTile.fromBytes(byteArray.map(c => c.toChar.getNumericValue.toByte), UByteCellType, 300, 300)
+      println(res.getBytes(1).length)
+      tile = ArrayTile.fromBytes(res.getBytes(1), UByteCellType, 100, 100)
 
       println(tile.get(0,0))
+
       println(tile.size)
 
     }

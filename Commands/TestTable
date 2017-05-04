@@ -37,6 +37,7 @@ FROM test as t;
 SELECT (ST_Union(ST_AsRaster(t.geompickup, 0.1, -0.1, 10, 10, '8BUI'))) rast
 FROM test as t where t.id < 1000
 
+SET postgis.gdal_enabled_drivers = 'ENABLE_ALL';
 SELECT ST_AsPNG(rast) As rastpng
 FROM forestheight_rast;
 
@@ -47,4 +48,21 @@ Order by count(t.geompickup) desc
 
 SELECT ST_Tile((ST_Union(ST_AsRaster(t.geompickup, 0.1, -0.1, 10, 10, '8BUI'))),300,300) rast
 FROM test as t
+
+SELECT ST_AsBinary(ST_Tile((ST_Union(ST_AsRaster(t.geompickup, 0.1, -0.1, 10, 10, '4BUI'))),50,50)) rast FROM test as t  where t.id < 100
+
+SELECT ST_SummaryStats((ST_Union(ST_AsRaster(t.geompickup, 0.1, -0.1, 100, 100, '8BUI')))) rast FROM test as t  where t.id < 10000
+
+COPY (
+SELECT encode(
+ST_AsPNG(
+ST_Union(
+ST_AsRaster(
+t.geompickup, 0.1, -0.1, 10, 10, '8BUI'
+)
+)
+), 'hex') AS png FROM test as t where t.id<1000) TO '/tmp/myimage.hex';
+apt-get install vim-common
+xxd -p -r /tmp/myimage.hex > /tmp/sf_colors.png
+docker cp TestDB:/tmp/sf_colors.png ~/media/SS_17/tmp/
 
