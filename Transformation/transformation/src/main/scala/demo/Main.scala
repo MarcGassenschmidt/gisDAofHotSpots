@@ -16,10 +16,12 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     println(helloSentence)
+
     val db  = new QueryDb()
+    val arrayTile = db.readGeoTiff()
     val ort = new GetisOrt()
-    val tile = db.getRaster()
-    println(ort.gStarForTile(tile, (100, 100)))
+//    val tile = db.getRaster()
+    println(ort.gStarForTile(arrayTile, (100, 100)))
     println("End")
   }
 

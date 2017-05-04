@@ -8,6 +8,9 @@ import org.apache.spark.SparkContext
 import org.apache.spark.sql.SparkSession
 import org.postgresql.copy.CopyManager
 import org.postgresql.core.BaseConnection
+import geotrellis.raster.io.geotiff.reader.GeoTiffReader
+import geotrellis.raster.io.geotiff.{GeoTiff, SinglebandGeoTiff}
+import geotrellis.vector.Extent
 
 import scala.slick.driver.PostgresDriver.simple._
 /**
@@ -31,6 +34,15 @@ class QueryDb {
 
   }
 
+  def readGeoTiff(): ArrayTile = {
+    val path: String = "/home/marc/media/SS_17/tmp/sf_colors.tif"
+    //val e: Extent = Extent(0, 1, 2, 3)
+    //val geoTiff: SinglebandGeoTiff = GeoTiffReader.(path, e)
+    val geoTiff: SinglebandGeoTiff =SinglebandGeoTiff.streaming(path)
+    val arrayTile = geoTiff.toArrayTile()
+    arrayTile
+
+  }
 
 
   def getRaster(): ArrayTile ={

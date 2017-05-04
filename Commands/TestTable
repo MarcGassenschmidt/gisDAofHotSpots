@@ -66,3 +66,14 @@ apt-get install vim-common
 xxd -p -r /tmp/myimage.hex > /tmp/sf_colors.png
 docker cp TestDB:/tmp/sf_colors.png ~/media/SS_17/tmp/
 
+
+COPY (
+SELECT encode(
+ST_AsTIFF(
+ST_Union(
+ST_AsRaster(
+t.geompickup, 0.1, -0.1, 10, 10, '8BUI'
+)
+)
+), 'hex') AS png FROM test as t where t.id<1000) TO '/tmp/myimage.hex';
+
