@@ -16,20 +16,29 @@ object Main {
   def helloSentence = "Hello GeoTrellis"
 
   def main(args: Array[String]): Unit = {
+    val totalTime = System.currentTimeMillis()
     println(helloSentence)
     val transform = new Transformation
-    var startTime = System.currentTimeMillis()/1000
+    var startTime = System.currentTimeMillis()
     val arrayTile = transform.transformCSVtoRaster()
-    val ort = new GetisOrt()
-    println("Time for RasterTransformation ="+(System.currentTimeMillis()/1000-startTime))
- //   println(arrayTile.asciiDraw())
+    println("Time for RasterTransformation ="+((System.currentTimeMillis()-startTime)/1000))
+    println("Raster Size (cols,rows)=("+arrayTile.cols+","+arrayTile.rows+")")
+    startTime = System.currentTimeMillis()
+    val reducedTile = arrayTile.resample(arrayTile.cols/50, arrayTile.rows/50)
+    println("Time for Downsample with factor 50 ="+((System.currentTimeMillis()-startTime)/1000))
+    println("Raster Size (cols,rows)=("+reducedTile.cols+","+reducedTile.rows+")")
+    startTime = System.currentTimeMillis()
+    val ort = new GetisOrt(arrayTile, 3,3)
+    println("Time for static G* values ="+((System.currentTimeMillis()-startTime)/1000))
+
+//    println(arrayTile.asciiDraw())
 //    val tile = db.getRaster()
     startTime = System.currentTimeMillis()
-    ort.gStarComplete(arrayTile)
+    ort.gStarComplete()
     println("Time for G* ="+((System.currentTimeMillis()-startTime)/1000))
     //println(ort.gStarComplete(arrayTile))
 
-
+    println("Total Time because maybe of lazy evaluations ="+((System.currentTimeMillis()-totalTime)/1000))
     println("End")
   }
 

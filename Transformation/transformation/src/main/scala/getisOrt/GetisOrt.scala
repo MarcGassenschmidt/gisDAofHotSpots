@@ -1,6 +1,6 @@
 package gisOrt
 
-import geotrellis.raster.{DoubleRawArrayTile, IntArrayTile, IntConstantTile, Tile}
+import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntArrayTile, IntConstantTile, IntRawArrayTile, Tile}
 import geotrellis.raster.mapalgebra.focal.{Neighborhood, Square}
 import geotrellis.spark.{Metadata, SpaceTimeKey, SpatialKey, TileLayerMetadata}
 import org.apache.spark.rdd.RDD
@@ -8,27 +8,40 @@ import org.apache.spark.rdd.RDD
 /**
   * Created by marc on 27.04.17.
   */
-class GetisOrt {
+class GetisOrt(tile : Tile, cols : Int, rows : Int) {
+  val weight : Tile = if(cols == 0 && rows ==0) this.getWeightMatrix() else this.getWeightMatrix(cols, rows) //0,0 for Testing
+  val sumOfTile : Double = this.getSummForTile(tile)
+  val sumOfWeight : Double = this.getSummForTile(weight)
+  val xMean : Double = this.getXMean(tile)
+  val powerOfWeight : Double =  getPowerOfTwoForElementsAsSum(weight)
+  val powerOfTile : Double =  getPowerOfTwoForElementsAsSum(tile)
+  val standardDeviation: Double = this.getStandartDeviationForTile(tile)
+
 
 
   def gStar(layer: RDD[(SpaceTimeKey, Tile)] with Metadata[TileLayerMetadata[SpaceTimeKey]], weight : Array[Int]): Unit ={
     layer.metadata.gridBounds
-
     layer.count();
     //val tile = IntArrayTile(layer, 9,4)
     Square(1)
+  }
+
+  def printG_StarComplete(): Unit ={
+    for(i <- 0 to tile.rows-1){
+      for(j <- 0 to tile.cols-1){
+        print(gStarForTile((i,j)))
+        print(";")
+      }
+      println("")
+    }
 
   }
 
-  def gStarComplete(tile : Tile): Unit ={
-    val weightTile = new DoubleRawArrayTile(getWeightMatrix(), 3,3)
-    gStarComplete(tile, weightTile)
-  }
 
-  def gStarComplete(tile : Tile, weight: Tile): Unit ={
+  def gStarComplete(): Unit ={
     for(i <- 1 to tile.rows){
       for(j <- 1 to tile.cols){
-        gStarForTile(tile, (i,j), weight)
+        gStarForTile((i,j))
         //print(gStarForTile(tile, (i,j), weight))
         //print(";")
       }
@@ -38,13 +51,13 @@ class GetisOrt {
   }
 
 
-  def getNumerator(tile: Tile, weight: Tile, index: (Int, Int)): Double={
+  def getNumerator(index: (Int, Int)): Double={
     val xShift = Math.floor(weight.rows/2).toInt
     val yShift = Math.floor(weight.cols/2).toInt
     var sumP1 = 0
-    for(i <- 1 to weight.rows){
-      for(j <- 1 to weight.cols){
-        if(index._1-xShift+i<0 || index._1-xShift+i>weight.rows || index._2-yShift+j<0 || index._2-yShift+j>weight.cols){
+    for(i <- 0 to weight.rows-1){
+      for(j <- 0 to weight.cols-1){
+        if(index._1-xShift+i<0 || index._1-xShift+i>tile.rows-1 || index._2-yShift+j<0 || index._2-yShift+j>tile.cols-1){
           //TODO handle bound Cases
         } else {
           sumP1 += tile.get(index._1-xShift+i, index._2-yShift+j)*weight.get(i,j)
@@ -52,24 +65,19 @@ class GetisOrt {
 
       }
     }
-    (sumP1-getXMean(tile)*getSummForTile(weight))
+    (sumP1-xMean*sumOfWeight)
   }
 
-  def getDenmonitor(tile: Tile, weight: Tile): Double = {
-    //TODO handle negative values
-    (getStandartDeviationForTile(tile)*Math.sqrt((tile.size*getPowerOfTwoForElementsAsSum(weight)-getSummForTile(weight)*getSummForTile(weight))/(tile.size-1)))
+  def getDenominator(): Double = {
+    (standardDeviation*Math.sqrt((tile.size*powerOfWeight-getSummPowerForWeight())/(tile.size-1)))
   }
 
-  def gStarForTile(tile : Tile, index : (Int, Int)) : Double ={
-    val weightTile = new DoubleRawArrayTile(getWeightMatrix(), 3,3)
-    gStarForTile(tile, index,weightTile)
-  }
-  def gStarForTile(tile : Tile, index : (Int, Int), weight: Tile) : Double ={
-    getNumerator(tile, weight, index)/getDenmonitor(tile, weight)
+  def gStarForTile(index : (Int, Int)) : Double ={
+    getNumerator(index)/getDenominator()
   }
 
-  def getStandartDeviationForTile(tile: Tile): Double ={
-    val deviation = Math.sqrt(getPowerOfTwoForElementsAsSum(tile).toFloat/tile.size.toFloat-getXMeanSquare(tile))
+  private def getStandartDeviationForTile(tile: Tile): Double ={
+    val deviation = Math.sqrt(powerOfTile.toFloat/tile.size.toFloat-xMean)
     if(deviation<=0 || deviation==Double.NaN){
       return 1 //TODO handle equal distribution case
     }
@@ -77,15 +85,19 @@ class GetisOrt {
   }
 
   def getXMeanSquare(tile: Tile): Double ={
-    getXMean(tile)*getXMean(tile)
+    xMean*xMean
   }
 
   def getSummForTile(tile: Tile): Double ={
     tile.toArrayDouble().reduce(_+_)
   }
 
+  def getSummPowerForWeight(): Double ={
+    sumOfWeight*sumOfWeight
+  }
+
   def getXMean(tile: Tile) : Double ={
-    getSummForTile(tile)/tile.size
+    sumOfTile/tile.size
   }
 
 //  def getSummOverTiles(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
@@ -106,7 +118,7 @@ class GetisOrt {
 //    layer.map(x=>x._2).fold(IntConstantTile(0, 1, 1))((x, y)=>x+y*y)/count-(xMean(layer)*xMean(layer))
 //  }
 
-  def getWeightMatrix(): Array[Double] = {
+  def getWeightMatrix(): ArrayTile = {
     //From R example
     val arrayTile = Array[Double](
        0.1, 0.3, 0.5, 0.3, 0.1,
@@ -114,22 +126,14 @@ class GetisOrt {
        0.5, 1.0, 1.0, 1.0, 0.5,
        0.3, 0.8, 1.0, 0.8, 0.3,
        0.1, 0.3, 0.5, 0.3, 0.1)
-    arrayTile
+    val weightTile = new DoubleRawArrayTile(arrayTile, 5,5)
+    weightTile
   }
 
-  def get00(layer: RDD[(SpaceTimeKey, Tile)]): Unit ={
-//    layer.map(x=>x._2).reduce((x,y)=>x.)
+  def getWeightMatrix(cols : Int, rows : Int): ArrayTile ={
+    val testTile = Array.fill(rows*cols)(1)
+    val rasterTile = new IntRawArrayTile(testTile, cols, rows)
+    rasterTile
   }
 
-  def get01(): Unit ={
-
-  }
-
-  def get10(): Unit ={
-
-  }
-
-  def get11(): Unit ={
-
-  }
 }

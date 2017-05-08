@@ -35,6 +35,11 @@ class Transformation {
   }
 
   def transformCSVtoRaster(): IntArrayTile ={
+    //https://www.google.com/maps/place/40%C2%B033'06.6%22N+74%C2%B007'46.0%22W/@40.7201276,-74.0195387,11.25z/data=!4m5!3m4!1s0x0:0x0!8m2!3d40.551826!4d-74.129441
+    //lat = 40.551826, lon=-74.129441
+    //https://www.google.com/maps/place/40%C2%B059'32.5%22N+73%C2%B035'51.3%22W/@40.8055274,-73.8900207,10.46z/data=!4m5!3m4!1s0x0:0x0!8m2!3d40.992352!4d-73.597571
+    //lat =40.992352, lon=-73.597571
+    //lat = lat_min-lat_max = 440526 = 47, lon = lon_min-lon_max =531870 = 50 km => measurements approximately in meters
     val bufferedSource = Source.fromFile("/home/marc/media/Downloads/in.csv")
     val multiToInt = 1000000
     val shiftToPostive = 74.407877*multiToInt
@@ -51,7 +56,7 @@ class Transformation {
 
 
 
-    val rasterSize = 1000 //1km
+    val rasterSize = 100 //1km
     val rasterLatLength = ((latMax-latMin)/rasterSize).ceil.toInt
     val rasterLonLength = ((lonMax-lonMin)/rasterSize).ceil.toInt
     val tile = IntArrayTile.ofDim(rasterLatLength,rasterLonLength)
