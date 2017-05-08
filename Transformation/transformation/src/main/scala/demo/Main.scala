@@ -2,6 +2,7 @@ package demo
 
 import java.sql.Connection
 
+import Export.TileVisualizer
 import clustering.Cluster
 import geotrellis.raster._
 import geotrellis.spark._
@@ -34,10 +35,11 @@ object Main {
 //    println(arrayTile.asciiDraw())
 //    val tile = db.getRaster()
     startTime = System.currentTimeMillis()
-    ort.gStarComplete()
+    val score = ort.gStarComplete()
     println("Time for G* ="+((System.currentTimeMillis()-startTime)/1000))
     //println(ort.gStarComplete(arrayTile))
-
+    val image = new TileVisualizer()
+    image.visualTile(score)
     println("Total Time because maybe of lazy evaluations ="+((System.currentTimeMillis()-totalTime)/1000))
     println("End")
   }

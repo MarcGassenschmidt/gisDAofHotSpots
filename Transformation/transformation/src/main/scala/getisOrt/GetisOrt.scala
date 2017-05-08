@@ -1,6 +1,7 @@
 package gisOrt
 
-import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntArrayTile, IntConstantTile, IntRawArrayTile, Tile}
+import geotrellis.macros.{DoubleTileMapper, DoubleTileVisitor, IntTileMapper, IntTileVisitor}
+import geotrellis.raster.{ArrayTile, CellType, DoubleArrayTile, DoubleRawArrayTile, IntArrayTile, IntConstantTile, IntRawArrayTile, MutableArrayTile, Tile}
 import geotrellis.raster.mapalgebra.focal.{Neighborhood, Square}
 import geotrellis.spark.{Metadata, SpaceTimeKey, SpatialKey, TileLayerMetadata}
 import org.apache.spark.rdd.RDD
@@ -38,26 +39,24 @@ class GetisOrt(tile : Tile, cols : Int, rows : Int) {
   }
 
 
-  def gStarComplete(): Unit ={
-    for(i <- 1 to tile.rows){
-      for(j <- 1 to tile.cols){
-        gStarForTile((i,j))
-        //print(gStarForTile(tile, (i,j), weight))
-        //print(";")
+  def gStarComplete(): Tile ={
+    val tileG = DoubleArrayTile.ofDim(tile.rows, tile.cols)
+    for(i <- 0 to tile.rows-1){
+      for(j <- 0 to tile.cols-1){
+        tileG.setDouble(i,j,gStarForTile((i,j)))
       }
-      //println("")
     }
-
+    tileG
   }
 
 
   def getNumerator(index: (Int, Int)): Double={
-    val xShift = Math.floor(weight.rows/2).toInt
-    val yShift = Math.floor(weight.cols/2).toInt
+    val xShift = Math.floor(weight.cols/2).toInt
+    val yShift = Math.floor(weight.rows/2).toInt
     var sumP1 = 0
-    for(i <- 0 to weight.rows-1){
-      for(j <- 0 to weight.cols-1){
-        if(index._1-xShift+i<0 || index._1-xShift+i>tile.rows-1 || index._2-yShift+j<0 || index._2-yShift+j>tile.cols-1){
+    for(i <- 0 to weight.cols-1){
+      for(j <- 0 to weight.rows-1){
+        if(index._1-xShift+i<0 || index._1-xShift+i>tile.cols-1 || index._2-yShift+j<0 || index._2-yShift+j>tile.rows-1){
           //TODO handle bound Cases
         } else {
           sumP1 += tile.get(index._1-xShift+i, index._2-yShift+j)*weight.get(i,j)
