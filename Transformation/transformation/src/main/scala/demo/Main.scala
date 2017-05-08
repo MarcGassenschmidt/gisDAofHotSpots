@@ -8,6 +8,7 @@ import geotrellis.spark._
 import org.apache.spark.{SparkConf, SparkContext}
 import db.{ImportToDB, QueryDb}
 import gisOrt.GetisOrt
+import rasterTransformation.Transformation
 
 import scala.slick.driver.PostgresDriver.simple._
 
@@ -16,12 +17,19 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     println(helloSentence)
-
-    val db  = new QueryDb()
-    val arrayTile = db.readGeoTiff()
+    val transform = new Transformation
+    var startTime = System.currentTimeMillis()/1000
+    val arrayTile = transform.transformCSVtoRaster()
     val ort = new GetisOrt()
+    println("Time for RasterTransformation ="+(System.currentTimeMillis()/1000-startTime))
+ //   println(arrayTile.asciiDraw())
 //    val tile = db.getRaster()
-    println(ort.gStarForTile(arrayTile, (100, 100)))
+    startTime = System.currentTimeMillis()
+    ort.gStarComplete(arrayTile)
+    println("Time for G* ="+((System.currentTimeMillis()-startTime)/1000))
+    //println(ort.gStarComplete(arrayTile))
+
+
     println("End")
   }
 

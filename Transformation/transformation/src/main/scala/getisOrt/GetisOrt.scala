@@ -10,6 +10,7 @@ import org.apache.spark.rdd.RDD
   */
 class GetisOrt {
 
+
   def gStar(layer: RDD[(SpaceTimeKey, Tile)] with Metadata[TileLayerMetadata[SpaceTimeKey]], weight : Array[Int]): Unit ={
     layer.metadata.gridBounds
 
@@ -18,6 +19,24 @@ class GetisOrt {
     Square(1)
 
   }
+
+  def gStarComplete(tile : Tile): Unit ={
+    val weightTile = new DoubleRawArrayTile(getWeightMatrix(), 3,3)
+    gStarComplete(tile, weightTile)
+  }
+
+  def gStarComplete(tile : Tile, weight: Tile): Unit ={
+    for(i <- 1 to tile.rows){
+      for(j <- 1 to tile.cols){
+        gStarForTile(tile, (i,j), weight)
+        //print(gStarForTile(tile, (i,j), weight))
+        //print(";")
+      }
+      //println("")
+    }
+
+  }
+
 
   def getNumerator(tile: Tile, weight: Tile, index: (Int, Int)): Double={
     val xShift = Math.floor(weight.rows/2).toInt

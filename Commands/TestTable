@@ -77,3 +77,30 @@ t.geompickup, 0.1, -0.1, 10, 10, '8BUI'
 )
 ), 'hex') AS png FROM test as t where t.id<1000) TO '/tmp/myimage.hex';
 
+
+COPY (
+SELECT encode(
+ST_AsPNG(
+(
+SELECT 
+ST_Tile(ST_Union(
+ST_AsRaster(
+t.geompickup, 0.1, -0.1, 10, 10, '8BUI', -9999
+)
+), 100,100)
+ FROM test as t where t.id<1000 limit 1
+)
+), 'hex') AS png FROM test) TO '/tmp/myimage.hex';
+
+SELECT
+ST_AsPNG(ST_Tile(ST_Union(
+	ST_AsRaster(
+		t.geompickup, 0.1, -0.1, 10, 10, '8BUI', 9
+		)
+	),
+	 
+	10,10)) rast
+ FROM test as t where t.id<1000;
+
+select t.lonpickup From test as t where t.lonpickup > -73.292793 and t.lonpickup!=0
+

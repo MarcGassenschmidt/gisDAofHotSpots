@@ -39,6 +39,7 @@ class QueryDb {
     //val e: Extent = Extent(0, 1, 2, 3)
     //val geoTiff: SinglebandGeoTiff = GeoTiffReader.(path, e)
     val geoTiff: SinglebandGeoTiff =SinglebandGeoTiff.streaming(path)
+
     val arrayTile = geoTiff.toArrayTile()
     arrayTile
 
