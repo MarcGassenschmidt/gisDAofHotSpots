@@ -60,7 +60,7 @@ class Transformation {
 
 
 
-    val rasterSize = 100 //m
+    val rasterSize = 200 //m
     val rasterLatLength = ((latMax-latMin)/rasterSize).ceil.toInt
     val rasterLonLength = ((lonMax-lonMin)/rasterSize).ceil.toInt
     val tile = IntArrayTile.ofDim(rasterLatLength,rasterLonLength)

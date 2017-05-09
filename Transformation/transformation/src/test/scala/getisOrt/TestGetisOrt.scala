@@ -36,6 +36,15 @@ class TestGetisOrt extends FunSuite {
     println(gStart.printG_StarComplete())
   }
 
+  test("Test Weight"){
+    val rnd = new Random(1)
+    val testTile = Array.fill(100)(rnd.nextInt(100))
+    val rasterTile = new IntRawArrayTile(testTile, 10, 10)
+    val gStart = new GetisOrt(rasterTile,3,3)
+    println(gStart.getWeightMatrixDefined(4,4).toArrayDouble().mkString(":"))
+
+  }
+
 
 
 }

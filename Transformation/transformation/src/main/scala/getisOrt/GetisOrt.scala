@@ -57,7 +57,7 @@ class GetisOrt(tile : Tile, cols : Int, rows : Int) {
     number match {
       case Weight.One => weight = getWeightMatrix(5,5)
       case Weight.Square => weight = getWeightMatrixSquare()
-      case Weight.Defined => weight = getWeightMatrix()
+      case Weight.Defined => weight = getWeightMatrixDefined(50,50)
       case Weight.Big => weight = getWeightMatrix(50,50)
       case Weight.High => weight = getWeightMatrixHigh()
     }
@@ -148,14 +148,33 @@ class GetisOrt(tile : Tile, cols : Int, rows : Int) {
     weightTile
   }
 
-  def getWeightMatrixDefined(cols : Int, rows : Int): ArrayTile = {
-    var array = Array[Double](cols*rows)
-    for(i <- 0 to cols-1){
-      for(j <- 0 to rows-1){
-        array(i+i*j) = 1
+
+
+
+  def setCenter(array: Array[Array[Double]], cols: Int, rows: Int): Unit = {
+    val centerCols =(cols/2.0).toInt
+    val centerRows =(rows/2.0).toInt
+
+    for(i <- 1 to 27) {
+      for(j <- 1 to 27) {
+        array(centerCols+i-13)(centerRows+j-13) = 0.9
       }
     }
-    val weightTile = new DoubleRawArrayTile(array, cols, rows)
+    array(centerCols)(centerRows) = 1
+  }
+
+  def getWeightMatrixDefined(cols : Int, rows : Int): ArrayTile = {
+    var array = Array.ofDim[Double](cols,rows)
+    for(i <- 0 to cols-1){
+      for(j <- 0 to rows-1){
+        array(i)(j) = 0.7
+      }
+    }
+    setCenter(array, cols, rows)
+
+
+
+    val weightTile = new DoubleRawArrayTile(array.flatten, cols, rows)
     weightTile
   }
 
