@@ -8,7 +8,7 @@ import geotrellis.raster._
 import geotrellis.spark._
 import org.apache.spark.{SparkConf, SparkContext}
 import db.{ImportToDB, QueryDb}
-import gisOrt.GetisOrt
+import gisOrt.{GetisOrt, Weight}
 import rasterTransformation.Transformation
 
 import scala.slick.driver.PostgresDriver.simple._
@@ -35,12 +35,16 @@ object Main {
 //    println(arrayTile.asciiDraw())
 //    val tile = db.getRaster()
     startTime = System.currentTimeMillis()
-    val score = ort.gStarComplete()
+    var score = ort.gStarComplete()
+    ort.createNewWeight(Weight.Defined)
     println("Time for G* ="+((System.currentTimeMillis()-startTime)/1000))
     //println(ort.gStarComplete(arrayTile))
     val image = new TileVisualizer()
-    image.visualTile(score)
-    println("Total Time because maybe of lazy evaluations ="+((System.currentTimeMillis()-totalTime)/1000))
+    startTime = System.currentTimeMillis()
+    image.visualTile(score, "defined2")
+    println("Time for Image ="+((System.currentTimeMillis()-startTime)/1000))
+
+    println("Total Time ="+((System.currentTimeMillis()-totalTime)/1000))
     println("End")
   }
 

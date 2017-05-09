@@ -41,16 +41,16 @@ class Transformation {
     //lat =40.992352, lon=-73.597571
     //lat = lat_min-lat_max = 440526 = 47, lon = lon_min-lon_max =531870 = 50 km => measurements approximately in meters
 
-    //other values
-    //40.539310, -74.079634
-    //40.790031, -73.857499
+    //other values https://www.deine-berge.de/Rechner/Koordinaten/Dezimal/40.800296,-73.928375
+    //40.800296, -73.928375
+    //40.703286, -74.019012
     val bufferedSource = Source.fromFile("/home/marc/Downloads/in.csv")
     val multiToInt = 1000000
-    val shiftToPostive = 74.407877*multiToInt
-    val latMin = 40.539310*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
-    val lonMin = -74.079634*multiToInt+shiftToPostive//Math.max(file.map(row => row.lon).min,-74.407877)
-    val latMax = 40.790031*multiToInt//Math.min(file.map(row => row.lat).max,41.330106)
-    val lonMax = -73.857499*multiToInt+shiftToPostive//Math.min(file.map(row => row.lon).max,-73.292793)
+    val shiftToPostive = 74.019012*multiToInt
+    val latMin = 40.703286*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
+    val lonMin = -74.019012*multiToInt+shiftToPostive//Math.max(file.map(row => row.lon).min,-74.407877)
+    val latMax = 40.800296*multiToInt//Math.min(file.map(row => row.lat).max,41.330106)
+    val lonMax = -73.928375*multiToInt+shiftToPostive//Math.min(file.map(row => row.lon).max,-73.292793)
 
     val file = bufferedSource.getLines.drop(1).map(line => {
       val cols = line.split(",").map(_.trim)
@@ -60,7 +60,7 @@ class Transformation {
 
 
 
-    val rasterSize = 200 //m
+    val rasterSize = 100 //m
     val rasterLatLength = ((latMax-latMin)/rasterSize).ceil.toInt
     val rasterLonLength = ((lonMax-lonMin)/rasterSize).ceil.toInt
     val tile = IntArrayTile.ofDim(rasterLatLength,rasterLonLength)

@@ -1,5 +1,6 @@
 package gisOrt
 
+
 import geotrellis.macros.{DoubleTileMapper, DoubleTileVisitor, IntTileMapper, IntTileVisitor}
 import geotrellis.raster.{ArrayTile, CellType, DoubleArrayTile, DoubleRawArrayTile, IntArrayTile, IntConstantTile, IntRawArrayTile, MutableArrayTile, Tile}
 import geotrellis.raster.mapalgebra.focal.{Neighborhood, Square}
@@ -10,11 +11,11 @@ import org.apache.spark.rdd.RDD
   * Created by marc on 27.04.17.
   */
 class GetisOrt(tile : Tile, cols : Int, rows : Int) {
-  val weight : Tile = if(cols == 0 && rows ==0) this.getWeightMatrix() else this.getWeightMatrix(cols, rows) //0,0 for Testing
+  var weight : Tile = this.getWeightMatrix(cols, rows) //0,0 for Testing
   val sumOfTile : Double = this.getSummForTile(tile)
-  val sumOfWeight : Double = this.getSummForTile(weight)
+  var sumOfWeight : Double = this.getSummForTile(weight)
   val xMean : Double = this.getXMean(tile)
-  val powerOfWeight : Double =  getPowerOfTwoForElementsAsSum(weight)
+  var powerOfWeight : Double =  getPowerOfTwoForElementsAsSum(weight)
   val powerOfTile : Double =  getPowerOfTwoForElementsAsSum(tile)
   val standardDeviation: Double = this.getStandartDeviationForTile(tile)
 
@@ -47,6 +48,24 @@ class GetisOrt(tile : Tile, cols : Int, rows : Int) {
       }
     }
     tileG
+  }
+
+
+
+
+  def createNewWeight(number : Weight.Value) : Unit = {
+    number match {
+      case Weight.One => weight = getWeightMatrix(5,5)
+      case Weight.Square => weight = getWeightMatrixSquare()
+      case Weight.Defined => weight = getWeightMatrix()
+      case Weight.Big => weight = getWeightMatrix(50,50)
+      case Weight.High => weight = getWeightMatrixHigh()
+    }
+
+
+
+    sumOfWeight = this.getSummForTile(weight)
+    powerOfWeight =  getPowerOfTwoForElementsAsSum(weight)
   }
 
 
@@ -129,10 +148,49 @@ class GetisOrt(tile : Tile, cols : Int, rows : Int) {
     weightTile
   }
 
+  def getWeightMatrixDefined(cols : Int, rows : Int): ArrayTile = {
+    var array = Array[Double](cols*rows)
+    for(i <- 0 to cols-1){
+      for(j <- 0 to rows-1){
+        array(i+i*j) = 1
+      }
+    }
+    val weightTile = new DoubleRawArrayTile(array, cols, rows)
+    weightTile
+  }
+
   def getWeightMatrix(cols : Int, rows : Int): ArrayTile ={
     val testTile = Array.fill(rows*cols)(1)
     val rasterTile = new IntRawArrayTile(testTile, cols, rows)
     rasterTile
   }
 
+  def getWeightMatrixSquare(): ArrayTile ={
+    val arrayTile = Array[Double](
+      0.0, 0.0, 0.1, 0.0, 0.0,
+      0.0, 0.4, 1.0, 0.4, 0.0,
+      0.1, 0.5, 1.0, 5.0, 0.1,
+      0.0, 0.4, 1.0, 0.4, 0.0,
+      0.0, 0.0, 0.1, 0.0, 0.0)
+    val weightTile = new DoubleRawArrayTile(arrayTile, 5,5)
+    weightTile
+  }
+
+  def getWeightMatrixHigh(): ArrayTile ={
+    val arrayTile = Array[Double](
+      5, 5, 25, 5, 5,
+      5, 25, 50.0, 25, 5,
+      25, 50, 100, 50, 25,
+      5, 25, 50, 25, 5,
+      5, 5, 25, 5, 5)
+    val weightTile = new DoubleRawArrayTile(arrayTile, 5,5)
+    weightTile
+  }
+
+
+}
+
+object Weight extends Enumeration {
+  type Weight = Value
+  val One, Square, Big, High, Defined = Value
 }
