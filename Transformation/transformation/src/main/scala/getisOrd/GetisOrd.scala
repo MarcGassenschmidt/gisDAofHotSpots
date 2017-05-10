@@ -10,7 +10,7 @@ import org.apache.spark.rdd.RDD
 /**
   * Created by marc on 27.04.17.
   */
-class GetisOrt(tile : Tile, cols : Int, rows : Int) {
+class GetisOrd(tile : Tile, cols : Int, rows : Int) {
   var weight : Tile = this.getWeightMatrix(cols, rows) //0,0 for Testing
   val sumOfTile : Double = this.getSummForTile(tile)
   var sumOfWeight : Double = this.getSummForTile(weight)
@@ -57,7 +57,7 @@ class GetisOrt(tile : Tile, cols : Int, rows : Int) {
     number match {
       case Weight.One => weight = getWeightMatrix(5,5)
       case Weight.Square => weight = getWeightMatrixSquare()
-      case Weight.Defined => weight = getWeightMatrixDefined(50,50)
+      case Weight.Defined => weight = getWeightMatrixDefined(70,70)
       case Weight.Big => weight = getWeightMatrix(50,50)
       case Weight.High => weight = getWeightMatrixHigh()
     }

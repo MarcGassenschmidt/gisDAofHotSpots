@@ -8,7 +8,7 @@ import geotrellis.raster._
 import geotrellis.spark._
 import org.apache.spark.{SparkConf, SparkContext}
 import db.{ImportToDB, QueryDb}
-import gisOrt.{GetisOrt, Weight}
+import gisOrt.{GetisOrd, Weight}
 import rasterTransformation.Transformation
 
 import scala.slick.driver.PostgresDriver.simple._
@@ -29,19 +29,19 @@ object Main {
     println("Time for Downsample with factor 50 ="+((System.currentTimeMillis()-startTime)/1000))
     println("Raster Size (cols,rows)=("+reducedTile.cols+","+reducedTile.rows+")")
     startTime = System.currentTimeMillis()
-    val ort = new GetisOrt(arrayTile, 3,3)
+    val ort = new GetisOrd(arrayTile, 3,3)
     println("Time for static G* values ="+((System.currentTimeMillis()-startTime)/1000))
 
 //    println(arrayTile.asciiDraw())
 //    val tile = db.getRaster()
     startTime = System.currentTimeMillis()
     var score = ort.gStarComplete()
-    ort.createNewWeight(Weight.Defined)
+    ort.createNewWeight(Weight.Big)
     println("Time for G* ="+((System.currentTimeMillis()-startTime)/1000))
     //println(ort.gStarComplete(arrayTile))
     val image = new TileVisualizer()
     startTime = System.currentTimeMillis()
-    image.visualTile(score, "defined2")
+    image.visualTile(score, "dropOffsmall")
     println("Time for Image ="+((System.currentTimeMillis()-startTime)/1000))
 
     println("Total Time ="+((System.currentTimeMillis()-totalTime)/1000))

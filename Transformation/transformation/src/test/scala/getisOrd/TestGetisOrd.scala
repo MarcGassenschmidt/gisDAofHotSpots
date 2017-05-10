@@ -1,21 +1,21 @@
-package getisOrt
+package getisOrd
 
 
 import java.util.Random
 
 import geotrellis.raster.{DoubleRawArrayTile, IntArrayTile, IntRawArrayTile}
-import gisOrt.GetisOrt
+import gisOrt.GetisOrd
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 /**
   * Created by marc on 28.04.17.
   */
-class TestGetisOrt extends FunSuite {
+class TestGetisOrd extends FunSuite {
 
   test("Test GetisOrt Implementation"){
     val testTile = Array.fill(120000)(2)
     val rasterTile = new IntRawArrayTile(testTile, 300, 400)
-    val gStart = new GetisOrt(rasterTile, 0,0)
+    val gStart = new GetisOrd(rasterTile, 0,0)
     assert(gStart.gStarForTile(150,200) >= (-8.517 - 0.01) || gStart.gStarForTile(150,200) <= (-8.517 + 0.01))
   }
 
@@ -23,7 +23,7 @@ class TestGetisOrt extends FunSuite {
     val rnd = new Random(1)
     val testTile = Array.fill(100)(rnd.nextInt(100))
     val rasterTile = new IntRawArrayTile(testTile, 10, 10)
-    val gStart = new GetisOrt(rasterTile,3,3)
+    val gStart = new GetisOrd(rasterTile,3,3)
     println(rasterTile.asciiDraw())
     println("Weight ="+gStart.weight.asciiDraw())
     println("Sum of Tile="+gStart.sumOfTile)
@@ -40,7 +40,7 @@ class TestGetisOrt extends FunSuite {
     val rnd = new Random(1)
     val testTile = Array.fill(100)(rnd.nextInt(100))
     val rasterTile = new IntRawArrayTile(testTile, 10, 10)
-    val gStart = new GetisOrt(rasterTile,3,3)
+    val gStart = new GetisOrd(rasterTile,3,3)
     println(gStart.getWeightMatrixDefined(4,4).toArrayDouble().mkString(":"))
 
   }

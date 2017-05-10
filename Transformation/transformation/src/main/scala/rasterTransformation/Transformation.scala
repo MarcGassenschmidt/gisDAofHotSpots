@@ -1,6 +1,7 @@
 package rasterTransformation
 
 import java.io.{File, PrintWriter}
+import java.text.SimpleDateFormat
 
 import clustering.Row
 import geotrellis.raster._
@@ -12,6 +13,7 @@ import org.apache.hadoop.fs.Path
 import geotrellis.vector._
 import org.apache.hadoop.mapred.{FileInputFormat, JobConf}
 import org.apache.spark.{SparkConf, SparkContext}
+import org.joda.time.format.DateTimeFormat
 
 import scala.io.Source
 /**
@@ -44,20 +46,28 @@ class Transformation {
     //other values https://www.deine-berge.de/Rechner/Koordinaten/Dezimal/40.800296,-73.928375
     //40.800296, -73.928375
     //40.703286, -74.019012
+
+    //sample
+    //40.763458, -73.967244
+    //40.701915, -74.018704
     val bufferedSource = Source.fromFile("/home/marc/Downloads/in.csv")
     val multiToInt = 1000000
-    val shiftToPostive = 74.019012*multiToInt
-    val latMin = 40.703286*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
-    val lonMin = -74.019012*multiToInt+shiftToPostive//Math.max(file.map(row => row.lon).min,-74.407877)
-    val latMax = 40.800296*multiToInt//Math.min(file.map(row => row.lat).max,41.330106)
-    val lonMax = -73.928375*multiToInt+shiftToPostive//Math.min(file.map(row => row.lon).max,-73.292793)
-
+    val shiftToPostive = 74.018704*multiToInt
+    val latMin = 40.701915*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
+    val lonMin = -74.018704*multiToInt+shiftToPostive//Math.max(file.map(row => row.lon).min,-74.407877)
+    val latMax = 40.763458*multiToInt//Math.min(file.map(row => row.lat).max,41.330106)
+    val lonMax = -73.967244*multiToInt+shiftToPostive//Math.min(file.map(row => row.lon).max,-73.292793)
+    //2016-02-25 17:24:20
+    val formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
     val file = bufferedSource.getLines.drop(1).map(line => {
       val cols = line.split(",").map(_.trim)
-      val result = new RowTransformation(lon = (cols(5).toDouble*multiToInt+shiftToPostive).toInt, lat = (cols(6).toDouble*multiToInt).toInt)
+      val result = new RowTransformationTime(
+          lon = (cols(9).toDouble*multiToInt+shiftToPostive).toInt,
+          lat = (cols(10).toDouble*multiToInt).toInt,
+          time = formatter.parseDateTime(cols(2)))
       result
     }).filter(row => row.lon>lonMin && row.lon<lonMax && row.lat>latMin && row.lat<latMax) //To remove entries not in range
-
+    //.filter(row => (row.time.getHourOfDay> 20 && row.time.getHourOfDay()< 22)) //To look at data range
 
 
     val rasterSize = 200 //m

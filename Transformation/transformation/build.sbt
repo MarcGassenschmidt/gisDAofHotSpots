@@ -34,7 +34,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick" % "slick_2.10.1" % "2.0.0-M1",
   "org.mockito" % "mockito-all" % "1.8.4",
   "org.apache.spark" % "spark-sql_2.11" % "2.1.0",
-  "net.sf.opencsv" % "opencsv" % "2.3"
+  "net.sf.opencsv" % "opencsv" % "2.3",
+  "joda-time" % "joda-time" % "2.9.9"
 
 )
 

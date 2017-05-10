@@ -1,4 +1,4 @@
-package getisOrt
+package getisOrd
 
 /**
   * Created by marc on 09.05.17.
