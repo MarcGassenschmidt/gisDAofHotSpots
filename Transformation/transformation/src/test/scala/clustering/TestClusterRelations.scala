@@ -1,4 +1,4 @@
-package Cluster
+package clustering
 
 import clustering.ClusterRelations
 import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntRawArrayTile}
@@ -50,6 +50,8 @@ class TestClusterRelations extends FunSuite{
     assert(7==result._2.cols)
     assert(result._1.rows==5)
     assert(5==result._2.rows)
+    assert(result._1.findMinMax==(1,1))
+    assert((1,1)==result._2.findMinMax)
   }
 
   def getTile(cols : Int, rows : Int): ArrayTile ={

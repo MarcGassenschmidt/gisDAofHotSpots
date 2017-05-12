@@ -1,4 +1,4 @@
-package Cluster
+package clustering
 
 import clustering.ClusterHotSpots
 import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntArrayTile, IntRawArrayTile}

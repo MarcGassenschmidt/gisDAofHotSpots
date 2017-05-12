@@ -1,4 +1,4 @@
-package Export
+package export
 
 import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntRawArrayTile}
 import getisOrd.GetisOrd

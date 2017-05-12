@@ -1,4 +1,4 @@
-package Export
+package export
 
 import java.awt.Color
 import java.awt.image.BufferedImage

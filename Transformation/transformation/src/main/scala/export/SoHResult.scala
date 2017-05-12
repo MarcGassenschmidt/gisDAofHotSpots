@@ -1,4 +1,4 @@
-package Export
+package export
 
 import geotrellis.raster.Tile
 import getisOrd.Weight.Weight

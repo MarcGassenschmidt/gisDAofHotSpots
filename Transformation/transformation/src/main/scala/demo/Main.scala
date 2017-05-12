@@ -3,7 +3,7 @@ package demo
 import java.sql.Connection
 import java.util
 
-import Export.{SerializeTile, SoHResult, TileVisualizer}
+import export.{SerializeTile, SoHResult, TileVisualizer}
 import clustering.{Cluster, ClusterHotSpots}
 import geotrellis.raster._
 import geotrellis.spark._
