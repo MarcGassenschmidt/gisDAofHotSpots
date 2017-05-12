@@ -1,7 +1,7 @@
 package Export
 
 import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntRawArrayTile}
-import gisOrt.GetisOrd
+import getisOrd.GetisOrd
 import org.scalatest.FunSuite
 
 /**

@@ -4,7 +4,7 @@ package getisOrd
 import java.util.Random
 
 import geotrellis.raster.{DoubleRawArrayTile, IntArrayTile, IntRawArrayTile}
-import gisOrt.GetisOrd
+import getisOrd.GetisOrd
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 /**

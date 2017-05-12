@@ -1,4 +1,4 @@
-package gisOrt
+package getisOrd
 
 
 import geotrellis.macros.{DoubleTileMapper, DoubleTileVisitor, IntTileMapper, IntTileVisitor}
@@ -12,12 +12,12 @@ import org.apache.spark.rdd.RDD
   */
 class GetisOrd(tile : Tile, cols : Int, rows : Int) {
   var weight : Tile = this.getWeightMatrix(cols, rows) //0,0 for Testing
-  val sumOfTile : Double = this.getSummForTile(tile)
+  var sumOfTile : Double = this.getSummForTile(tile)
   var sumOfWeight : Double = this.getSummForTile(weight)
-  val xMean : Double = this.getXMean(tile)
+  var xMean : Double = this.getXMean(tile)
   var powerOfWeight : Double =  getPowerOfTwoForElementsAsSum(weight)
-  val powerOfTile : Double =  getPowerOfTwoForElementsAsSum(tile)
-  val standardDeviation: Double = this.getStandartDeviationForTile(tile)
+  var powerOfTile : Double =  getPowerOfTwoForElementsAsSum(tile)
+  var standardDeviation: Double = this.getStandartDeviationForTile(tile)
 
 
 
@@ -41,9 +41,9 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
 
 
   def gStarComplete(): Tile ={
-    val tileG = DoubleArrayTile.ofDim(tile.rows, tile.cols)
-    for(i <- 0 to tile.rows-1){
-      for(j <- 0 to tile.cols-1){
+    val tileG = DoubleArrayTile.ofDim(tile.cols, tile.rows)
+    for(i <- 0 to tile.cols-1){
+      for(j <- 0 to tile.rows-1){
         tileG.setDouble(i,j,gStarForTile((i,j)))
       }
     }
@@ -53,7 +53,7 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
 
 
 
-  def createNewWeight(number : Weight.Value) : Unit = {
+  def createNewWeight(number : Weight.Value) : Tile = {
     number match {
       case Weight.One => weight = getWeightMatrix(5,5)
       case Weight.Square => weight = getWeightMatrixSquare()
@@ -66,6 +66,7 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
 
     sumOfWeight = this.getSummForTile(weight)
     powerOfWeight =  getPowerOfTwoForElementsAsSum(weight)
+    weight
   }
 
 
@@ -94,7 +95,7 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
     getNumerator(index)/getDenominator()
   }
 
-  private def getStandartDeviationForTile(tile: Tile): Double ={
+  def getStandartDeviationForTile(tile: Tile): Double ={
     val deviation = Math.sqrt(powerOfTile.toFloat/tile.size.toFloat-xMean)
     if(deviation<=0 || deviation==Double.NaN){
       return 1 //TODO handle equal distribution case
