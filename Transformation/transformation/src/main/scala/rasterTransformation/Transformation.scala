@@ -14,6 +14,7 @@ import geotrellis.vector._
 import org.apache.hadoop.mapred.{FileInputFormat, JobConf}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.joda.time.format.DateTimeFormat
+import parmeters.Parameters
 
 import scala.io.Source
 /**
@@ -36,7 +37,7 @@ class Transformation {
 //    val writer = HadoopLayerWriter(rootPath, store)
   }
 
-  def transformCSVtoRaster(): IntArrayTile ={
+  def transformCSVtoRaster(parmeters : Parameters): IntArrayTile ={
     //https://www.google.com/maps/place/40%C2%B033'06.6%22N+74%C2%B007'46.0%22W/@40.7201276,-74.0195387,11.25z/data=!4m5!3m4!1s0x0:0x0!8m2!3d40.551826!4d-74.129441
     //lat = 40.551826, lon=-74.129441
     //https://www.google.com/maps/place/40%C2%B059'32.5%22N+73%C2%B035'51.3%22W/@40.8055274,-73.8900207,10.46z/data=!4m5!3m4!1s0x0:0x0!8m2!3d40.992352!4d-73.597571
@@ -70,15 +71,15 @@ class Transformation {
     //.filter(row => (row.time.getHourOfDay> 20 && row.time.getHourOfDay()< 22)) //To look at data range
 
 
-    val rasterSize = 200 //m
-    val rasterLatLength = ((latMax-latMin)/rasterSize).ceil.toInt
-    val rasterLonLength = ((lonMax-lonMin)/rasterSize).ceil.toInt
+
+    val rasterLatLength = ((latMax-latMin)/parmeters.sizeOfRasterLat).ceil.toInt
+    val rasterLonLength = ((lonMax-lonMin)/parmeters.sizeOfRasterLon).ceil.toInt
     val tile = IntArrayTile.ofDim(rasterLatLength,rasterLonLength)
     var colIndex = 0
     var rowIndex = 0
     for(row <- file){
-      colIndex = ((row.lat-latMin)/rasterSize).toInt
-      rowIndex = ((row.lon-lonMin)/rasterSize).toInt
+      colIndex = ((row.lat-latMin)/parmeters.sizeOfRasterLat).toInt
+      rowIndex = ((row.lon-lonMin)/parmeters.sizeOfRasterLon).toInt
       tile.set(colIndex,rowIndex,tile.get(colIndex,rowIndex)+1)
     }
 //    file.map(row => {

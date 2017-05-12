@@ -19,14 +19,15 @@ object Main {
   def helloSentence = "Start"
 
   def main(args: Array[String]): Unit = {
-
+    val para = new parmeters.Parameters()
     val totalTime = System.currentTimeMillis()
     println(helloSentence)
-    val tile = getRaster(false)
+    val tile = getRaster(para)
     var results = new util.ArrayList[SoHResult]()
-    results.add(new SoHResult(tile,))
+
+    //results.add(new SoHResult(tile))
     //resampleRaster(tile)
-    val score = gStar(tile, Weight.Big)
+    val score = gStar(tile, para)
     val chs = new ClusterHotSpots(score)
     println("HotSpots ="+score.toArrayDouble().count(x => x > 2))
     println("Clusters = "+chs.findClusters(5,3)._2)
@@ -44,10 +45,11 @@ object Main {
     println("Raster Size (cols,rows)=(" + reducedTile.cols + "," + reducedTile.rows + ")")
   }
 
-  def creatRaster(): Tile = {
+  def creatRaster(para : parmeters.Parameters): Tile = {
     var startTime = System.currentTimeMillis()
     val transform = new Transformation
-    val arrayTile = transform.transformCSVtoRaster()
+
+    val arrayTile = transform.transformCSVtoRaster(para)
     println("Time for RasterTransformation =" + ((System.currentTimeMillis() - startTime) / 1000))
     println("Raster Size (cols,rows)=(" + arrayTile.cols + "," + arrayTile.rows + ")")
     arrayTile
@@ -71,9 +73,9 @@ object Main {
 
   }
 
-  def getRaster(fromCSV : Boolean): Tile = {
-    if(fromCSV){
-      return creatRaster()
+  def getRaster(para : parmeters.Parameters): Tile = {
+    if(para.fromFile){
+      return creatRaster(para)
     } else {
       //from serilizable
       val serilizer = new SerializeTile("/home/marc/Masterarbeit/outPut/raster")
@@ -86,31 +88,31 @@ object Main {
     serilizer.write(tile)
   }
 
-  def gStar(tile : Tile, weight: Weight): Tile = {
+  def gStar(tile : Tile, para : parmeters.Parameters): Tile = {
     var startTime = System.currentTimeMillis()
     val ort = new GetisOrd(tile, 3, 3)
     println("Time for static G* values =" + ((System.currentTimeMillis() - startTime) / 1000))
     startTime = System.currentTimeMillis()
     var score = ort.gStarComplete()
 
-    ort.createNewWeight(weight)
+    ort.createNewWeight(para.weightMatrix)
     println("Time for G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     //println(ort.gStarComplete(arrayTile))
     val image = new TileVisualizer()
     startTime = System.currentTimeMillis()
-    image.visualTile(score, weight+"_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTile(score, para.weightMatrix+"_meta_"+tile.rows+"_"+tile.cols)
     println("Time for Image G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     score
   }
 
-  def gStarFocal(tile : Tile, weight: Weight): Unit = {
+  def gStarFocal(tile : Tile, para : parmeters.Parameters): Unit = {
     var startTime = System.currentTimeMillis()
-    val ortFocal = new GetisOrdFocal(tile, 3, 3, 50, weight)
+    val ortFocal = new GetisOrdFocal(tile, 3, 3, 50, para.weightMatrix)
     var score = ortFocal.gStarComplete()
     println("Time for Focal G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     startTime = System.currentTimeMillis()
     val image = new TileVisualizer()
-    image.visualTile(score, weight+"focal_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTile(score, para.weightMatrix+"focal_meta_"+tile.rows+"_"+tile.cols)
     println("Time for Focal G* Image=" + ((System.currentTimeMillis() - startTime) / 1000))
   }
 

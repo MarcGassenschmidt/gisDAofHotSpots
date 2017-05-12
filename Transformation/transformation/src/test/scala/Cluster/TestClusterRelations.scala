@@ -1,13 +1,63 @@
 package Cluster
 
 import clustering.ClusterRelations
-import geotrellis.raster.{ArrayTile, DoubleRawArrayTile}
+import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntRawArrayTile}
 import org.scalatest.FunSuite
 
 /**
   * Created by marc on 12.05.17.
   */
 class TestClusterRelations extends FunSuite{
+  test("Test ClusterRelations::rescaleBiggerTile"){
+    val cr = new ClusterRelations()
+    var tile1 = getTile(4,5)
+    var tile2 = getTile(4,5)
+    cr.rescaleBiggerTile(tile1,tile2)
+    assert(tile1.cols==tile2.cols)
+    assert(tile1.rows==tile2.rows)
+    tile1 = getTile(7,7)
+    tile2 = getTile(4,5)
+    var result = cr.rescaleBiggerTile(tile1,tile2)
+    assert(result._1.cols==7)
+    assert(7==result._2.cols)
+    assert(result._1.rows==7)
+    assert(7==result._2.rows)
+    tile1 = getTile(7,7)
+    tile2 = getTile(8,8)
+    result = cr.rescaleBiggerTile(tile1,tile2)
+    assert(result._1.cols==8)
+    assert(8==result._2.cols)
+    assert(result._1.rows==8)
+    assert(8==result._2.rows)
+    tile1 = getTile(7,7)
+    tile2 = getTile(4,8)
+    result = cr.rescaleBiggerTile(tile1,tile2)
+    assert(result._1.cols==7)
+    assert(7==result._2.cols)
+    assert(result._1.rows==8)
+    assert(8==result._2.rows)
+    tile1 = getTile(7,7)
+    tile2 = getTile(9,5)
+    result = cr.rescaleBiggerTile(tile1,tile2)
+    assert(result._1.cols==9)
+    assert(9==result._2.cols)
+    assert(result._1.rows==7)
+    assert(7==result._2.rows)
+    tile1 = getTile(7,4)
+    tile2 = getTile(4,5)
+    result = cr.rescaleBiggerTile(tile1,tile2)
+    assert(result._1.cols==7)
+    assert(7==result._2.cols)
+    assert(result._1.rows==5)
+    assert(5==result._2.rows)
+  }
+
+  def getTile(cols : Int, rows : Int): ArrayTile ={
+    val testTile = Array.fill(rows*cols)(1)
+    val rasterTile = new IntRawArrayTile(testTile, cols, rows)
+    rasterTile
+  }
+
   test("Test ClusterRelations::getNumberChildrenAndParentsWhichIntersect"){
     val cr = new ClusterRelations()
     assert(cr.getNumberChildrenAndParentsWhichIntersect(getTestClusterParent(),getTestClusterChild())==(6,7))

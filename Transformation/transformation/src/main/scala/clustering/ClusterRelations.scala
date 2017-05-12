@@ -8,7 +8,7 @@ import geotrellis.raster.{IntArrayTile, Tile}
 class ClusterRelations {
 
   def getNumberChildrenAndParentsWhichIntersect(parent : Tile, child : Tile): (Int, Int) ={
-    //TODO guards an rescale
+
     var result = scala.collection.mutable.Set[(Int, Int)]()
     var childSet = scala.collection.mutable.Set[Int]()
     var parentSet = scala.collection.mutable.Set[Int]()
@@ -25,6 +25,23 @@ class ClusterRelations {
       parentSet += parent
     }
     (childSet.size, parentSet.size)
+  }
+
+  def rescaleBiggerTile(parent : Tile, child : Tile): (Tile,Tile) ={
+    if(parent.rows>child.rows){
+      if(parent.cols>child.cols){
+        return (parent,child.resample(parent.cols, parent.rows))
+      } else if(parent.cols<child.cols){
+        return (parent.resample(child.cols,parent.rows), child.resample(child.cols, parent.rows))
+      }
+    } else if(parent.rows<child.rows) {
+      if(parent.cols>child.cols){
+        return (parent.resample(parent.cols,child.rows), child.resample(parent.cols,child.rows))
+      } else if(parent.cols<child.cols){
+        return (parent.resample(child.cols, child.rows), child)
+      }
+    }
+    return (parent, child)
   }
 
 
