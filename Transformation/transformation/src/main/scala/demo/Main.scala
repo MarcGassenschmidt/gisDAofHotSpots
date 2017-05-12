@@ -1,8 +1,9 @@
 package demo
 
 import java.sql.Connection
+import java.util
 
-import Export.{SerializeTile, TileVisualizer}
+import Export.{SerializeTile, SoHResult, TileVisualizer}
 import clustering.{Cluster, ClusterHotSpots}
 import geotrellis.raster._
 import geotrellis.spark._
@@ -22,6 +23,8 @@ object Main {
     val totalTime = System.currentTimeMillis()
     println(helloSentence)
     val tile = getRaster(false)
+    var results = new util.ArrayList[SoHResult]()
+    results.add(new SoHResult(tile,))
     //resampleRaster(tile)
     val score = gStar(tile, Weight.Big)
     val chs = new ClusterHotSpots(score)
