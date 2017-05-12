@@ -2,12 +2,14 @@ package export
 
 import geotrellis.raster.Tile
 
+import scala.collection.mutable.ListBuffer
+
 /**
   * Created by marc on 11.05.17.
   */
 class SoHResultTabell {
 
-  def printResults(results : List[SoHResult]): Unit ={
+  def printResults(results : ListBuffer[SoHResult]): Unit ={
     println(header())
     for(r <- results){
       println(r.format())
@@ -15,7 +17,7 @@ class SoHResultTabell {
   }
 
   def header(): String ={
-    "rows,cols,weight,weightRows,weightCols,duration,downward,upward"
+    "rows,cols,weight,weighParent,weightChild,duration,downward,upward"
   }
 
 }

@@ -6,6 +6,7 @@ import geotrellis.raster.{ArrayTile, CellType, DoubleArrayTile, DoubleRawArrayTi
 import geotrellis.raster.mapalgebra.focal.{Neighborhood, Square}
 import geotrellis.spark.{Metadata, SpaceTimeKey, SpatialKey, TileLayerMetadata}
 import org.apache.spark.rdd.RDD
+import parmeters.Parameters
 
 /**
   * Created by marc on 27.04.17.
@@ -39,6 +40,34 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
 
   }
 
+  def calculateStats(index: (Int, Int)) : Unit = {
+    sumOfTile  = getSummForTile(tile)
+    xMean  = getXMean(tile)
+    powerOfTile  =  getPowerOfTwoForElementsAsSum(tile)
+    standardDeviation = getStandartDeviationForTile(tile)
+  }
+
+  def getGstartForChildToo(paraParent : Parameters, paraChild : Parameters, childTile : Tile): (Tile, Tile) ={
+    createNewWeight(paraParent.weightMatrix)
+    val parent = gStarComplete()
+    calculateStats(0,0)
+    createNewWeight(paraChild.weightMatrix)
+    val child = gStarComplete()
+    (parent, child)
+  }
+
+  def getGstartForChildToo(paraParent : Parameters, paraChild : Parameters): (Tile, Tile) ={
+    createNewWeight(paraParent.weightMatrix)
+    var parent = gStarComplete()
+    val size = (weight.cols,weight.rows)
+    createNewWeight(paraChild.weightMatrix)
+    if(size._1<weight.cols || size._2<weight.rows){
+      throw new IllegalArgumentException("Parent Weight must be greater than Child Weight")
+    }
+    val child = gStarComplete()
+    (parent, child)
+  }
+
 
   def gStarComplete(): Tile ={
     val tileG = DoubleArrayTile.ofDim(tile.cols, tile.rows)
@@ -50,14 +79,11 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
     tileG
   }
 
-
-
-
   def createNewWeight(number : Weight.Value) : Tile = {
     number match {
-      case Weight.One => weight = getWeightMatrix(5,5)
+      case Weight.One => weight = getWeightMatrix(40,40)
       case Weight.Square => weight = getWeightMatrixSquare()
-      case Weight.Defined => weight = getWeightMatrixDefined(70,70)
+      case Weight.Defined => weight = getWeightMatrixDefined(50,50)
       case Weight.Big => weight = getWeightMatrix(50,50)
       case Weight.High => weight = getWeightMatrixHigh()
     }

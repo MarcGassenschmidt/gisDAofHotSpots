@@ -3,16 +3,17 @@ package demo
 import java.sql.Connection
 import java.util
 
-import export.{SerializeTile, SoHResult, TileVisualizer}
+import export.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
 import clustering.{Cluster, ClusterHotSpots}
 import geotrellis.raster._
 import geotrellis.spark._
 import org.apache.spark.{SparkConf, SparkContext}
 import db.{ImportToDB, QueryDb}
 import getisOrd.Weight._
-import getisOrd.{GetisOrd, GetisOrdFocal, Weight}
+import getisOrd.{GetisOrd, GetisOrdFocal, SoH, Weight}
 import rasterTransformation.Transformation
 
+import scala.collection.mutable.ListBuffer
 import scala.slick.driver.PostgresDriver.simple._
 
 object Main {
@@ -20,19 +21,37 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     val para = new parmeters.Parameters()
+    val paraChild = new parmeters.Parameters()
+    val soh = new SoH()
+    val outPutResults = ListBuffer[SoHResult]()
+    val outPutResultPrinter = new SoHResultTabell()
+    paraChild.weightMatrix = Weight.One
     val totalTime = System.currentTimeMillis()
     println(helloSentence)
     val tile = getRaster(para)
     var results = new util.ArrayList[SoHResult]()
 
+
     //results.add(new SoHResult(tile))
     //resampleRaster(tile)
-    val score = gStar(tile, para)
-    val chs = new ClusterHotSpots(score)
-    println("HotSpots ="+score.toArrayDouble().count(x => x > 2))
-    println("Clusters = "+chs.findClusters(5,3)._2)
+    val score = gStar(tile, para, paraChild)
+
+    val chs = ((new ClusterHotSpots(score._1)).findClusters(para.critivalValue,para.critivalValue),
+              (new ClusterHotSpots(score._2)).findClusters(paraChild.critivalValue,paraChild.critivalValue))
+    //println("HotSpots ="+score._1.toArrayDouble().count(x => x > 2))
+
     val image = new TileVisualizer()
-    image.visualCluster(chs.getClusters(1.5,2)._1, Weight.Big+"_cluster_meta_"+tile.rows+"_"+tile.cols)
+    image.visualCluster(chs._1, para.weightMatrix+"_cluster_meta_"+tile.rows+"_"+tile.cols)
+    image.visualCluster(chs._2, paraChild.weightMatrix+"_cluster_meta_"+tile.rows+"_"+tile.cols)
+    println(chs._1._1.rows, chs._1._1.cols)
+    val sohVal :(Double,Double) = soh.getSoHDowAndUp(chs)
+    outPutResults += new SoHResult(chs._1._1,
+      chs._2._1,
+      para.weightMatrix,
+      paraChild.weightMatrix,
+      ((System.currentTimeMillis()-totalTime)/1000),
+      sohVal)
+    println(outPutResultPrinter.printResults(outPutResults))
     //gStarFocal(tile, Weight.Big)
     println("Total Time ="+((System.currentTimeMillis()-totalTime)/1000))
     println("End")
@@ -74,11 +93,12 @@ object Main {
   }
 
   def getRaster(para : parmeters.Parameters): Tile = {
+    val serilizer = new SerializeTile("/home/marc/Masterarbeit/outPut/raster")
     if(para.fromFile){
-      return creatRaster(para)
+      val raster = creatRaster(para)
+      serilizer.write(raster)
+      return raster
     } else {
-      //from serilizable
-      val serilizer = new SerializeTile("/home/marc/Masterarbeit/outPut/raster")
       return serilizer.read()
     }
   }
@@ -88,19 +108,21 @@ object Main {
     serilizer.write(tile)
   }
 
-  def gStar(tile : Tile, para : parmeters.Parameters): Tile = {
+  def gStar(tile : Tile, paraParent : parmeters.Parameters, child : parmeters.Parameters): (Tile, Tile) = {
     var startTime = System.currentTimeMillis()
     val ort = new GetisOrd(tile, 3, 3)
     println("Time for static G* values =" + ((System.currentTimeMillis() - startTime) / 1000))
     startTime = System.currentTimeMillis()
-    var score = ort.gStarComplete()
+    var score =ort.getGstartForChildToo(paraParent, child)
 
-    ort.createNewWeight(para.weightMatrix)
+
+
     println("Time for G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     //println(ort.gStarComplete(arrayTile))
     val image = new TileVisualizer()
     startTime = System.currentTimeMillis()
-    image.visualTile(score, para.weightMatrix+"_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTileOld(score._1, paraParent.weightMatrix+"_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTileOld(score._2, child.weightMatrix+"_meta_"+tile.rows+"_"+tile.cols)
     println("Time for Image G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     score
   }

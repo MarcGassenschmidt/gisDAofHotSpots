@@ -29,7 +29,7 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Double, w
     weight
   }
 
-  def calculateStats(index: (Int, Int)) : Unit = {
+  override def calculateStats(index: (Int, Int)) : Unit = {
     weight = getWeightMatrix(cols, rows) //0,0 for Testing
     sumOfTile  = getSummForTile(tile)
     sumOfWeight  = getSummForTile(weight)
