@@ -1,0 +1,5 @@
+before_script: cd Transformation/transformation/
+
+language: scala
+scala:
+   - 2.11.8

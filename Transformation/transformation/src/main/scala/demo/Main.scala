@@ -113,15 +113,16 @@ object Main {
 
   def gStar(tile : Tile, paraParent : parmeters.Parameters, child : parmeters.Parameters): (Tile, Tile) = {
     var startTime = System.currentTimeMillis()
-    val ort = new GetisOrd(tile, 3, 3)
-    println("Time for static G* values =" + ((System.currentTimeMillis() - startTime) / 1000))
+    var ort : GetisOrd = null
+    if(paraParent.focal){
+      ort = new GetisOrdFocal(tile, 3, 3, 50)
+    } else {
+      ort = new GetisOrd(tile, 3, 3)
+    }
+    println("Time for G* values =" + ((System.currentTimeMillis() - startTime) / 1000))
     startTime = System.currentTimeMillis()
     var score =ort.getGstartForChildToo(paraParent, child)
-
-
-
     println("Time for G* =" + ((System.currentTimeMillis() - startTime) / 1000))
-    //println(ort.gStarComplete(arrayTile))
     val image = new TileVisualizer()
     startTime = System.currentTimeMillis()
     image.visualTileOld(score._1, paraParent.weightMatrix+"c"+paraParent.weightCols+"r"+paraParent.weightRows+"_meta_"+tile.rows+"_"+tile.cols)

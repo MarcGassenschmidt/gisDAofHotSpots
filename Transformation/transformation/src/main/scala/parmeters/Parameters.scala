@@ -14,5 +14,7 @@ class Parameters {
   var fromFile = false
   var clusterRange = 50
   var critivalValue = 3.0
-  var focal = false
+  var focal = true
+  var inputDirectory = "/home/marc/Downloads/"
+  var outPutDirectory = "/home/marc/Masterarbeit/outPut"
 }
