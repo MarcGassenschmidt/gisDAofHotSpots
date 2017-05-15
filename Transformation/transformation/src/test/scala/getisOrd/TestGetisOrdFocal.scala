@@ -4,6 +4,7 @@ import java.util.Random
 
 import geotrellis.raster.{IntRawArrayTile, Tile}
 import org.scalatest.{BeforeAndAfter, FunSuite}
+import parmeters.Parameters
 
 /**
   * Created by marc on 10.05.17.
@@ -17,7 +18,10 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     val rnd = new Random(1)
     val testTile = Array.fill(100)(rnd.nextInt(100))
     rasterTile = new IntRawArrayTile(testTile, 10, 10)
-    getis = new GetisOrdFocal(rasterTile, 10, 10, 2, Weight.One)
+    getis = new GetisOrdFocal(rasterTile, 10, 10, 2)
+    val para = new Parameters()
+    para.weightMatrix = Weight.One
+    getis.createNewWeight(para)
   }
 
   test("Test focal Mean 0,0"){

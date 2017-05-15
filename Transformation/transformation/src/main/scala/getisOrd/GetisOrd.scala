@@ -48,19 +48,19 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
   }
 
   def getGstartForChildToo(paraParent : Parameters, paraChild : Parameters, childTile : Tile): (Tile, Tile) ={
-    createNewWeight(paraParent.weightMatrix)
+    createNewWeight(paraParent)
     val parent = gStarComplete()
     calculateStats(0,0)
-    createNewWeight(paraChild.weightMatrix)
+    createNewWeight(paraChild)
     val child = gStarComplete()
     (parent, child)
   }
 
   def getGstartForChildToo(paraParent : Parameters, paraChild : Parameters): (Tile, Tile) ={
-    createNewWeight(paraParent.weightMatrix)
+    createNewWeight(paraParent)
     var parent = gStarComplete()
     val size = (weight.cols,weight.rows)
-    createNewWeight(paraChild.weightMatrix)
+    createNewWeight(paraChild)
     if(size._1<weight.cols || size._2<weight.rows){
       throw new IllegalArgumentException("Parent Weight must be greater than Child Weight")
     }
@@ -79,12 +79,12 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
     tileG
   }
 
-  def createNewWeight(number : Weight.Value) : Tile = {
-    number match {
-      case Weight.One => weight = getWeightMatrix(5,5)
-      case Weight.Square => weight = getWeightMatrixSquare(3)
-      case Weight.Defined => weight = getWeightMatrixDefined(30,30)
-      case Weight.Big => weight = getWeightMatrix(50,50)
+  def createNewWeight(para : Parameters) : Tile = {
+    para.weightMatrix match {
+      case Weight.One => weight = getWeightMatrix(para.weightCols,para.weightRows)
+      case Weight.Square => weight = getWeightMatrixSquare(para.weightCols)
+      case Weight.Defined => weight = getWeightMatrixDefined(para.weightCols,para.weightRows)
+      case Weight.Big => weight = getWeightMatrix(para.weightCols,para.weightRows)
       case Weight.High => weight = getWeightMatrixHigh()
     }
 

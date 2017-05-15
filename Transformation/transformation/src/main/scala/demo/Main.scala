@@ -21,11 +21,14 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     val para = new parmeters.Parameters()
+    para.weightCols = 10
+    para.weightRows = 10
     val paraChild = new parmeters.Parameters()
     val soh = new SoH()
     val outPutResults = ListBuffer[SoHResult]()
     val outPutResultPrinter = new SoHResultTabell()
-    paraChild.weightMatrix = Weight.One
+    paraChild.weightCols = 5
+    paraChild.weightRows = 5
     val totalTime = System.currentTimeMillis()
     println(helloSentence)
     val tile = getRaster(para)
@@ -41,14 +44,14 @@ object Main {
     //println("HotSpots ="+score._1.toArrayDouble().count(x => x > 2))
 
     val image = new TileVisualizer()
-    image.visualCluster(chs._1, para.weightMatrix+"_cluster_meta_"+tile.rows+"_"+tile.cols)
-    image.visualCluster(chs._2, paraChild.weightMatrix+"_cluster_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTileOld(chs._1._1, para.weightMatrix+"c_"+para.weightCols+"r_"+para.weightRows+"_cluster_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTileOld(chs._2._1, paraChild.weightMatrix+"c_"+paraChild.weightCols+"r_"+paraChild.weightRows+"_cluster_meta_"+tile.rows+"_"+tile.cols)
     println(chs._1._1.rows, chs._1._1.cols)
     val sohVal :(Double,Double) = soh.getSoHDowAndUp(chs)
     outPutResults += new SoHResult(chs._1._1,
       chs._2._1,
-      para.weightMatrix,
-      paraChild.weightMatrix,
+      para,
+      paraChild,
       ((System.currentTimeMillis()-totalTime)/1000),
       sohVal)
     println(outPutResultPrinter.printResults(outPutResults))
@@ -121,20 +124,21 @@ object Main {
     //println(ort.gStarComplete(arrayTile))
     val image = new TileVisualizer()
     startTime = System.currentTimeMillis()
-    image.visualTileOld(score._1, paraParent.weightMatrix+"_meta_"+tile.rows+"_"+tile.cols)
-    image.visualTileOld(score._2, child.weightMatrix+"_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTileOld(score._1, paraParent.weightMatrix+"c"+paraParent.weightCols+"r"+paraParent.weightRows+"_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTileOld(score._2, child.weightMatrix+"c"+child.weightCols+"r"+child.weightRows+"_meta_"+tile.rows+"_"+tile.cols)
     println("Time for Image G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     score
   }
 
   def gStarFocal(tile : Tile, para : parmeters.Parameters): Unit = {
     var startTime = System.currentTimeMillis()
-    val ortFocal = new GetisOrdFocal(tile, 3, 3, 50, para.weightMatrix)
+    val ortFocal = new GetisOrdFocal(tile, 3, 3, 50)
+    ortFocal.createNewWeight(para)
     var score = ortFocal.gStarComplete()
     println("Time for Focal G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     startTime = System.currentTimeMillis()
     val image = new TileVisualizer()
-    image.visualTile(score, para.weightMatrix+"focal_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTile(score, para.weightMatrix+"c"+para.weightCols+"r"+para.weightRows+"focal_meta_"+tile.rows+"_"+tile.cols)
     println("Time for Focal G* Image=" + ((System.currentTimeMillis() - startTime) / 1000))
   }
 

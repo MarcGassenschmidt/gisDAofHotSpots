@@ -8,8 +8,11 @@ import getisOrd.Weight
 class Parameters {
   var sizeOfRasterLat = 50 //meters
   var sizeOfRasterLon = 50 //meters
-  var weightMatrix = Weight.Defined
+  var weightMatrix = Weight.Square
+  var weightCols = 5
+  var weightRows = 5
   var fromFile = false
-  var clusterRange = 5
+  var clusterRange = 50
   var critivalValue = 3.0
+  var focal = false
 }

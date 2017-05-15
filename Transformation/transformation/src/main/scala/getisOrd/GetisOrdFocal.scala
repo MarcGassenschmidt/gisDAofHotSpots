@@ -3,34 +3,35 @@ package getisOrd
 import geotrellis.raster.Tile
 import geotrellis.raster.mapalgebra.focal.Circle
 import getisOrd.Weight.Weight
+import parmeters.Parameters
 
 /**
   * Created by marc on 10.05.17.
   */
-class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Double, weightType : Weight) extends GetisOrd(tile, cols, rows){
+class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Double) extends GetisOrd(tile, cols, rows){
   var focalTile = Circle(focalRadius)
-  weight = createNewWeight(weightType)
   var focalmean = tile.focalMean(focalTile)
   var focalSD = tile.focalStandardDeviation(focalTile)
 
   def setFocalRadius(radius : Double): Unit ={
     focalTile = Circle(radius)
+    focalmean = tile.focalMean(focalTile)
+    focalSD = tile.focalStandardDeviation(focalTile)
   }
 
 
-  override def createNewWeight(number: Weight): Tile = {
-    number match {
-      case Weight.One => weight = getWeightMatrix(5,5)
-      case Weight.Square => weight = getWeightMatrixSquare(3)
-      case Weight.Defined => weight = getWeightMatrixDefined(70,70)
-      case Weight.Big => weight = getWeightMatrix(50,50)
+  override def createNewWeight(para : Parameters): Tile = {
+    para.weightMatrix match {
+      case Weight.One => weight = getWeightMatrix(para.weightCols,para.weightRows)
+      case Weight.Square => weight = getWeightMatrixSquare(para.weightCols)
+      case Weight.Defined => weight = getWeightMatrixDefined(para.weightCols,para.weightRows)
+      case Weight.Big => weight = getWeightMatrix(para.weightCols,para.weightRows)
       case Weight.High => weight = getWeightMatrixHigh()
     }
     weight
   }
 
   override def calculateStats(index: (Int, Int)) : Unit = {
-    weight = getWeightMatrix(cols, rows) //0,0 for Testing
     sumOfTile  = getSummForTile(tile)
     sumOfWeight  = getSummForTile(weight)
     xMean  = getXMean(index)

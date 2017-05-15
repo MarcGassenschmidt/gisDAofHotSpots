@@ -32,6 +32,7 @@ class TileVisualizer {
     for (i <- 0 to cluster._1.cols - 1) {
       for (j <- 0 to cluster._1.rows - 1) {
         content = (cluster._1.get(i, j))
+
         if(content>cluster._2-10){
           bfI.setRGB(i, j, (new Color(0,0,Math.min((content-(cluster._2-10))*25,255))).getRGB)
         } else {
