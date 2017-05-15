@@ -81,9 +81,9 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
 
   def createNewWeight(number : Weight.Value) : Tile = {
     number match {
-      case Weight.One => weight = getWeightMatrix(40,40)
-      case Weight.Square => weight = getWeightMatrixSquare()
-      case Weight.Defined => weight = getWeightMatrixDefined(50,50)
+      case Weight.One => weight = getWeightMatrix(5,5)
+      case Weight.Square => weight = getWeightMatrixSquare(3)
+      case Weight.Defined => weight = getWeightMatrixDefined(30,30)
       case Weight.Big => weight = getWeightMatrix(50,50)
       case Weight.High => weight = getWeightMatrixHigh()
     }
@@ -211,14 +211,19 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
     rasterTile
   }
 
-  def getWeightMatrixSquare(): ArrayTile ={
-    val arrayTile = Array[Double](
-      0.0, 0.0, 0.1, 0.0, 0.0,
-      0.0, 0.4, 1.0, 0.4, 0.0,
-      0.1, 0.5, 1.0, 5.0, 0.1,
-      0.0, 0.4, 1.0, 0.4, 0.0,
-      0.0, 0.0, 0.1, 0.0, 0.0)
-    val weightTile = new DoubleRawArrayTile(arrayTile, 5,5)
+  def getWeightMatrixSquare(radius : Int): ArrayTile ={
+    val arrayTile = Array.ofDim[Int](radius*2+1,radius*2+1)
+
+    for (i <- -radius to radius) {
+      for (j <- -radius to radius) {
+        if(Math.sqrt(i*i+j*j)<=radius) {
+          arrayTile(radius + i)(radius + j) = 1
+        } else {
+          arrayTile(radius + i)(radius + j) = 0
+        }
+      }
+    }
+    val weightTile = new IntRawArrayTile(arrayTile.flatten, radius*2+1,radius*2+1)
     weightTile
   }
 

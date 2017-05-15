@@ -21,7 +21,7 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Double, w
   override def createNewWeight(number: Weight): Tile = {
     number match {
       case Weight.One => weight = getWeightMatrix(5,5)
-      case Weight.Square => weight = getWeightMatrixSquare()
+      case Weight.Square => weight = getWeightMatrixSquare(3)
       case Weight.Defined => weight = getWeightMatrixDefined(70,70)
       case Weight.Big => weight = getWeightMatrix(50,50)
       case Weight.High => weight = getWeightMatrixHigh()
