@@ -82,8 +82,11 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
   }
 
   test("Test Spark Focal G*"){
-    para.focalRange = 40
-    getis.getSparkGstart(para)
+    para.focalRange = 5
+    getis = new GetisOrdFocal(rasterTile, 10, 10, para.focalRange)
+    println(getis.getSparkGstart(para).getDouble(0,0))
+    println(getis.getSparkGstart(para).getDouble(0,0))
+    println(getis.getGstartForChildToo(para, new Parameters)._1.getDouble(0,0))
 
   }
 

@@ -31,11 +31,12 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Double) e
     val tileG = DoubleArrayTile.ofDim(tile.cols, tile.rows)
     val range = 0 to (tile.cols)*(tile.rows)-1
     val weightF = createNewWeight(para)
-    val result = spark.parallelize(range).map(index => (index/tile.cols,index%tile.cols,gStarForTileSpark((index/tile.cols,index%tile.cols),weightF,tile, para))).collect()
-    for(res <- result){
+    val result = spark.parallelize(range).map(index => (index/tile.cols,index%tile.cols,gStarForTileSpark((index/tile.cols,index%tile.cols),weightF,tile, para)))
+    for(res <- result.collect()){
       tileG.setDouble(res._1,res._2,res._3)
     }
     tileG
+
   }
 
   override def getGstartForChildToo(paraParent : Parameters, paraChild : Parameters): (Tile, Tile) ={

@@ -28,7 +28,7 @@ class Parameters extends Serializable{
   var inputDirectory = "/home/marc/Downloads/"
   var outPutDirectory = "/home/marc/Masterarbeit/outPut"
   val conf = new SparkConf().setAppName("Test")
-  conf.setMaster("local[1]")
+  conf.setMaster("local[*]")
 
 
 }
