@@ -35,7 +35,7 @@ class TileVisualizer {
 
       }
     }
-    val fos = new FileOutputStream("/home/marc/Masterarbeit/outPut/"+name+".png");
+    val fos = new FileOutputStream("/home/marc/media/Downloads/"+name+".png");
     ImageIO.write(bfI, "PNG", fos);
     fos.close();
 
