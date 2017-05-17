@@ -23,7 +23,7 @@ class Parameters extends Serializable{
   var fromFile = false
   var clusterRange = 10
   var critivalValue = 2.0
-  var focal = true
+  var focal = false
   var focalRange = 40
   var inputDirectory = "/home/marc/Downloads/"
   var outPutDirectory = "/home/marc/Masterarbeit/outPut"
