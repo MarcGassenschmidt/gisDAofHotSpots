@@ -115,7 +115,7 @@ object Main {
     var startTime = System.currentTimeMillis()
     var ort : GetisOrd = null
     if(paraParent.focal){
-      ort = new GetisOrdFocal(tile, 3, 3, 50)
+      ort = new GetisOrdFocal(tile, 3, 3, paraParent.focalRange)
     } else {
       ort = new GetisOrd(tile, 3, 3)
     }
@@ -131,16 +131,6 @@ object Main {
     score
   }
 
-  def gStarFocal(tile : Tile, para : parmeters.Parameters): Unit = {
-    var startTime = System.currentTimeMillis()
-    val ortFocal = new GetisOrdFocal(tile, 3, 3, 50)
-    ortFocal.createNewWeight(para)
-    var score = ortFocal.gStarComplete()
-    println("Time for Focal G* =" + ((System.currentTimeMillis() - startTime) / 1000))
-    startTime = System.currentTimeMillis()
-    val image = new TileVisualizer()
-    image.visualTile(score, para.weightMatrix+"c"+para.weightCols+"r"+para.weightRows+"focal_meta_"+tile.rows+"_"+tile.cols)
-    println("Time for Focal G* Image=" + ((System.currentTimeMillis() - startTime) / 1000))
-  }
+
 
 }

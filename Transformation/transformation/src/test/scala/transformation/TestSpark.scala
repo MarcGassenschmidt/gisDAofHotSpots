@@ -2,6 +2,8 @@ package transformation
 
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.{BeforeAndAfter, FunSuite}
+import parmeters.Parameters
+import rasterTransformation.Transformation
 
 
 /**
@@ -15,11 +17,23 @@ class TestSpark extends FunSuite with BeforeAndAfter {
     spark = SparkContext.getOrCreate(conf)
   }
 
-  ignore("Test Spark Configuration"){
+  test("Test Spark Configuration"){
     assert(spark.parallelize(1 to 100).map(x=>x).reduce(_ + _)==5050)
   }
 
 
+  test("Test Spark Rastertransformation") {
+    val transform = new Transformation()
+    val para = new Parameters()
+    para.sizeOfRasterLat = 4000
+    para.sizeOfRasterLon = 4000
+    para.rasterLatLength = ((para.latMax-para.latMin)/para.sizeOfRasterLat).ceil.toInt
+    para.rasterLonLength = ((para.lonMax-para.lonMin)/para.sizeOfRasterLon).ceil.toInt
+    val tile = transform.transformOneFile(para.inputDirectory+"in.csv", conf, para)
+    println(tile.asciiDraw())
+    println(tile.rows)
+    println(tile.cols)
+  }
 
   after {
     spark.stop()

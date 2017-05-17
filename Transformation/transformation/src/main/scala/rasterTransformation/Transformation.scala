@@ -12,10 +12,13 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import geotrellis.vector._
 import org.apache.hadoop.mapred.{FileInputFormat, JobConf}
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
 import org.joda.time.format.DateTimeFormat
 import parmeters.Parameters
 
+import scala.collection.immutable.TreeMap
 import scala.io.Source
 /**
   * Created by marc on 21.04.17.
@@ -23,18 +26,38 @@ import scala.io.Source
 class Transformation {
 
 
+  def transformOneFileOld(rootPath: String, config: SparkConf, para : Parameters): IntArrayTile ={
+    val spark = SparkSession.builder.config(config).getOrCreate()
 
-  def trasnform(rootPath: Path, config: SparkConf): Unit ={
-    val sc = geotrellis.spark.util.SparkUtils.createSparkContext("Test console", config)
-    val jobConfig = new JobConf
-    val rdd = sc.hadoopRDD(jobConfig,classOf[FileInputFormat[Point,Point]],classOf[Point], classOf[Point])
-    
 
-//    /* The `config` argument is optional */
-//    val store: AttributeStore = HadoopAttributeStore(rootPath, config)
-//
-//    val reader = HadoopLayerReader(store)
-//    val writer = HadoopLayerWriter(rootPath, store)
+    val files = spark.read.format("CSV").option("header","true").option("delimiter", ",").textFile(rootPath)
+
+    val tile = IntArrayTile.ofDim(para.rasterLatLength,para.rasterLonLength)
+
+    tile
+  }
+
+  def transformOneFile(rootPath: String, config: SparkConf, para : Parameters): IntArrayTile ={
+    val sc = SparkContext.getOrCreate(config)
+    val files = sc.textFile(rootPath)
+    val tile = IntArrayTile.ofDim(para.rasterLatLength,para.rasterLonLength)
+    println(files.count())
+    val file = files.map(line => line.drop(1)).map(line => {
+      val cols = line.split(",").map(_.trim)
+      val formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
+      val result = new RowTransformationTime(
+        lon = (cols(9).toDouble*para.multiToInt+para.shiftToPostive).toInt,
+        lat = (cols(10).toDouble*para.multiToInt).toInt,
+        time = formatter.parseDateTime(cols(2)))
+      result
+    })//.filter(row => row.lon>para.lonMin && row.lon<para.lonMax && row.lat>para.latMin && row.lat<para.latMax)
+
+    file.map(row => {
+      val colIndex = ((row.lat-para.latMin)/para.sizeOfRasterLat).toInt
+      val rowIndex = ((row.lon-para.lonMin)/para.sizeOfRasterLon).toInt
+      tile.set(colIndex,rowIndex,tile.get(colIndex,rowIndex)+1)
+    })
+    tile
   }
 
   def transformCSVtoRaster(parmeters : Parameters): IntArrayTile ={

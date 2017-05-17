@@ -11,7 +11,7 @@ import parmeters.Parameters
 /**
   * Created by marc on 27.04.17.
   */
-class GetisOrd(tile : Tile, cols : Int, rows : Int) {
+class GetisOrd(tile : Tile, cols : Int, rows : Int) extends Serializable{
   var weight : Tile = this.getWeightMatrix(cols, rows) //0,0 for Testing
   var sumOfTile : Double = this.getSummForTile(tile)
   var sumOfWeight : Double = this.getSummForTile(weight)

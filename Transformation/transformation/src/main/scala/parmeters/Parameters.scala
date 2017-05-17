@@ -1,20 +1,34 @@
 package parmeters
 
 import getisOrd.Weight
+import org.apache.spark.SparkConf
 
 /**
   * Created by marc on 12.05.17.
   */
-class Parameters {
-  var sizeOfRasterLat = 50 //meters
-  var sizeOfRasterLon = 50 //meters
+class Parameters extends Serializable{
+  var multiToInt = 1000000
+  var shiftToPostive = 74.018704*multiToInt
+  var latMin = 40.701915*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
+  var lonMin = -74.018704*multiToInt+shiftToPostive//Math.max(file.map(row => row.lon).min,-74.407877)
+  var latMax = 40.763458*multiToInt//Math.min(file.map(row => row.lat).max,41.330106)
+  var lonMax = -73.967244*multiToInt+shiftToPostive//Math.min(file.map(row => row.lon).max,-73.292793)
+  var sizeOfRasterLat = 200 //meters
+  var sizeOfRasterLon = 200 //meters
+  var rasterLatLength = ((latMax-latMin)/sizeOfRasterLat).ceil.toInt
+  var rasterLonLength = ((lonMax-lonMin)/sizeOfRasterLon).ceil.toInt
   var weightMatrix = Weight.Square
-  var weightCols = 5
-  var weightRows = 5
+  var weightCols = 20
+  var weightRows = 20
   var fromFile = false
-  var clusterRange = 50
-  var critivalValue = 3.0
+  var clusterRange = 10
+  var critivalValue = 2.0
   var focal = true
+  var focalRange = 40
   var inputDirectory = "/home/marc/Downloads/"
   var outPutDirectory = "/home/marc/Masterarbeit/outPut"
+  val conf = new SparkConf().setAppName("Test")
+  conf.setMaster("local[1]")
+
+
 }
