@@ -15,7 +15,7 @@ class TestCluster extends FunSuite with BeforeAndAfter {
     spark = SparkContext.getOrCreate(conf)
   }
 
-  test("Test Spark Configuration"){
+  ignore("Test Spark Configuration"){
     val cluster = new Cluster()
     cluster.test(spark, "/downloads")
   }

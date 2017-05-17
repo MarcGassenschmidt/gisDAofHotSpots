@@ -1,51 +1,80 @@
 package demo
 
 import java.sql.Connection
+import java.util
 
-import Export.TileVisualizer
-import clustering.Cluster
+import export.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
+import clustering.{Cluster, ClusterHotSpots}
 import geotrellis.raster._
 import geotrellis.spark._
 import org.apache.spark.{SparkConf, SparkContext}
 import db.{ImportToDB, QueryDb}
-import gisOrt.{GetisOrd, Weight}
+import getisOrd.Weight._
+import getisOrd.{GetisOrd, GetisOrdFocal, SoH, Weight}
 import rasterTransformation.Transformation
 
+import scala.collection.mutable.ListBuffer
 import scala.slick.driver.PostgresDriver.simple._
 
 object Main {
-  def helloSentence = "Hello GeoTrellis"
+  def helloSentence = "Start"
 
   def main(args: Array[String]): Unit = {
+    val para = new parmeters.Parameters()
+    para.weightCols = 10
+    para.weightRows = 10
+    val paraChild = new parmeters.Parameters()
+    val soh = new SoH()
+    val outPutResults = ListBuffer[SoHResult]()
+    val outPutResultPrinter = new SoHResultTabell()
+    paraChild.weightCols = 5
+    paraChild.weightRows = 5
     val totalTime = System.currentTimeMillis()
     println(helloSentence)
-    val transform = new Transformation
-    var startTime = System.currentTimeMillis()
-    val arrayTile = transform.transformCSVtoRaster()
-    println("Time for RasterTransformation ="+((System.currentTimeMillis()-startTime)/1000))
-    println("Raster Size (cols,rows)=("+arrayTile.cols+","+arrayTile.rows+")")
-    startTime = System.currentTimeMillis()
-    val reducedTile = arrayTile.resample(arrayTile.cols/50, arrayTile.rows/50)
-    println("Time for Downsample with factor 50 ="+((System.currentTimeMillis()-startTime)/1000))
-    println("Raster Size (cols,rows)=("+reducedTile.cols+","+reducedTile.rows+")")
-    startTime = System.currentTimeMillis()
-    val ort = new GetisOrd(arrayTile, 3,3)
-    println("Time for static G* values ="+((System.currentTimeMillis()-startTime)/1000))
+    val tile = getRaster(para)
+    var results = new util.ArrayList[SoHResult]()
 
-//    println(arrayTile.asciiDraw())
-//    val tile = db.getRaster()
-    startTime = System.currentTimeMillis()
-    var score = ort.gStarComplete()
-    ort.createNewWeight(Weight.Big)
-    println("Time for G* ="+((System.currentTimeMillis()-startTime)/1000))
-    //println(ort.gStarComplete(arrayTile))
+
+    //results.add(new SoHResult(tile))
+    //resampleRaster(tile)
+    val score = gStar(tile, para, paraChild)
+
+    val chs = ((new ClusterHotSpots(score._1)).findClusters(para.critivalValue,para.critivalValue),
+              (new ClusterHotSpots(score._2)).findClusters(paraChild.critivalValue,paraChild.critivalValue))
+    //println("HotSpots ="+score._1.toArrayDouble().count(x => x > 2))
+
     val image = new TileVisualizer()
-    startTime = System.currentTimeMillis()
-    image.visualTile(score, "dropOffsmall")
-    println("Time for Image ="+((System.currentTimeMillis()-startTime)/1000))
-
+    image.visualTileOld(chs._1._1, para.weightMatrix+"c_"+para.weightCols+"r_"+para.weightRows+"_cluster_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTileOld(chs._2._1, paraChild.weightMatrix+"c_"+paraChild.weightCols+"r_"+paraChild.weightRows+"_cluster_meta_"+tile.rows+"_"+tile.cols)
+    println(chs._1._1.rows, chs._1._1.cols)
+    val sohVal :(Double,Double) = soh.getSoHDowAndUp(chs)
+    outPutResults += new SoHResult(chs._1._1,
+      chs._2._1,
+      para,
+      paraChild,
+      ((System.currentTimeMillis()-totalTime)/1000),
+      sohVal)
+    println(outPutResultPrinter.printResults(outPutResults))
+    //gStarFocal(tile, Weight.Big)
     println("Total Time ="+((System.currentTimeMillis()-totalTime)/1000))
     println("End")
+  }
+
+  def resampleRaster(arrayTile: Tile): Unit = {
+    var startTime = System.currentTimeMillis()
+    val reducedTile = arrayTile.resample(arrayTile.cols / 50, arrayTile.rows / 50)
+    println("Time for Downsample with factor 50 =" + ((System.currentTimeMillis() - startTime) / 1000))
+    println("Raster Size (cols,rows)=(" + reducedTile.cols + "," + reducedTile.rows + ")")
+  }
+
+  def creatRaster(para : parmeters.Parameters): Tile = {
+    var startTime = System.currentTimeMillis()
+    val transform = new Transformation
+
+    val arrayTile = transform.transformCSVtoRaster(para)
+    println("Time for RasterTransformation =" + ((System.currentTimeMillis() - startTime) / 1000))
+    println("Raster Size (cols,rows)=(" + arrayTile.cols + "," + arrayTile.rows + ")")
+    arrayTile
   }
 
   def testConnection(): Unit = {
@@ -65,6 +94,43 @@ object Main {
     spark
 
   }
+
+  def getRaster(para : parmeters.Parameters): Tile = {
+    val serilizer = new SerializeTile("/home/marc/Masterarbeit/outPut/raster")
+    if(para.fromFile){
+      val raster = creatRaster(para)
+      serilizer.write(raster)
+      return raster
+    } else {
+      return serilizer.read()
+    }
+  }
+
+  def writeToSerilizable(tile : Tile): Unit ={
+    val serilizer = new SerializeTile("/home/marc/Masterarbeit/outPut/raster")
+    serilizer.write(tile)
+  }
+
+  def gStar(tile : Tile, paraParent : parmeters.Parameters, child : parmeters.Parameters): (Tile, Tile) = {
+    var startTime = System.currentTimeMillis()
+    var ort : GetisOrd = null
+    if(paraParent.focal){
+      ort = new GetisOrdFocal(tile, 3, 3, paraParent.focalRange)
+    } else {
+      ort = new GetisOrd(tile, 3, 3)
+    }
+    println("Time for G* values =" + ((System.currentTimeMillis() - startTime) / 1000))
+    startTime = System.currentTimeMillis()
+    var score =ort.getGstartForChildToo(paraParent, child)
+    println("Time for G* =" + ((System.currentTimeMillis() - startTime) / 1000))
+    val image = new TileVisualizer()
+    startTime = System.currentTimeMillis()
+    image.visualTileOld(score._1, paraParent.weightMatrix+"c"+paraParent.weightCols+"r"+paraParent.weightRows+"_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTileOld(score._2, child.weightMatrix+"c"+child.weightCols+"r"+child.weightRows+"_meta_"+tile.rows+"_"+tile.cols)
+    println("Time for Image G* =" + ((System.currentTimeMillis() - startTime) / 1000))
+    score
+  }
+
 
 
 }

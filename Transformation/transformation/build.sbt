@@ -35,7 +35,8 @@ libraryDependencies ++= Seq(
   "org.mockito" % "mockito-all" % "1.8.4",
   "org.apache.spark" % "spark-sql_2.11" % "2.1.0",
   "net.sf.opencsv" % "opencsv" % "2.3",
-  "joda-time" % "joda-time" % "2.9.9"
+  "joda-time" % "joda-time" % "2.9.9",
+  "de.lmu.ifi.dbs.elki" % "elki" % "0.7.1"
 
 )
 

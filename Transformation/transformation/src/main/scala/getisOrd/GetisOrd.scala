@@ -1,4 +1,4 @@
-package gisOrt
+package getisOrd
 
 
 import geotrellis.macros.{DoubleTileMapper, DoubleTileVisitor, IntTileMapper, IntTileVisitor}
@@ -6,18 +6,19 @@ import geotrellis.raster.{ArrayTile, CellType, DoubleArrayTile, DoubleRawArrayTi
 import geotrellis.raster.mapalgebra.focal.{Neighborhood, Square}
 import geotrellis.spark.{Metadata, SpaceTimeKey, SpatialKey, TileLayerMetadata}
 import org.apache.spark.rdd.RDD
+import parmeters.Parameters
 
 /**
   * Created by marc on 27.04.17.
   */
-class GetisOrd(tile : Tile, cols : Int, rows : Int) {
+class GetisOrd(tile : Tile, cols : Int, rows : Int) extends Serializable{
   var weight : Tile = this.getWeightMatrix(cols, rows) //0,0 for Testing
-  val sumOfTile : Double = this.getSummForTile(tile)
+  var sumOfTile : Double = this.getSummForTile(tile)
   var sumOfWeight : Double = this.getSummForTile(weight)
-  val xMean : Double = this.getXMean(tile)
+  var xMean : Double = this.getXMean(tile)
   var powerOfWeight : Double =  getPowerOfTwoForElementsAsSum(weight)
-  val powerOfTile : Double =  getPowerOfTwoForElementsAsSum(tile)
-  val standardDeviation: Double = this.getStandartDeviationForTile(tile)
+  var powerOfTile : Double =  getPowerOfTwoForElementsAsSum(tile)
+  var standardDeviation: Double = this.getStandartDeviationForTile(tile)
 
 
 
@@ -39,26 +40,51 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
 
   }
 
+  def calculateStats(index: (Int, Int)) : Unit = {
+    sumOfTile  = getSummForTile(tile)
+    xMean  = getXMean(tile)
+    powerOfTile  =  getPowerOfTwoForElementsAsSum(tile)
+    standardDeviation = getStandartDeviationForTile(tile)
+  }
+
+  def getGstartForChildToo(paraParent : Parameters, paraChild : Parameters, childTile : Tile): (Tile, Tile) ={
+    createNewWeight(paraParent)
+    val parent = gStarComplete()
+    calculateStats(0,0)
+    createNewWeight(paraChild)
+    val child = gStarComplete()
+    (parent, child)
+  }
+
+  def getGstartForChildToo(paraParent : Parameters, paraChild : Parameters): (Tile, Tile) ={
+    createNewWeight(paraParent)
+    var parent = gStarComplete()
+    val size = (weight.cols,weight.rows)
+    createNewWeight(paraChild)
+    if(size._1<weight.cols || size._2<weight.rows){
+      throw new IllegalArgumentException("Parent Weight must be greater than Child Weight")
+    }
+    val child = gStarComplete()
+    (parent, child)
+  }
+
 
   def gStarComplete(): Tile ={
-    val tileG = DoubleArrayTile.ofDim(tile.rows, tile.cols)
-    for(i <- 0 to tile.rows-1){
-      for(j <- 0 to tile.cols-1){
+    val tileG = DoubleArrayTile.ofDim(tile.cols, tile.rows)
+    for(i <- 0 to tile.cols-1){
+      for(j <- 0 to tile.rows-1){
         tileG.setDouble(i,j,gStarForTile((i,j)))
       }
     }
     tileG
   }
 
-
-
-
-  def createNewWeight(number : Weight.Value) : Unit = {
-    number match {
-      case Weight.One => weight = getWeightMatrix(5,5)
-      case Weight.Square => weight = getWeightMatrixSquare()
-      case Weight.Defined => weight = getWeightMatrixDefined(70,70)
-      case Weight.Big => weight = getWeightMatrix(50,50)
+  def createNewWeight(para : Parameters) : Tile = {
+    para.weightMatrix match {
+      case Weight.One => weight = getWeightMatrix(para.weightCols,para.weightRows)
+      case Weight.Square => weight = getWeightMatrixSquare(para.weightCols)
+      case Weight.Defined => weight = getWeightMatrixDefined(para.weightCols,para.weightRows)
+      case Weight.Big => weight = getWeightMatrix(para.weightCols,para.weightRows)
       case Weight.High => weight = getWeightMatrixHigh()
     }
 
@@ -66,6 +92,7 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
 
     sumOfWeight = this.getSummForTile(weight)
     powerOfWeight =  getPowerOfTwoForElementsAsSum(weight)
+    weight
   }
 
 
@@ -94,7 +121,7 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
     getNumerator(index)/getDenominator()
   }
 
-  private def getStandartDeviationForTile(tile: Tile): Double ={
+  def getStandartDeviationForTile(tile: Tile): Double ={
     val deviation = Math.sqrt(powerOfTile.toFloat/tile.size.toFloat-xMean)
     if(deviation<=0 || deviation==Double.NaN){
       return 1 //TODO handle equal distribution case
@@ -184,14 +211,19 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) {
     rasterTile
   }
 
-  def getWeightMatrixSquare(): ArrayTile ={
-    val arrayTile = Array[Double](
-      0.0, 0.0, 0.1, 0.0, 0.0,
-      0.0, 0.4, 1.0, 0.4, 0.0,
-      0.1, 0.5, 1.0, 5.0, 0.1,
-      0.0, 0.4, 1.0, 0.4, 0.0,
-      0.0, 0.0, 0.1, 0.0, 0.0)
-    val weightTile = new DoubleRawArrayTile(arrayTile, 5,5)
+  def getWeightMatrixSquare(radius : Int): ArrayTile ={
+    val arrayTile = Array.ofDim[Int](radius*2+1,radius*2+1)
+
+    for (i <- -radius to radius) {
+      for (j <- -radius to radius) {
+        if(Math.sqrt(i*i+j*j)<=radius) {
+          arrayTile(radius + i)(radius + j) = 1
+        } else {
+          arrayTile(radius + i)(radius + j) = 0
+        }
+      }
+    }
+    val weightTile = new IntRawArrayTile(arrayTile.flatten, radius*2+1,radius*2+1)
     weightTile
   }
 

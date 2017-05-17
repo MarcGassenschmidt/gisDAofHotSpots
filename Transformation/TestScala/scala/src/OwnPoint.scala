@@ -1,6 +1,4 @@
-import org.postgis.Point
-import slick.driver.PostgresDriver.api._
-import slick.lifted.{ProvenShape, ForeignKeyQuery}
+
 /**
   * Created by marc on 13.04.17.
   */
