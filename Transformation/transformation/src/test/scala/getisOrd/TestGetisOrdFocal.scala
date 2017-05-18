@@ -84,12 +84,10 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
   test("Test Spark Focal G*"){
     para.focalRange = 5
     val rnd = new Random(1)
-    val testTile = Array.fill(100)(rnd.nextInt(100))
-    rasterTile = new IntRawArrayTile(testTile, 10, 10)
+    val testTile = Array.fill(1000000)(rnd.nextInt(100))
+    rasterTile = new IntRawArrayTile(testTile, 1000, 1000)
     getis = new GetisOrdFocal(rasterTile, 10, 10, para.focalRange)
     println(getis.getSparkGstart(para).getDouble(0,0))
-    println(getis.getSparkGstart(para).getDouble(0,0))
-    println(getis.getGstartForChildToo(para, new Parameters)._1.getDouble(0,0))
 
   }
 

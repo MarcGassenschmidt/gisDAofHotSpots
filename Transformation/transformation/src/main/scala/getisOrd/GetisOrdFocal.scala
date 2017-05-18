@@ -31,7 +31,7 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Double) e
     val tileG = DoubleArrayTile.ofDim(tile.cols, tile.rows)
     val range = 0 to (tile.cols)*(tile.rows)-1
     val weightF = createNewWeight(para)
-    val result = spark.parallelize(range).map(index => (index/tile.cols,index%tile.cols,gStarForTileSpark((index/tile.cols,index%tile.cols),weightF,tile, para)))
+    val result = spark.parallelize(range).map(index => (index/tile.cols,index%tile.cols,gStarForTile((index/tile.cols,index%tile.cols))))
     for(res <- result.collect()){
       tileG.setDouble(res._1,res._2,res._3)
     }
@@ -39,15 +39,15 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Double) e
 
   }
 
-  override def getGstartForChildToo(paraParent : Parameters, paraChild : Parameters): (Tile, Tile) ={
-    var parent = getSparkGstart(paraParent)
-    val size = (weight.cols,weight.rows)
-    if(size._1<weight.cols || size._2<weight.rows){
-      throw new IllegalArgumentException("Parent Weight must be greater than Child Weight")
-    }
-    val child = getSparkGstart(paraChild)
-    (parent, child)
-  }
+//  override def getGstartForChildToo(paraParent : Parameters, paraChild : Parameters): (Tile, Tile) ={
+//    var parent = getSparkGstart(paraParent)
+//    val size = (weight.cols,weight.rows)
+//    if(size._1<weight.cols || size._2<weight.rows){
+//      throw new IllegalArgumentException("Parent Weight must be greater than Child Weight")
+//    }
+//    val child = getSparkGstart(paraChild)
+//    (parent, child)
+//  }
 
 
   override def createNewWeight(para : Parameters): Tile = {

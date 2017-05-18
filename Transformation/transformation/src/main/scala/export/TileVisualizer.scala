@@ -6,6 +6,8 @@ import java.io.FileOutputStream
 import javax.imageio.ImageIO
 
 import geotrellis.raster.Tile
+import org.joda.time.DateTime
+import parmeters.Parameters
 
 /**
   * Created by marc on 08.05.17.
@@ -46,7 +48,7 @@ class TileVisualizer {
     fos.close();
   }
 
-  def visualTileOld(tile: Tile, name: String): Unit = {
+  def visualTileOld(tile: Tile, name: String, para : Parameters): Unit = {
     val bfI = new BufferedImage(tile.cols, tile.rows, BufferedImage.TYPE_INT_RGB);
     val max = tile.toArrayDouble().max
     val min = tile.toArrayDouble().min
@@ -70,7 +72,39 @@ class TileVisualizer {
 
       }
     }
-    val fos = new FileOutputStream("/home/marc/Masterarbeit/outPut/" + name + ".png");
+    val fos = new FileOutputStream(para.ouptDirectory + name + ".png");
+    ImageIO.write(bfI, "PNG", fos);
+    fos.close();
+
+
+  }
+
+  def visualTileNew(tile: Tile, para : Parameters, extra : String): Unit = {
+    val bfI = new BufferedImage(tile.cols, tile.rows, BufferedImage.TYPE_INT_RGB);
+    val max = tile.toArrayDouble().max
+    val min = tile.toArrayDouble().min
+    val rangeFactorRed = 200 / (max)
+    var rangeFactorBlue = 0.0
+    if (min < 0) {
+      rangeFactorBlue = 200 / (Math.abs(min))
+    }
+
+    val red = new Color(255, 0, 0)
+    val blue = new Color(0, 0, 255)
+    var content: Double = 0.0
+    for (i <- 0 to tile.cols - 1) {
+      for (j <- 0 to tile.rows - 1) {
+        content = (tile.getDouble(i, j))
+        if (content > 0) {
+          bfI.setRGB(i, j, (new Color((content * rangeFactorRed).ceil.toInt, 0, 0)).getRGB)
+        } else {
+          bfI.setRGB(i, j, (new Color(0, 0, (-1 * rangeFactorBlue * content).ceil.toInt)).getRGB)
+        }
+
+      }
+    }
+    val fos = new FileOutputStream(para.ouptDirectory + "focal"+ para.focal +"_"+ "parent" + para.parent +"_" +
+       para.weightMatrix+"c_"+para.weightCols+"r_"+para.weightRows+"_cluster_meta_"+tile.rows+"_"+tile.cols+ DateTime.now().toString("MM_dd_HH_mm_ss" ) + ".png");
     ImageIO.write(bfI, "PNG", fos);
     fos.close();
 

@@ -24,11 +24,13 @@ object Main {
     para.weightCols = 10
     para.weightRows = 10
     val paraChild = new parmeters.Parameters()
+    paraChild.parent = false
+    paraChild.weightCols = 5
+    paraChild.weightRows = 5
     val soh = new SoH()
     val outPutResults = ListBuffer[SoHResult]()
     val outPutResultPrinter = new SoHResultTabell()
-    paraChild.weightCols = 5
-    paraChild.weightRows = 5
+
     val totalTime = System.currentTimeMillis()
     println(helloSentence)
     val tile = getRaster(para)
@@ -44,8 +46,8 @@ object Main {
     //println("HotSpots ="+score._1.toArrayDouble().count(x => x > 2))
 
     val image = new TileVisualizer()
-    image.visualTileOld(chs._1._1, para.weightMatrix+"c_"+para.weightCols+"r_"+para.weightRows+"_cluster_meta_"+tile.rows+"_"+tile.cols)
-    image.visualTileOld(chs._2._1, paraChild.weightMatrix+"c_"+paraChild.weightCols+"r_"+paraChild.weightRows+"_cluster_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTileNew(chs._1._1, para, "cluster")
+    image.visualTileNew(chs._2._1, para, "cluster")
     println(chs._1._1.rows, chs._1._1.cols)
     val sohVal :(Double,Double) = soh.getSoHDowAndUp(chs)
     outPutResults += new SoHResult(chs._1._1,
@@ -96,7 +98,7 @@ object Main {
   }
 
   def getRaster(para : parmeters.Parameters): Tile = {
-    val serilizer = new SerializeTile("/home/marc/Masterarbeit/outPut/raster")
+    val serilizer = new SerializeTile(para.serilizeDirectory)
     if(para.fromFile){
       val raster = creatRaster(para)
       serilizer.write(raster)
@@ -106,8 +108,8 @@ object Main {
     }
   }
 
-  def writeToSerilizable(tile : Tile): Unit ={
-    val serilizer = new SerializeTile("/home/marc/Masterarbeit/outPut/raster")
+  def writeToSerilizable(tile : Tile, para : parmeters.Parameters): Unit ={
+    val serilizer = new SerializeTile(para.serilizeDirectory)
     serilizer.write(tile)
   }
 
@@ -125,8 +127,8 @@ object Main {
     println("Time for G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     val image = new TileVisualizer()
     startTime = System.currentTimeMillis()
-    image.visualTileOld(score._1, paraParent.weightMatrix+"c"+paraParent.weightCols+"r"+paraParent.weightRows+"_meta_"+tile.rows+"_"+tile.cols)
-    image.visualTileOld(score._2, child.weightMatrix+"c"+child.weightCols+"r"+child.weightRows+"_meta_"+tile.rows+"_"+tile.cols)
+    image.visualTileNew(score._1, paraParent, "gStar")
+    image.visualTileNew(score._2, child, "gStar")
     println("Time for Image G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     score
   }

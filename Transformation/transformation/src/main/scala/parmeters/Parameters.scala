@@ -20,13 +20,16 @@ class Parameters extends Serializable{
   var weightMatrix = Weight.Square
   var weightCols = 20
   var weightRows = 20
-  var fromFile = false
-  var clusterRange = 10
+  var fromFile = true
+  var clusterRange = 1
   var critivalValue = 2.0
-  var focal = false
+  var focal = true
   var focalRange = 40
-  var inputDirectory = "/home/marc/Downloads/"
-  var outPutDirectory = "/home/marc/Masterarbeit/outPut"
+  var parent = true
+  var inputDirectory = "/home/marc/Masterarbeit/outPut/raster"
+  var ouptDirectory = "/home/marc/media/SS_17/output/"
+  var serilizeDirectory = "/home/marc/media/SS_17/tmp/raster"
+  var inputDirectoryCSV = "/home/marc/Masterarbeit/outPut/raster"
   val conf = new SparkConf().setAppName("Test")
   conf.setMaster("local[*]")
 
