@@ -51,6 +51,24 @@ class ClusterHotSpots(tile : Tile) {
     neighborhood
   }
 
+  def regionQueryNegative(range: Double, critical: Double, clusterCol: Int, clusterRow: Int, visit: IntArrayTile) : List[(Int,Int)] = {
+    var neighborhood = List[(Int, Int)]()
+    for (i <- -range.toInt to range.toInt) {
+      for (j <- -range.toInt to range.toInt) {
+        if (clusterCol + j < tile.cols && clusterCol + j >= 0
+          && clusterRow + i < tile.rows && clusterRow + i >= 0
+          && Math.sqrt(j * j + i * i) <= range
+          && visit.get(clusterCol + j, clusterRow + i) == 0) {
+          visit.set(clusterCol + j, clusterRow + i, 1)
+          if (-1*(tile.get(clusterCol + j, clusterRow + i)) >= critical) {
+            neighborhood = (clusterCol + j, clusterRow + i) :: neighborhood
+          }
+        }
+      }
+    }
+    neighborhood
+  }
+
   private def expandCluster(clusterTile: IntArrayTile, range: Double, critical: Double, visit: IntArrayTile, counterCluster: Int, neigbourhoud : List[(Int,Int)] ) : Unit = {
     var nextNeigbours = List[(Int,Int)]()
     for((x,y) <- neigbourhoud){
@@ -59,6 +77,17 @@ class ClusterHotSpots(tile : Tile) {
     }
     if(nextNeigbours.size>0){
       expandCluster(clusterTile, range, critical, visit, counterCluster, nextNeigbours)
+    }
+  }
+
+  private def expandClusterNegative(clusterTile: IntArrayTile, range: Double, critical: Double, visit: IntArrayTile, counterCluster: Int, neigbourhoud : List[(Int,Int)] ) : Unit = {
+    var nextNeigbours = List[(Int,Int)]()
+    for((x,y) <- neigbourhoud){
+      clusterTile.set(x,y,counterCluster)
+      nextNeigbours = List.concat(nextNeigbours, regionQueryNegative(range, critical, x, y, visit))
+    }
+    if(nextNeigbours.size>0){
+      expandClusterNegative(clusterTile, range, critical, visit, counterCluster, nextNeigbours)
     }
   }
 
@@ -71,15 +100,23 @@ class ClusterHotSpots(tile : Tile) {
     var clusterTile = IntArrayTile.fill(0,tile.cols,tile.rows)
     for(i <- 0 to tile.cols-1){
       for(j <- 0 to tile.rows-1){
-        if(Math.abs(tile.getDouble(i,j))>=critical){
+        if((tile.getDouble(i,j))>=critical){
           if(clusterTile.get(i,j)==0){
             counterCluster += 1
             visit.set(i,j,1)
             clusterTile.set(i,j,counterCluster)
             expandCluster(clusterTile, range, critical, visit, counterCluster, regionQuery(range, critical, i, j, visit))
           }
+        } else if(-1*(tile.getDouble(i,j))>=critical){
+          if(clusterTile.get(i,j)==0){
+            counterCluster += 1
+            visit.set(i,j,1)
+            clusterTile.set(i,j,counterCluster)
+            expandClusterNegative(clusterTile, range, critical, visit, counterCluster, regionQuery(range, critical, i, j, visit))
+          }
         }
       }
+
     }
     (clusterTile,counterCluster)
   }

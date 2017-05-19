@@ -11,7 +11,7 @@ class TestClusterHotSpots extends FunSuite{
   test("TestClusterHotSpots"){
     val chs = new ClusterHotSpots(getTestTile())
     println(chs.findClusters(1.5, 2)._1.asciiDraw())
-    assert(chs.findClusters(1.5, 2)._2==9)
+    assert(chs.findClusters(1.5, 2)._2==10)
 
   }
 
@@ -45,7 +45,7 @@ class TestClusterHotSpots extends FunSuite{
       0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,
       0,0,-3,-3,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,
-      0,0,0,0,-3,0,0,1,0,0,0,0,0,3,0,0,0,0,0,0,
+      0,0,0,0,-3,3,0,1,0,0,0,0,0,3,0,0,0,0,0,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
       0,0,0,0,0,0,3,0,0,0,0,0,3,3,0,0,0,0,0,0,
       0,0,0,0,0,0,0,3,0,0,0,0,3,3,0,0,0,0,0,0,

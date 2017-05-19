@@ -22,7 +22,7 @@ class Settings extends Serializable{
   var weightRows = 20
   var fromFile = false
   var clusterRange = 1
-  var critivalValue = 2.0
+  var critivalValue = 2
   var focal = false
   var focalRange = 40
   var parent = true
