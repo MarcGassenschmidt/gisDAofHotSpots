@@ -5,7 +5,7 @@ import java.awt.Color
 import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntRawArrayTile}
 import getisOrd.GetisOrd
 import org.scalatest.FunSuite
-import parmeters.Parameters
+import parmeters.Settings
 
 /**
   * Created by marc on 09.05.17.
@@ -19,7 +19,7 @@ class TestTileVisualizer extends FunSuite {
   }
 
   ignore("Test Image Generation log"){
-    val para = new Parameters()
+    val para = new Settings()
     val export = new TileVisualizer()
     export.visualTileNew(getImageMatrixPositve(), para, "TestForPositve")
     export.visualTileNew(getImageMatrixNegativ(), para, "TestForNegative")

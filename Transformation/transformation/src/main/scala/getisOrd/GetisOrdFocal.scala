@@ -4,16 +4,17 @@ import geotrellis.raster.{DoubleArrayTile, Tile}
 import geotrellis.raster.mapalgebra.focal.Circle
 import getisOrd.Weight.Weight
 import org.apache.spark.SparkContext
-import parmeters.Parameters
+import parmeters.Settings
 
 /**
   * Created by marc on 10.05.17.
   */
-class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Int) extends GetisOrd(tile, cols, rows) {
-  var focalTile = Circle(focalRadius)
+class GetisOrdFocal(tile : Tile, setting : Settings) extends GetisOrd(tile, setting) {
+  var focalTile = Circle(setting.focalRange)
   var focalmean = tile.focalMean(focalTile)
+  var focalSD = tile.focalStandardDeviation(focalTile)
 
-  def gStarForTileSpark(index: (Int, Int), weightF : Tile, tile : Tile, para : Parameters) : Double = {
+  def gStarForTileSpark(index: (Int, Int), weightF : Tile, tile : Tile, para : Settings) : Double = {
     val focus = Circle(para.focalRange)
     val mean = tile.focalMean(focus)
     val sd = tile.focalStandardDeviation(focus)
@@ -25,7 +26,7 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Int) exte
     num/den
   }
 
-  def getSparkGstart(para : Parameters): Tile = {
+  def getSparkGstart(para : Settings): Tile = {
     val spark = SparkContext.getOrCreate(para.conf)
     val tileG = DoubleArrayTile.ofDim(tile.cols, tile.rows)
     val range = 0 to (tile.cols)*(tile.rows)-1
@@ -49,7 +50,7 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Int) exte
 //  }
 
 
-  override def createNewWeight(para : Parameters): Tile = {
+  override def createNewWeight(para : Settings): Tile = {
     para.weightMatrix match {
       case Weight.One => weight = getWeightMatrix(para.weightCols,para.weightRows)
       case Weight.Square => weight = getWeightMatrixSquare(para.weightCols)
@@ -67,7 +68,7 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Int) exte
     powerOfWeight  =  getPowerOfTwoForElementsAsSum(weight)
     //Not needed
     //powerOfTile  =  getPowerOfTwoForElementsAsSum(tile)
-
+    standardDeviation = getStandartDeviationForTile(index)
   }
 
   override def gStarForTile(index: (Int, Int)): Double = {
@@ -101,7 +102,7 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Int) exte
 
   def getDenominator(index: (Int, Int)): Double = {
     val N = getConvolution(index)
-    (getStandartDeviationForTile(index)*Math.sqrt((N*powerOfWeight-getSummPowerForWeight())/(N-1)))
+    (standardDeviation*Math.sqrt((N*powerOfWeight-getSummPowerForWeight())/(N-1)))
   }
 
   def getDenominator(index: (Int, Int), sd : Tile, powerOfWeightN : Double, sumOfWeightF : Double, N : Double): Double = {
@@ -109,18 +110,8 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Int) exte
   }
 
 
-
   def getStandartDeviationForTile(index: (Int, Int)): Double = {
-    val xMean = getXMean(index)
-    var sum = 0.0
-    for(i <- -focalRadius to focalRadius) {
-      for (j <- -focalRadius to focalRadius) {
-        if(Math.sqrt(i*i+j*j)<=focalRadius){
-          sum += Math.pow((tile.get(index._1, index._2)-xMean),2)
-        }
-      }
-    }
-    return Math.sqrt(sum)
+    focalSD.getDouble(index._1,index._2)
   }
 
   def getXMean(index: (Int, Int)): Double = {
@@ -147,5 +138,6 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Int) exte
   def setFocalRadius(radius : Double): Unit ={
     focalTile = Circle(radius)
     focalmean = tile.focalMean(focalTile)
+    focalSD = tile.focalStandardDeviation(focalTile)
   }
 }

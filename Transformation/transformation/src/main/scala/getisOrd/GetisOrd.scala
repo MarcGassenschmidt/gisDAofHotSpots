@@ -6,19 +6,19 @@ import geotrellis.raster.{ArrayTile, CellType, DoubleArrayTile, DoubleRawArrayTi
 import geotrellis.raster.mapalgebra.focal.{Neighborhood, Square}
 import geotrellis.spark.{Metadata, SpaceTimeKey, SpatialKey, TileLayerMetadata}
 import org.apache.spark.rdd.RDD
-import parmeters.Parameters
+import parmeters.Settings
 
 /**
   * Created by marc on 27.04.17.
   */
-class GetisOrd(tile : Tile, cols : Int, rows : Int) extends Serializable{
-  var weight : Tile = this.getWeightMatrix(cols, rows) //0,0 for Testing
+class GetisOrd(tile : Tile, setting : Settings) extends Serializable{
+  var weight : Tile = createNewWeight(setting)
   var sumOfTile : Double = this.getSummForTile(tile)
   var sumOfWeight : Double = this.getSummForTile(weight)
   var xMean : Double = this.getXMean(tile)
   var powerOfWeight : Double =  getPowerOfTwoForElementsAsSum(weight)
   var powerOfTile : Double =  getPowerOfTwoForElementsAsSum(tile)
-  private var standardDeviation: Double = this.getStandartDeviationForTile(tile)
+  var standardDeviation: Double = this.getStandartDeviationForTile(tile)
 
 
 
@@ -47,7 +47,7 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) extends Serializable{
     standardDeviation = getStandartDeviationForTile(tile)
   }
 
-  def getGstartForChildToo(paraParent : Parameters, paraChild : Parameters, childTile : Tile): (Tile, Tile) ={
+  def getGstartForChildToo(paraParent : Settings, paraChild : Settings, childTile : Tile): (Tile, Tile) ={
     createNewWeight(paraParent)
     val parent = gStarComplete()
     calculateStats(0,0)
@@ -56,7 +56,7 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) extends Serializable{
     (parent, child)
   }
 
-  def getGstartForChildToo(paraParent : Parameters, paraChild : Parameters): (Tile, Tile) ={
+  def getGstartForChildToo(paraParent : Settings, paraChild : Settings): (Tile, Tile) ={
     createNewWeight(paraParent)
     var parent = gStarComplete()
     val size = (weight.cols,weight.rows)
@@ -79,7 +79,7 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) extends Serializable{
     tileG
   }
 
-  def createNewWeight(para : Parameters) : Tile = {
+  def createNewWeight(para : Settings) : Tile = {
     para.weightMatrix match {
       case Weight.One => weight = getWeightMatrix(para.weightCols,para.weightRows)
       case Weight.Square => weight = getWeightMatrixSquare(para.weightCols)

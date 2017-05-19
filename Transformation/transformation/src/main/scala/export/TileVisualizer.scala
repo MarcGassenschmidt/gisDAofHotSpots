@@ -7,7 +7,7 @@ import javax.imageio.ImageIO
 
 import geotrellis.raster.Tile
 import org.joda.time.DateTime
-import parmeters.Parameters
+import parmeters.Settings
 
 /**
   * Created by marc on 08.05.17.
@@ -48,7 +48,7 @@ class TileVisualizer {
     fos.close();
   }
 
-  def visualTileOld(tile: Tile, name: String, para : Parameters): Unit = {
+  def visualTileOld(tile: Tile, name: String, para : Settings): Unit = {
     val bfI = new BufferedImage(tile.cols, tile.rows, BufferedImage.TYPE_INT_RGB);
     val max = tile.toArrayDouble().max
     val min = tile.toArrayDouble().min
@@ -79,7 +79,7 @@ class TileVisualizer {
 
   }
 
-  def visualTileNew(tile: Tile, para : Parameters, extra : String): Unit = {
+  def visualTileNew(tile: Tile, para : Settings, extra : String): Unit = {
     val bfI = new BufferedImage(tile.cols, tile.rows, BufferedImage.TYPE_INT_RGB);
     val max = tile.toArrayDouble().max
     val min = tile.toArrayDouble().min

@@ -2,7 +2,7 @@ package transformation
 
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.{BeforeAndAfter, FunSuite}
-import parmeters.Parameters
+import parmeters.Settings
 import rasterTransformation.Transformation
 
 
@@ -24,7 +24,7 @@ class TestSpark extends FunSuite with BeforeAndAfter {
 
   test("Test Spark Rastertransformation") {
     val transform = new Transformation()
-    val para = new Parameters()
+    val para = new Settings()
     para.sizeOfRasterLat = 4000
     para.sizeOfRasterLon = 4000
     para.rasterLatLength = ((para.latMax-para.latMin)/para.sizeOfRasterLat).ceil.toInt

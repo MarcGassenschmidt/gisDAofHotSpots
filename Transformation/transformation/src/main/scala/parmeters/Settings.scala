@@ -6,7 +6,7 @@ import org.apache.spark.SparkConf
 /**
   * Created by marc on 12.05.17.
   */
-class Parameters extends Serializable{
+class Settings extends Serializable{
   var multiToInt = 1000000
   var shiftToPostive = 74.018704*multiToInt
   var latMin = 40.701915*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)

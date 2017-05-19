@@ -12,6 +12,7 @@ import db.{ImportToDB, QueryDb}
 import getisOrd.Weight._
 import getisOrd.{GetisOrd, GetisOrdFocal, SoH, Weight}
 import rasterTransformation.Transformation
+import scenarios.DifferentRasterSizes
 
 import scala.collection.mutable.ListBuffer
 import scala.slick.driver.PostgresDriver.simple._
@@ -20,10 +21,15 @@ object Main {
   def helloSentence = "Start"
 
   def main(args: Array[String]): Unit = {
-    val para = new parmeters.Parameters()
+    val scenario = new DifferentRasterSizes()
+    scenario.runScenario()
+  }
+
+  def OldMethode: Unit = {
+    val para = new parmeters.Settings()
     para.weightCols = 10
     para.weightRows = 10
-    val paraChild = new parmeters.Parameters()
+    val paraChild = new parmeters.Settings()
     paraChild.parent = false
     paraChild.weightCols = 5
     paraChild.weightRows = 5
@@ -41,24 +47,24 @@ object Main {
     //resampleRaster(tile)
     val score = gStar(tile, para, paraChild)
     println(score._2.histogram)
-    val chs = ((new ClusterHotSpots(score._1)).findClusters(para.critivalValue,para.critivalValue),
-              (new ClusterHotSpots(score._2)).findClusters(paraChild.critivalValue,paraChild.critivalValue))
+    val chs = ((new ClusterHotSpots(score._1)).findClusters(para.critivalValue, para.critivalValue),
+      (new ClusterHotSpots(score._2)).findClusters(paraChild.critivalValue, paraChild.critivalValue))
     //println("HotSpots ="+score._1.toArrayDouble().count(x => x > 2))
 
     val image = new TileVisualizer()
     image.visualTileNew(chs._1._1, para, "cluster")
     image.visualTileNew(chs._2._1, para, "cluster")
     println(chs._1._1.rows, chs._1._1.cols)
-    val sohVal :(Double,Double) = soh.getSoHDowAndUp(chs)
+    val sohVal: (Double, Double) = soh.getSoHDowAndUp(chs)
     outPutResults += new SoHResult(chs._1._1,
       chs._2._1,
       para,
       paraChild,
-      ((System.currentTimeMillis()-totalTime)/1000),
+      ((System.currentTimeMillis() - totalTime) / 1000),
       sohVal)
     println(outPutResultPrinter.printResults(outPutResults))
     //gStarFocal(tile, Weight.Big)
-    println("Total Time ="+((System.currentTimeMillis()-totalTime)/1000))
+    println("Total Time =" + ((System.currentTimeMillis() - totalTime) / 1000))
     println("End")
   }
 
@@ -69,7 +75,7 @@ object Main {
     println("Raster Size (cols,rows)=(" + reducedTile.cols + "," + reducedTile.rows + ")")
   }
 
-  def creatRaster(para : parmeters.Parameters): Tile = {
+  def creatRaster(para : parmeters.Settings): Tile = {
     var startTime = System.currentTimeMillis()
     val transform = new Transformation
 
@@ -97,7 +103,7 @@ object Main {
 
   }
 
-  def getRaster(para : parmeters.Parameters): Tile = {
+  def getRaster(para : parmeters.Settings): Tile = {
     val serilizer = new SerializeTile(para.serilizeDirectory)
     if(para.fromFile){
       val raster = creatRaster(para)
@@ -108,18 +114,18 @@ object Main {
     }
   }
 
-  def writeToSerilizable(tile : Tile, para : parmeters.Parameters): Unit ={
+  def writeToSerilizable(tile : Tile, para : parmeters.Settings): Unit ={
     val serilizer = new SerializeTile(para.serilizeDirectory)
     serilizer.write(tile)
   }
 
-  def gStar(tile : Tile, paraParent : parmeters.Parameters, child : parmeters.Parameters): (Tile, Tile) = {
+  def gStar(tile : Tile, paraParent : parmeters.Settings, child : parmeters.Settings): (Tile, Tile) = {
     var startTime = System.currentTimeMillis()
     var ort : GetisOrd = null
     if(paraParent.focal){
-      ort = new GetisOrdFocal(tile, 3, 3, paraParent.focalRange)
+      ort = new GetisOrdFocal(tile, paraParent)
     } else {
-      ort = new GetisOrd(tile, 3, 3)
+      ort = new GetisOrd(tile, paraParent)
     }
     println("Time for G* values =" + ((System.currentTimeMillis() - startTime) / 1000))
     startTime = System.currentTimeMillis()

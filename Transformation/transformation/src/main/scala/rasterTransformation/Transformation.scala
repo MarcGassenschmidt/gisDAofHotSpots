@@ -16,7 +16,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
 import org.joda.time.format.DateTimeFormat
-import parmeters.Parameters
+import parmeters.Settings
 
 import scala.collection.immutable.TreeMap
 import scala.io.Source
@@ -26,7 +26,7 @@ import scala.io.Source
 class Transformation {
 
 
-  def transformOneFileOld(rootPath: String, config: SparkConf, para : Parameters): IntArrayTile ={
+  def transformOneFileOld(rootPath: String, config: SparkConf, para : Settings): IntArrayTile ={
     val spark = SparkSession.builder.config(config).getOrCreate()
 
 
@@ -37,7 +37,7 @@ class Transformation {
     tile
   }
 
-  def transformOneFile(rootPath: String, config: SparkConf, para : Parameters): IntArrayTile ={
+  def transformOneFile(rootPath: String, config: SparkConf, para : Settings): IntArrayTile ={
     val sc = SparkContext.getOrCreate(config)
     val files = sc.textFile(rootPath)
     val tile = IntArrayTile.ofDim(para.rasterLatLength,para.rasterLonLength)
@@ -60,7 +60,7 @@ class Transformation {
     tile
   }
 
-  def transformCSVtoRaster(parmeters : Parameters): IntArrayTile ={
+  def transformCSVtoRaster(parmeters : Settings): IntArrayTile ={
     //https://www.google.com/maps/place/40%C2%B033'06.6%22N+74%C2%B007'46.0%22W/@40.7201276,-74.0195387,11.25z/data=!4m5!3m4!1s0x0:0x0!8m2!3d40.551826!4d-74.129441
     //lat = 40.551826, lon=-74.129441
     //https://www.google.com/maps/place/40%C2%B059'32.5%22N+73%C2%B035'51.3%22W/@40.8055274,-73.8900207,10.46z/data=!4m5!3m4!1s0x0:0x0!8m2!3d40.992352!4d-73.597571

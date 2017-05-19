@@ -1,6 +1,6 @@
 package osm
 
-import parmeters.Parameters
+import parmeters.Settings
 
 /**
   * Created by marc on 16.05.17.
@@ -8,7 +8,7 @@ import parmeters.Parameters
 class ConvertPositionToCoordinate {
 
 
-  def getGPSCoordinate(rowLat : Int, colLon : Int, para : Parameters): (Double, Double) = {
+  def getGPSCoordinate(rowLat : Int, colLon : Int, para : Settings): (Double, Double) = {
     val latScaled =(rowLat*(para.sizeOfRasterLat))
     val lonScaled = (colLon*(para.sizeOfRasterLon))
     val lat = (latScaled+para.latMin)/para.multiToInt
