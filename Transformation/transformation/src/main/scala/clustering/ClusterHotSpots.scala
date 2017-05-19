@@ -20,7 +20,6 @@ class ClusterHotSpots(tile : Tile) {
   }
 
   private def findRelated(clusterTile: IntArrayTile, clusterCol: Int, clusterRow: Int, range: Double, critical: Double, counterCluster: Int) : Unit = {
-
     for(i <- -range.toInt to range.toInt){
       for(j <- -range.toInt to range.toInt){
         if(clusterCol+j<tile.cols && clusterCol+j>=0
@@ -29,10 +28,7 @@ class ClusterHotSpots(tile : Tile) {
           if(Math.abs(tile.get(clusterCol+j,clusterRow+i))>=critical) {
               clusterTile.set(clusterCol + j, clusterRow + i, counterCluster)
           }
-
-
         }
-
       }
     }
   }
@@ -47,7 +43,6 @@ class ClusterHotSpots(tile : Tile) {
           && visit.get(clusterCol + j, clusterRow + i) == 0) {
           visit.set(clusterCol + j, clusterRow + i, 1)
           if (Math.abs(tile.get(clusterCol + j, clusterRow + i)) >= critical) {
-
             neighborhood = (clusterCol + j, clusterRow + i) :: neighborhood
           }
         }

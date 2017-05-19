@@ -20,10 +20,10 @@ class Parameters extends Serializable{
   var weightMatrix = Weight.Square
   var weightCols = 20
   var weightRows = 20
-  var fromFile = true
+  var fromFile = false
   var clusterRange = 1
   var critivalValue = 2.0
-  var focal = true
+  var focal = false
   var focalRange = 40
   var parent = true
   var inputDirectory = "/home/marc/Masterarbeit/outPut/raster"

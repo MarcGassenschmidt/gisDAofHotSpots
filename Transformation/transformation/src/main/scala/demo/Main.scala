@@ -40,7 +40,7 @@ object Main {
     //results.add(new SoHResult(tile))
     //resampleRaster(tile)
     val score = gStar(tile, para, paraChild)
-
+    println(score._2.histogram)
     val chs = ((new ClusterHotSpots(score._1)).findClusters(para.critivalValue,para.critivalValue),
               (new ClusterHotSpots(score._2)).findClusters(paraChild.critivalValue,paraChild.critivalValue))
     //println("HotSpots ="+score._1.toArrayDouble().count(x => x > 2))

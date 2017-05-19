@@ -53,7 +53,7 @@ class TestGetisOrd extends FunSuite {
     println("X-Mean="+gStart.xMean)
     println("Power of Weight element wise="+gStart.powerOfWeight)
     println("Power of Tile element wise="+gStart.powerOfTile)
-    println("Standard Devivation="+gStart.standardDeviation)
+    println("Standard Devivation="+gStart.getStandartDeviationForTile(rasterTile))
     println("Denominator="+gStart.getDenominator())
     println(gStart.printG_StarComplete())
   }

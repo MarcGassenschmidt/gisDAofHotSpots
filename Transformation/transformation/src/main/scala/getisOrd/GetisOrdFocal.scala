@@ -9,10 +9,9 @@ import parmeters.Parameters
 /**
   * Created by marc on 10.05.17.
   */
-class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Double) extends GetisOrd(tile, cols, rows) {
+class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Int) extends GetisOrd(tile, cols, rows) {
   var focalTile = Circle(focalRadius)
   var focalmean = tile.focalMean(focalTile)
-  var focalSD = tile.focalStandardDeviation(focalTile)
 
   def gStarForTileSpark(index: (Int, Int), weightF : Tile, tile : Tile, para : Parameters) : Double = {
     val focus = Circle(para.focalRange)
@@ -68,7 +67,6 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Double) e
     powerOfWeight  =  getPowerOfTwoForElementsAsSum(weight)
     //Not needed
     //powerOfTile  =  getPowerOfTwoForElementsAsSum(tile)
-    standardDeviation = getStandartDeviationForTile(index)
 
   }
 
@@ -103,7 +101,7 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Double) e
 
   def getDenominator(index: (Int, Int)): Double = {
     val N = getConvolution(index)
-    (standardDeviation*Math.sqrt((N*powerOfWeight-getSummPowerForWeight())/(N-1)))
+    (getStandartDeviationForTile(index)*Math.sqrt((N*powerOfWeight-getSummPowerForWeight())/(N-1)))
   }
 
   def getDenominator(index: (Int, Int), sd : Tile, powerOfWeightN : Double, sumOfWeightF : Double, N : Double): Double = {
@@ -113,7 +111,16 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Double) e
 
 
   def getStandartDeviationForTile(index: (Int, Int)): Double = {
-    focalSD.getDouble(index._1,index._2)
+    val xMean = getXMean(index)
+    var sum = 0.0
+    for(i <- -focalRadius to focalRadius) {
+      for (j <- -focalRadius to focalRadius) {
+        if(Math.sqrt(i*i+j*j)<=focalRadius){
+          sum += Math.pow((tile.get(index._1, index._2)-xMean),2)
+        }
+      }
+    }
+    return Math.sqrt(sum)
   }
 
   def getXMean(index: (Int, Int)): Double = {
@@ -140,6 +147,5 @@ class GetisOrdFocal(tile : Tile, cols : Int, rows : Int, focalRadius : Double) e
   def setFocalRadius(radius : Double): Unit ={
     focalTile = Circle(radius)
     focalmean = tile.focalMean(focalTile)
-    focalSD = tile.focalStandardDeviation(focalTile)
   }
 }

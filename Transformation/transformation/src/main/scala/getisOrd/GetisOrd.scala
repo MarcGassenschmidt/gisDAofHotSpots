@@ -18,7 +18,7 @@ class GetisOrd(tile : Tile, cols : Int, rows : Int) extends Serializable{
   var xMean : Double = this.getXMean(tile)
   var powerOfWeight : Double =  getPowerOfTwoForElementsAsSum(weight)
   var powerOfTile : Double =  getPowerOfTwoForElementsAsSum(tile)
-  var standardDeviation: Double = this.getStandartDeviationForTile(tile)
+  private var standardDeviation: Double = this.getStandartDeviationForTile(tile)
 
 
 

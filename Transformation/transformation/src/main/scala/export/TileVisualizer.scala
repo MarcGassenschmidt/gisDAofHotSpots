@@ -83,31 +83,69 @@ class TileVisualizer {
     val bfI = new BufferedImage(tile.cols, tile.rows, BufferedImage.TYPE_INT_RGB);
     val max = tile.toArrayDouble().max
     val min = tile.toArrayDouble().min
-    val rangeFactorRed = 200 / (max)
-    var rangeFactorBlue = 0.0
-    if (min < 0) {
-      rangeFactorBlue = 200 / (Math.abs(min))
-    }
 
-    val red = new Color(255, 0, 0)
-    val blue = new Color(0, 0, 255)
+
+
+
     var content: Double = 0.0
     for (i <- 0 to tile.cols - 1) {
       for (j <- 0 to tile.rows - 1) {
         content = (tile.getDouble(i, j))
-        if (content > 0) {
-          bfI.setRGB(i, j, (new Color((content * rangeFactorRed).ceil.toInt, 0, 0)).getRGB)
-        } else {
-          bfI.setRGB(i, j, (new Color(0, 0, (-1 * rangeFactorBlue * content).ceil.toInt)).getRGB)
-        }
-
+        bfI.setRGB(i, j, (logScale(content,min,max)).getRGB)
       }
     }
-    val fos = new FileOutputStream(para.ouptDirectory + "focal"+ para.focal +"_"+ "parent" + para.parent +"_" +
+    val fos = new FileOutputStream(para.ouptDirectory + extra+"focal"+ para.focal +"_"+ "parent" + para.parent +"_" +
        para.weightMatrix+"c_"+para.weightCols+"r_"+para.weightRows+"_cluster_meta_"+tile.rows+"_"+tile.cols+ DateTime.now().toString("MM_dd_HH_mm_ss" ) + ".png");
     ImageIO.write(bfI, "PNG", fos);
     fos.close();
 
+
+  }
+
+  def tableScale(min : Double, max : Double, n : Double): Color ={
+    //Hue value
+    //https://www.w3schools.com/colors/colors_picker.asp?colorhex=ff0000
+    val hue 	= Array(new Color(255, 0, 0),
+      new Color(255, 64, 0),
+      new Color(255, 128, 0),
+      new Color(255, 191, 0),
+      new Color(255, 255, 0),
+      new Color(191, 255, 0),
+      new Color(128, 255, 0),
+      new Color(64, 255, 0),
+      new Color(0, 255, 0),
+      new Color(0, 255, 64),
+      new Color(0, 255, 128),
+      new Color(0, 255, 191),
+      new Color(0, 255, 255),
+      new Color(0, 191, 255),
+      new Color(0, 128, 255),
+      new Color(0, 64, 255),
+      new Color(0, 0, 255))
+    val range = Math.abs(min)+max
+    val index : Int = ((n+Math.abs(min))/(hue.length/range)).toInt
+    return hue(index)
+
+  }
+
+  def logScale(n : Double, min : Double, max : Double): Color ={
+//    val red = new Color(255, 0, 0)
+//    val blue = new Color(0, 0, 255)
+    if(n==0){
+      return new Color(0,0,0)
+    } else if(n<0){
+      val blueValue = ((Math.log(-1*n+1)*(255/Math.log(Math.abs(min)+1))).toInt)
+      if(blueValue>255){
+        println(blueValue)
+      }
+      return new Color(0,0,blueValue)
+    } else {
+      val redValue = (Math.log(n+1)*(255/Math.log(max+1))).toInt
+      if(redValue>255){
+        println(redValue)
+      }
+      return new Color(redValue,0,0)
+    }
 
   }
 
