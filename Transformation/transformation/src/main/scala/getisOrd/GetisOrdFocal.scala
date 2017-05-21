@@ -62,7 +62,7 @@ class GetisOrdFocal(tile : Tile, setting : Settings) extends GetisOrd(tile, sett
   }
 
   override def calculateStats(index: (Int, Int)) : Unit = {
-    sumOfTile  = getSummForTile(tile)
+
     sumOfWeight  = getSummForTile(weight)
     xMean  = getXMean(index)
     powerOfWeight  =  getPowerOfTwoForElementsAsSum(weight)
@@ -72,6 +72,9 @@ class GetisOrdFocal(tile : Tile, setting : Settings) extends GetisOrd(tile, sett
   }
 
   override def gStarForTile(index: (Int, Int)): Double = {
+    if(index._1==0) {
+      println("Next run" +index)
+    }
     calculateStats(index)
     getNumerator(index)/getDenominator(index)
   }

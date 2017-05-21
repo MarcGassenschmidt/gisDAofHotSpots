@@ -52,7 +52,7 @@ class TestGetisOrd extends FunSuite {
     val gStart = new GetisOrd(rasterTile,set)
     println(rasterTile.asciiDraw())
     println("Weight ="+gStart.weight.asciiDraw())
-    println("Sum of Tile="+gStart.sumOfTile)
+
     println("Sum of Weight="+gStart.sumOfWeight)
     println("X-Mean="+gStart.xMean)
     println("Power of Weight element wise="+gStart.powerOfWeight)

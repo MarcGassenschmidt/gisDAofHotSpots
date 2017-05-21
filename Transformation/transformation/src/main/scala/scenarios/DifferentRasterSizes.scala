@@ -18,13 +18,13 @@ class DifferentRasterSizes {
     val globalSettings =new Settings()
     globalSettings.fromFile = true
     val outPutResults = ListBuffer[SoHResult]()
-    val runs = 2
-    forGlobalG(globalSettings, outPutResults, runs)
+    val runs = 10
+    //forGlobalG(globalSettings, outPutResults, runs)
     forFocalG(globalSettings, outPutResults, runs)
   }
 
   def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 1 to runs) {
+    for (i <- 0 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.sizeOfRasterLat = 10 + 990/runs  * i
       globalSettings.sizeOfRasterLon = 10 + 990/runs * i
@@ -35,7 +35,7 @@ class DifferentRasterSizes {
   }
 
   def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 1 to runs) {
+    for (i <- 0 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.sizeOfRasterLat = 10 + runs / 990 * i
       globalSettings.sizeOfRasterLon = 10 + runs / 990 * i
@@ -100,14 +100,18 @@ class DifferentRasterSizes {
   def gStar(tile : Tile, paraParent : parmeters.Settings, child : parmeters.Settings): (Tile, Tile) = {
     var startTime = System.currentTimeMillis()
     var ort : GetisOrd = null
+    var ordChild : GetisOrd = null
     if(paraParent.focal){
       ort = new GetisOrdFocal(tile, paraParent)
+      ordChild = new GetisOrdFocal(tile, child)
     } else {
       ort = new GetisOrd(tile, paraParent)
+      ordChild = new GetisOrd(tile, child)
     }
     println("Time for G* values =" + ((System.currentTimeMillis() - startTime) / 1000))
     startTime = System.currentTimeMillis()
-    var score =ort.getGstartForChildToo(paraParent, child)
+    val score = (ordChild.gStarComplete(),ordChild.gStarComplete())
+//    var score =ort.getGstartForChildToo(paraParent, child)
     println("Time for G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     val image = new TileVisualizer()
     startTime = System.currentTimeMillis()

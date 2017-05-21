@@ -13,7 +13,7 @@ import parmeters.Settings
   */
 class GetisOrd(tile : Tile, setting : Settings) extends Serializable{
   var weight : Tile = createNewWeight(setting)
-  var sumOfTile : Double = this.getSummForTile(tile)
+  private var sumOfTile : Double = this.getSummForTile(tile)
   var sumOfWeight : Double = this.getSummForTile(weight)
   var xMean : Double = this.getXMean(tile)
   var powerOfWeight : Double =  getPowerOfTwoForElementsAsSum(weight)
@@ -58,7 +58,7 @@ class GetisOrd(tile : Tile, setting : Settings) extends Serializable{
 
   def getGstartForChildToo(paraParent : Settings, paraChild : Settings): (Tile, Tile) ={
     createNewWeight(paraParent)
-    var parent = gStarComplete()
+    val parent = gStarComplete()
     val size = (weight.cols,weight.rows)
     createNewWeight(paraChild)
     if(size._1<weight.cols || size._2<weight.rows){

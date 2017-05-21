@@ -74,7 +74,7 @@ class Transformation {
     //sample
     //40.763458, -73.967244
     //40.701915, -74.018704
-    val bufferedSource = Source.fromFile("/home/marc/media/Downloads/in.csv")
+    val bufferedSource = Source.fromFile(parmeters.inputDirectoryCSV)
     val multiToInt = 1000000
     val shiftToPostive = 74.018704*multiToInt
     val latMin = 40.701915*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)

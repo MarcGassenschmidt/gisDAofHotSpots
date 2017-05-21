@@ -27,9 +27,10 @@ class Settings extends Serializable{
   var focalRange = 40
   var parent = true
   var inputDirectory = "/home/marc/Masterarbeit/outPut/raster"
-  var ouptDirectory = "/home/marc/media/SS_17/output/"
-  var serilizeDirectory = "/home/marc/media/SS_17/tmp/raster"
-  var inputDirectoryCSV = "/home/marc/Masterarbeit/outPut/raster"
+  var ouptDirectory = "/home/marc/Masterarbeit/outPut/"
+  var serilizeDirectory = "/home/marc/Masterarbeit/outPut/raster"
+  //"/home/marc/media/Downloads/in.csv"
+  var inputDirectoryCSV = "/home/marc/Downloads/in.csv"
   val conf = new SparkConf().setAppName("Test")
   conf.setMaster("local[*]")
 

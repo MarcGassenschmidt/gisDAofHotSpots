@@ -29,7 +29,7 @@ class TestSpark extends FunSuite with BeforeAndAfter {
     para.sizeOfRasterLon = 4000
     para.rasterLatLength = ((para.latMax-para.latMin)/para.sizeOfRasterLat).ceil.toInt
     para.rasterLonLength = ((para.lonMax-para.lonMin)/para.sizeOfRasterLon).ceil.toInt
-    val tile = transform.transformOneFile(para.inputDirectory+"in.csv", conf, para)
+    val tile = transform.transformOneFile(para.inputDirectoryCSV, conf, para)
     println(tile.asciiDraw())
     println(tile.rows)
     println(tile.cols)
