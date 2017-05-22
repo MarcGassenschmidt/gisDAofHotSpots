@@ -19,17 +19,22 @@ class DifferentRasterSizes {
     globalSettings.fromFile = true
     val outPutResults = ListBuffer[SoHResult]()
     val runs = 10
-    //forGlobalG(globalSettings, outPutResults, runs)
+
     forFocalG(globalSettings, outPutResults, runs)
+    forGlobalG(globalSettings, outPutResults, runs)
   }
 
   def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
     for (i <- 0 to runs) {
       var totalTime = System.currentTimeMillis()
-      globalSettings.sizeOfRasterLat = 10 + 990/runs  * i
-      globalSettings.sizeOfRasterLon = 1//+ +0 + 990/runs * i
       globalSettings.focal = true
-      val (para: Settings, paraChild: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double)) = oneCase(globalSettings)
+      globalSettings.focalRange = 22
+      if(i==0){
+        globalSettings.fromFile = false
+      } else {
+        globalSettings.fromFile = false
+      }
+      val (para: Settings, paraChild: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double)) = oneCase(globalSettings, i, runs)
       saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, paraChild, chs, sohVal)
     }
   }
@@ -37,23 +42,29 @@ class DifferentRasterSizes {
   def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
     for (i <- 0 to runs) {
       var totalTime = System.currentTimeMillis()
-      globalSettings.sizeOfRasterLat = 10 + 990/runs * i
-      globalSettings.sizeOfRasterLon = 10 + 990/runs * i
       globalSettings.focal = false
-      val (para: Settings, paraChild: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double)) = oneCase(globalSettings)
+      if(i==0){
+        globalSettings.fromFile = false
+      } else {
+        globalSettings.fromFile = false
+      }
+      val (para: Settings, paraChild: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double)) = oneCase(globalSettings, i, runs)
       saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, paraChild, chs, sohVal)
     }
   }
 
-  def oneCase(globalSettings: Settings): (Settings, Settings, ((Tile, Int), (Tile, Int)), (Double, Double)) = {
-    val raster = getRaster(globalSettings)
-    val image = new TileVisualizer()
-    image.visualTileNew(raster, globalSettings, "plainRaster")
+  def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, Settings, ((Tile, Int), (Tile, Int)), (Double, Double)) = {
+    var raster = getRaster(globalSettings)
+    if(!globalSettings.fromFile){
+      val actualLat = ((globalSettings.latMax-globalSettings.latMin)/(10 + 990/runs *i)).toInt
+      val actualLon = ((globalSettings.lonMax-globalSettings.lonMin)/(10 + 990/runs *i)).toInt
+      raster = raster.resample(actualLat,actualLon)
+    }
+
+    //val image = new TileVisualizer()
+    //image.visualTileNew(raster, globalSettings, "plainRaster")
     val (para: Settings, paraChild: Settings) = getParentChildSetting(globalSettings)
-    //image.visualTileNew(raster.resample(20,20), globalSettings, "plainRasterResample")
-
     val score = gStar(raster, para, paraChild)
-
     val chs = ((new ClusterHotSpots(score._1)).findClusters(para.clusterRange, para.critivalValue),
       (new ClusterHotSpots(score._2)).findClusters(paraChild.clusterRange, paraChild.critivalValue))
 
@@ -65,18 +76,18 @@ class DifferentRasterSizes {
 
   def getParentChildSetting(global : Settings): (Settings, Settings) = {
     val para = new Settings()
-    para.weightCols = 10
-    para.weightRows = 10
+    para.weightRadius = 3
+    para.focalRange = global.focalRange
     para.sizeOfRasterLat = global.sizeOfRasterLat
     para.sizeOfRasterLon = global.sizeOfRasterLon
     para.focal = global.focal
     val paraChild = new Settings()
     paraChild.focal = global.focal
+    paraChild.focalRange = global.focalRange
     paraChild.sizeOfRasterLat = global.sizeOfRasterLat
     paraChild.sizeOfRasterLon = global.sizeOfRasterLon
     paraChild.parent = false
-    paraChild.weightCols = 5
-    paraChild.weightRows = 5
+    paraChild.weightRadius = 2
     (para, paraChild)
   }
 
@@ -107,7 +118,8 @@ class DifferentRasterSizes {
     }
     println("Time for G* values =" + ((System.currentTimeMillis() - startTime) / 1000))
     startTime = System.currentTimeMillis()
-    var score =ort.getGstartForChildToo(paraParent, child)
+
+    val score =ort.getGstartForChildToo(paraParent, child)
     println("Time for G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     val image = new TileVisualizer()
     startTime = System.currentTimeMillis()

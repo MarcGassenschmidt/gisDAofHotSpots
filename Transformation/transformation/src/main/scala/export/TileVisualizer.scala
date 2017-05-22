@@ -52,6 +52,7 @@ class TileVisualizer {
     val bfI = new BufferedImage(tile.cols, tile.rows, BufferedImage.TYPE_INT_RGB);
     val max = tile.toArrayDouble().max
     val min = tile.toArrayDouble().min
+
     val rangeFactorRed = 200 / (max)
     var rangeFactorBlue = 0.0
     if (min < 0) {
@@ -80,27 +81,28 @@ class TileVisualizer {
   }
 
   def visualTileNew(tile: Tile, para : Settings, extra : String): Unit = {
+
     val bfI = new BufferedImage(tile.cols, tile.rows, BufferedImage.TYPE_INT_RGB);
-    val max = tile.toArrayDouble().max
-    val min = tile.toArrayDouble().min
-
-
+    val minMax = tile.findMinMax
+    println("min,max"+minMax)
 
 
     var content: Double = 0.0
     for (i <- 0 to tile.cols - 1) {
       for (j <- 0 to tile.rows - 1) {
         content = (tile.getDouble(i, j))
-        bfI.setRGB(i, j, (logScale(content,min,max)).getRGB)
+        bfI.setRGB(i, j, (logScale(content,minMax._1,minMax._2)).getRGB)
       }
     }
     val fos = new FileOutputStream(para.ouptDirectory + extra+"focal"+ para.focal +"_"+ "parent" + para.parent +"_" +
-       para.weightMatrix+"c_"+para.weightCols+"r_"+para.weightRows+"_cluster_meta_"+tile.rows+"_"+tile.cols+ DateTime.now().toString("MM_dd_HH_mm_ss" ) + ".png");
+       para.weightMatrix+"r_"+para.weightRadius+"_cluster_meta_"+tile.rows+"_"+tile.cols+ DateTime.now().toString("MM_dd_HH_mm_ss" ) + ".png");
     ImageIO.write(bfI, "PNG", fos);
     fos.close();
 
 
   }
+
+
 
   def tableScale(min : Double, max : Double, n : Double): Color ={
     //Hue value
@@ -135,22 +137,35 @@ class TileVisualizer {
       return new Color(0,0,0)
     } else if(n<0){
       val blueValue = ((Math.log(-1*n+1)*(255/Math.log(Math.abs(min)+1))).toInt)
-      if(blueValue>255){
-        println(blueValue)
+      if(blueValue>=255 && blueValue<=0){
+        //println(blueValue)
       }
-      return new Color(0,0,blueValue)
+      return new Color(0,0,Math.min(255,blueValue))
     } else {
       val redValue = (Math.log(n+1)*(255/Math.log(max+1))).toInt
       if(redValue>255){
-        println(redValue)
+        //println(redValue)
       }
-      return new Color(redValue,0,0)
+      return new Color(Math.min(255,redValue),0,0)
     }
 
   }
 
-  def visualTile(tile: Tile, name: String): Unit = {
-    val fos = new FileOutputStream("/home/marc/Masterarbeit/outPut/" + name + ".png");
+  def linearScale(n : Double, min : Double, max : Double): Color ={
+    if(n==0){
+      return new Color(0,0,0)
+    } else if(n<0){
+      val blueValue = (-1*n*(255/Math.abs(min))).toInt
+      return new Color(0,0,Math.min(255,blueValue))
+    } else {
+      val redValue = (n * 255/max).ceil.toInt
+      return new Color(Math.min(255,redValue),0,0)
+    }
+  }
+
+  def visualTile(tile: Tile, para: Settings, extra : String): Unit = {
+    val fos = new FileOutputStream(para.ouptDirectory + extra+"focal"+ para.focal +"_"+ "parent" + para.parent +"_" +
+    para.weightMatrix+"r_"+para.weightRadius+"_cluster_meta_"+tile.rows+"_"+tile.cols+ DateTime.now().toString("MM_dd_HH_mm_ss" ) + ".png");
     ImageIO.write(tile.toBufferedImage, "PNG", fos);
     fos.close();
   }

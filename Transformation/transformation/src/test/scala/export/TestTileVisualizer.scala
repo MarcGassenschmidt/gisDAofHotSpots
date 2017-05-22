@@ -14,8 +14,8 @@ class TestTileVisualizer extends FunSuite {
 
   ignore("Test Image Generation"){
     val export = new TileVisualizer()
-    export.visualTile(getImageMatrixPositve(), "TestForPositve")
-    export.visualTile(getImageMatrixNegativ(), "TestForNegative")
+    export.visualTile(getImageMatrixPositve(), new Settings,"TestForPositve")
+    export.visualTile(getImageMatrixNegativ(), new Settings,"TestForNegative")
   }
 
   ignore("Test Image Generation log"){

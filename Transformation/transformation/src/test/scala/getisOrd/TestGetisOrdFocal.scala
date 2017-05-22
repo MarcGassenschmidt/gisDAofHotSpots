@@ -2,12 +2,41 @@ package getisOrd
 
 import java.util.Random
 
+import geotrellis.proj4.CRS
+import geotrellis.raster.io.geotiff.GeoTiff
 import geotrellis.raster.mapalgebra.focal.Circle
+import geotrellis.raster.resample.Bilinear
 import geotrellis.raster.{DoubleArrayTile, IntArrayTile, IntRawArrayTile, Tile}
+import geotrellis.spark.{SpatialKey, TileLayerMetadata}
+import geotrellis.spark.tiling.{FloatingLayoutScheme, Tiler}
+import geotrellis.vector.ProjectedExtent
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import parmeters.Settings
-
+import geotrellis.raster._
+import geotrellis.raster.io.geotiff._
+import geotrellis.raster.resample._
+import geotrellis.spark._
+import geotrellis.spark.io._
+import geotrellis.spark.tiling._
+import geotrellis.vector._
+import org.apache.spark.HashPartitioner
+import org.apache.spark.rdd.RDD
+import geotrellis.spark.tiling.{FloatingLayoutScheme, ZoomedLayoutScheme}
+import geotrellis.spark.{LayerId, TileLayerMetadata, TileLayerRDD, withProjectedExtentTilerKeyMethods, withTileRDDReprojectMethods, withTilerMethods}
+import com.typesafe.scalalogging.LazyLogging
+import geotrellis.proj4.WebMercator
+import geotrellis.raster.withTileMethods
+import geotrellis.spark.io.hadoop.{HadoopAttributeStore, HadoopLayerDeleter, HadoopLayerReader, HadoopLayerWriter, HadoopSparkContextMethodsWrapper}
+import geotrellis.spark.io.index.ZCurveKeyIndexMethod
+import geotrellis.spark.io.index.ZCurveKeyIndexMethod.spatialKeyIndexMethod
+import geotrellis.spark.io.{SpatialKeyFormat, spatialKeyAvroFormat, tileLayerMetadataFormat, tileUnionCodec}
+import geotrellis.spark.tiling.{FloatingLayoutScheme, ZoomedLayoutScheme}
+import geotrellis.spark.{LayerId, TileLayerMetadata, TileLayerRDD, withProjectedExtentTilerKeyMethods, withTileRDDReprojectMethods, withTilerMethods}
+import org.apache.hadoop.fs.Path
+import org.apache.spark.{SparkContext, SparkException}
+import org.apache.spark.SparkConf
 /**
   * Created by marc on 10.05.17.
   */
@@ -29,43 +58,28 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
 
   test("Test focal Mean 0,0"){
     val sum = (rasterTile.get(0,0)+rasterTile.get(0,1)+rasterTile.get(1,0)+rasterTile.get(1,1)+rasterTile.get(2,0)+rasterTile.get(0,2))
-    assert(getis.getXMean(0,0)==sum/6)
+    assert(rasterTile.focalMean(Circle(setting.focalRange)).getDouble(0,0)==sum/6)
   }
 
   test("Test focal Mean row,cols"){
     getis.setFocalRadius(1)
     val sum = (rasterTile.get(9,9)+rasterTile.get(8,9)+rasterTile.get(9,8))
-    assert(getis.getXMean(9,9)==sum/3)
+    assert(rasterTile.focalMean(Circle(setting.focalRange)).getDouble(9,9)==sum/3)
   }
 
   test("Test focal Mean"){
     getis.setFocalRadius(1)
     val sum = rasterTile.get(5,5)+rasterTile.get(5,6)+rasterTile.get(6,5)+rasterTile.get(4,5)+rasterTile.get(5,4)
-    assert(getis.getXMean(5,5)==sum/5.0)
+    assert(rasterTile.focalMean(Circle(setting.focalRange)).getDouble(5,5)==sum/5.0)
   }
 
-  ignore("Test focal SD"){
-    setting.focalRange = 1
-    getis = new GetisOrdFocal(rasterTile, setting)
-    val mean = getis.getXMean(5,5)
-    val p1 = (rasterTile.getDouble(5,5),rasterTile.getDouble(5,6),rasterTile.getDouble(6,5),rasterTile.getDouble(4,5),rasterTile.getDouble(5,4))
-    val powerOfTile = Math.pow(rasterTile.getDouble(5,5)-mean,2)
-    +Math.pow(rasterTile.getDouble(5,6)-mean,2)
-    +Math.pow(rasterTile.getDouble(6,5)-mean,2)
-    +Math.pow(rasterTile.getDouble(4,5)-mean,2)
-    +Math.pow(rasterTile.getDouble(5,4)-mean,2)
 
-
-    val sdx5y5 = Math.sqrt(powerOfTile/5.0)
-    assert(getis.getStandartDeviationForTile(5,5)==rasterTile.focalStandardDeviation(Circle(1)).getDouble(5,5))
-    assert(getis.getStandartDeviationForTile(5,5)==sdx5y5)
-  }
 
   test("Test other focal SD"){
     setting.focalRange = 1
     getis = new GetisOrdFocal(rasterTile, setting)
     val index = (5,5)
-    val xMean = getis.getXMean(index)
+    val xMean =rasterTile.focalMean(Circle(setting.focalRange)).getDouble(index._1, index._2)
     var sum = 0.0
     var size = 0
     for(i <- -setting.focalRange to setting.focalRange) {
@@ -79,7 +93,7 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     }
     val sd = Math.sqrt(sum/size)
 
-    assert(getis.getStandartDeviationForTile(5,5)==sd)
+    assert(rasterTile.focalStandardDeviation(Circle(setting.focalRange)).getDouble(5,5)==sd)
   }
 
   test("Test Indexing"){
@@ -105,23 +119,37 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     assert(tileG.get(col-1,row-1)==5)
   }
 
-  test("Test Spark Focal G*"){
-    setting.focalRange = 5
-    val rnd = new Random(1)
-    val testTile = Array.fill(1000000)(rnd.nextInt(100))
-    rasterTile = new IntRawArrayTile(testTile, 1000, 1000)
-    getis = new GetisOrdFocal(rasterTile, setting)
-    println(getis.getSparkGstart(setting).getDouble(0,0))
 
-  }
 
-  test("Test local Focal G*"){
-    setting.focalRange = 5
-    val rnd = new Random(1)
-    val testTile = Array.fill(100000)(rnd.nextInt(100))
-    rasterTile = new IntRawArrayTile(testTile, 1000, 100)
-    getis = new GetisOrdFocal(rasterTile, setting)
-    println(getis.gStarComplete().getDouble(0,0))
+  test("Test Focal G*"){
+//    setting.focalRange = 5
+//    val rnd = new Random(1)
+//    val testTile = Array.fill(1000000)(rnd.nextInt(100))
+//    rasterTile = new IntRawArrayTile(testTile, 1000, 1000)
+//    SinglebandGeoTiff.apply(rasterTile, new Extent(0, 0, rasterTile.cols, rasterTile.rows),
+//      CRS.fromName("EPSG:3005")).write(setting.ouptDirectory+"geoTiff.tiff")
+//
+//    implicit val sc : SparkContext = SparkContext.getOrCreate(setting.conf)
+//    val config : SparkConf = setting.conf
+//    val inputRdd = sc.hadoopGeoTiffRDD(setting.ouptDirectory+"geoTiff.tiff")
+//    val (_, myRasterMetaData) = TileLayerMetadata.fromRdd(inputRdd, FloatingLayoutScheme())
+//    val tiled = inputRdd.tileToLayout(myRasterMetaData.cellType, myRasterMetaData.layout)
+//
+//    val catalogPathHdfs = new Path(setting.ouptDirectory+"spark/")
+//    val attributeStore = HadoopAttributeStore(catalogPathHdfs)
+//
+//    // Create the writer that we will use to store the tiles in the local catalog.
+//    val writer = HadoopLayerWriter(catalogPathHdfs, attributeStore)
+//    val layerId = new LayerId("Test", 1)
+//
+//    val reader = HadoopLayerReader(attributeStore)
+//
+//    val queryResult: RDD[(SpatialKey, Tile)] with Metadata[TileLayerMetadata[SpatialKey]] = layerReader
+//      .read[SpatialKey, Tile, TileLayerMetadata[SpatialKey]](attributeStore.layerIds(1))
+//    val test = queryResult.take(1)(1)._2
+//    println(test.asciiDraw())
+//    getis = new GetisOrdFocal(test, setting)
+//    println(getis.gStarComplete().getDouble(0,0))
 
   }
 

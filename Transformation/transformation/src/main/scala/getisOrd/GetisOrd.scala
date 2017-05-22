@@ -11,9 +11,9 @@ import parmeters.Settings
 /**
   * Created by marc on 27.04.17.
   */
-class GetisOrd(tile : Tile, setting : Settings) extends Serializable{
+class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
   var weight : Tile = createNewWeight(setting)
-  var sumOfTile : Double = this.getSummForTile(tile)
+  private var sumOfTile : Double = this.getSummForTile(tile)
   var sumOfWeight : Double = this.getSummForTile(weight)
   var xMean : Double = this.getXMean(tile)
   var powerOfWeight : Double =  getPowerOfTwoForElementsAsSum(weight)
@@ -58,7 +58,7 @@ class GetisOrd(tile : Tile, setting : Settings) extends Serializable{
 
   def getGstartForChildToo(paraParent : Settings, paraChild : Settings): (Tile, Tile) ={
     createNewWeight(paraParent)
-    var parent = gStarComplete()
+    val parent = gStarComplete()
     val size = (weight.cols,weight.rows)
     createNewWeight(paraChild)
     if(size._1<weight.cols || size._2<weight.rows){
@@ -81,10 +81,10 @@ class GetisOrd(tile : Tile, setting : Settings) extends Serializable{
 
   def createNewWeight(para : Settings) : Tile = {
     para.weightMatrix match {
-      case Weight.One => weight = getWeightMatrix(para.weightCols,para.weightRows)
-      case Weight.Square => weight = getWeightMatrixSquare(para.weightCols)
-      case Weight.Defined => weight = getWeightMatrixDefined(para.weightCols,para.weightRows)
-      case Weight.Big => weight = getWeightMatrix(para.weightCols,para.weightRows)
+      case Weight.One => weight = getWeightMatrix(para.weightRadius,para.weightRadius)
+      case Weight.Square => weight = getWeightMatrixSquare(para.weightRadius)
+      case Weight.Defined => weight = getWeightMatrixDefined(para.weightRadius,para.weightRadius)
+      case Weight.Big => weight = getWeightMatrix(para.weightRadius,para.weightRadius)
       case Weight.High => weight = getWeightMatrixHigh()
     }
 
@@ -133,9 +133,7 @@ class GetisOrd(tile : Tile, setting : Settings) extends Serializable{
     xMean*xMean
   }
 
-  def getSummForTile(tile: Tile): Double ={
-    tile.toArrayDouble().reduce(_+_)
-  }
+
 
   def getSummPowerForWeight(): Double ={
     sumOfWeight*sumOfWeight
@@ -154,9 +152,7 @@ class GetisOrd(tile : Tile, setting : Settings) extends Serializable{
 //    getSummOverTiles(layer)/count
 //  }
 
-  def getPowerOfTwoForElementsAsSum(tile : Tile): Double ={
-    tile.toArrayDouble().foldLeft(0.0){(x,y)=>x+y*y}
-  }
+
 
 //  def standartDeviation(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
 //    val count = layer.count()
