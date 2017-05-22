@@ -9,7 +9,7 @@ import parmeters.Settings
   */
 class SoHResult(parent : Tile, weight : Tile, wParent : Settings, wChild : Settings, time : Long, sohValue : (Double,Double)) {
   def format(): String = {
-    val parentString  = wParent.sizeOfRasterLat+","+wParent.focal+","+parent.rows+","+parent.cols+","+wParent.weightMatrix+","+wParent.weightCols+","+wParent.weightRows
+    val parentString  = wParent.sizeOfRasterLat+","+wParent.focal+","+parent.cols+","+parent.rows+","+wParent.weightMatrix+","+wParent.weightCols+","+wParent.weightRows
     val childString = wChild.sizeOfRasterLat+","+wChild.focal+","+wChild.weightMatrix+","+wChild.weightCols+","+wChild.weightRows
     return parentString+","+childString+","+time+","+sohValue._1+","+sohValue._2
 

@@ -28,8 +28,8 @@ class Settings extends Serializable{
   var parent = true
   var inputDirectory = "/home/marc/Masterarbeit/outPut/raster"
   var ouptDirectory = "/home/marc/media/SS_17/output/"
-  var serilizeDirectory = "/home/marc/media/SS_17/tmp/raster"
-  var inputDirectoryCSV = "/home/marc/Masterarbeit/outPut/raster"
+  var serilizeDirectory = "/home/marc/media/SS_17/output/raster"
+  var inputDirectoryCSV = "/home/marc/media/Downloads/in.csv"
   val conf = new SparkConf().setAppName("Test")
   conf.setMaster("local[*]")
 

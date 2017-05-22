@@ -17,6 +17,6 @@ class SoHResultTabell {
   }
 
   def header(): String ={
-    "rasterSize(meters),parentFocal,rows,cols,weighParent,weightParentColum,weightParentRow,rasterSizeChild(meters),childFocal,weightChild,weightChildColum,weightChildRow,duration(seconds),downward,upward"
+    "rasterSize(meters),parentFocal,cols,rows,weighParent,weightParentColum,weightParentRow,rasterSizeChild(meters),childFocal,weightChild,weightChildColum,weightChildRow,duration(seconds),downward,upward"
   }
 }

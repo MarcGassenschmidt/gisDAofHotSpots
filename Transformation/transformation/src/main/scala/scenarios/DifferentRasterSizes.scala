@@ -18,16 +18,16 @@ class DifferentRasterSizes {
     val globalSettings =new Settings()
     globalSettings.fromFile = true
     val outPutResults = ListBuffer[SoHResult]()
-    val runs = 2
-    forGlobalG(globalSettings, outPutResults, runs)
+    val runs = 10
+    //forGlobalG(globalSettings, outPutResults, runs)
     forFocalG(globalSettings, outPutResults, runs)
   }
 
   def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 1 to runs) {
+    for (i <- 0 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.sizeOfRasterLat = 10 + 990/runs  * i
-      globalSettings.sizeOfRasterLon = 10 + 990/runs * i
+      globalSettings.sizeOfRasterLon = 1//+ +0 + 990/runs * i
       globalSettings.focal = true
       val (para: Settings, paraChild: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double)) = oneCase(globalSettings)
       saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, paraChild, chs, sohVal)
@@ -35,10 +35,10 @@ class DifferentRasterSizes {
   }
 
   def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 1 to runs) {
+    for (i <- 0 to runs) {
       var totalTime = System.currentTimeMillis()
-      globalSettings.sizeOfRasterLat = 10 + runs / 990 * i
-      globalSettings.sizeOfRasterLon = 10 + runs / 990 * i
+      globalSettings.sizeOfRasterLat = 10 + 990/runs * i
+      globalSettings.sizeOfRasterLon = 10 + 990/runs * i
       globalSettings.focal = false
       val (para: Settings, paraChild: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double)) = oneCase(globalSettings)
       saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, paraChild, chs, sohVal)

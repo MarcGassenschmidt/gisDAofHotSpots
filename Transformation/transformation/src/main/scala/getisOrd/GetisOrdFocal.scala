@@ -72,6 +72,7 @@ class GetisOrdFocal(tile : Tile, setting : Settings) extends GetisOrd(tile, sett
   }
 
   override def gStarForTile(index: (Int, Int)): Double = {
+    println(index)
     calculateStats(index)
     getNumerator(index)/getDenominator(index)
   }
