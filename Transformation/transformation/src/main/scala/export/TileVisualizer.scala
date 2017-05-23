@@ -2,12 +2,13 @@ package export
 
 import java.awt.Color
 import java.awt.image.BufferedImage
-import java.io.FileOutputStream
+import java.io.{File, FileOutputStream}
 import javax.imageio.ImageIO
 
 import geotrellis.raster.Tile
 import org.joda.time.DateTime
 import parmeters.Settings
+
 
 /**
   * Created by marc on 08.05.17.
@@ -94,7 +95,13 @@ class TileVisualizer {
         bfI.setRGB(i, j, (logScale(content,minMax._1,minMax._2)).getRGB)
       }
     }
-    val fos = new FileOutputStream(para.ouptDirectory + extra+"focal"+ para.focal +"_"+ "parent" + para.parent +"_" +
+    var sub = "global/"
+    if(para.focal){
+      sub = "focal/"
+    }
+    val f = new File(para.ouptDirectory+sub+ extra+"/" +tile.rows+"/")
+    f.mkdirs()
+    val fos = new FileOutputStream(para.ouptDirectory+sub+ extra+"/" +tile.rows+"/"+ "parent" + para.parent +"_" +
        para.weightMatrix+"r_"+para.weightRadius+"_cluster_meta_"+tile.rows+"_"+tile.cols+ DateTime.now().toString("MM_dd_HH_mm_ss" ) + ".png");
     ImageIO.write(bfI, "PNG", fos);
     fos.close();

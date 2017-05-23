@@ -1,9 +1,12 @@
 package scenarios
 
+import java.io.{File, FileOutputStream, PrintWriter}
+
+import au.com.bytecode.opencsv.CSVWriter
 import clustering.ClusterHotSpots
 import export.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
 import geotrellis.raster.Tile
-import getisOrd.{GetisOrd, GetisOrdFocal, SoH}
+import getisOrd.{GenericGetisOrd, GetisOrd, GetisOrdFocal, SoH}
 import parmeters.Settings
 import rasterTransformation.Transformation
 
@@ -14,6 +17,11 @@ import scala.collection.mutable.ListBuffer
   */
 class DifferentRasterSizes {
 
+  def saveResult(settings: Settings, outPutResults: ListBuffer[SoHResult]): Unit = {
+    val pw = new PrintWriter(new File(settings.ouptDirectory+"result.csv"))
+    outPutResults.map(x => pw.println(x.format()))
+  }
+
   def runScenario(): Unit ={
     val globalSettings =new Settings()
     globalSettings.fromFile = true
@@ -21,7 +29,8 @@ class DifferentRasterSizes {
     val runs = 10
 
     forFocalG(globalSettings, outPutResults, runs)
-    forGlobalG(globalSettings, outPutResults, runs)
+    //forGlobalG(globalSettings, outPutResults, runs)
+    saveResult(globalSettings, outPutResults)
   }
 
   def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
@@ -68,7 +77,7 @@ class DifferentRasterSizes {
     val chs = ((new ClusterHotSpots(score._1)).findClusters(para.clusterRange, para.critivalValue),
       (new ClusterHotSpots(score._2)).findClusters(paraChild.clusterRange, paraChild.critivalValue))
 
-    visulizeCluster(para, chs)
+    visulizeCluster((para,paraChild), chs)
     val soh = new SoH()
     val sohVal :(Double,Double) = soh.getSoHDowAndUp(chs)
     (para, paraChild, chs, sohVal)
@@ -102,24 +111,26 @@ class DifferentRasterSizes {
     println(outPutResultPrinter.printResults(outPutResults))
   }
 
-  def visulizeCluster(para: Settings, chs: ((Tile, Int), (Tile, Int))): Unit = {
+  def visulizeCluster(para: (Settings, Settings), chs: ((Tile, Int), (Tile, Int))): Unit = {
     val image = new TileVisualizer()
-    image.visualTileNew(chs._1._1, para, "clusterParent")
-    image.visualTileNew(chs._2._1, para, "clusterChild")
+    image.visualTileNew(chs._1._1, para._1, "clusterParent")
+    image.visualTileNew(chs._2._1, para._2, "clusterChild")
   }
 
   def gStar(tile : Tile, paraParent : parmeters.Settings, child : parmeters.Settings): (Tile, Tile) = {
     var startTime = System.currentTimeMillis()
-    var ort : GetisOrd = null
+    var ord : GetisOrd = null
     if(paraParent.focal){
-      ort = new GetisOrdFocal(tile, paraParent)
+      ord = new GetisOrdFocal(tile, paraParent)
     } else {
-      ort = new GetisOrd(tile, paraParent)
+      ord = new GetisOrd(tile, paraParent)
     }
     println("Time for G* values =" + ((System.currentTimeMillis() - startTime) / 1000))
     startTime = System.currentTimeMillis()
 
-    val score =ort.getGstartForChildToo(paraParent, child)
+    val score =ord.getGstartForChildToo(paraParent, child)
+
+
     println("Time for G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     val image = new TileVisualizer()
     startTime = System.currentTimeMillis()

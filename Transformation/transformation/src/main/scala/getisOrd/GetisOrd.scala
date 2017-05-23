@@ -57,7 +57,7 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
   }
 
   def getGstartForChildToo(paraParent : Settings, paraChild : Settings): (Tile, Tile) ={
-    createNewWeight(paraParent)
+    //createNewWeight(paraParent)
     val parent = gStarComplete()
     val size = (weight.cols,weight.rows)
     createNewWeight(paraChild)
@@ -79,7 +79,7 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
     tileG
   }
 
-  def createNewWeight(para : Settings) : Tile = {
+  override def createNewWeight(para : Settings) : Tile = {
     para.weightMatrix match {
       case Weight.One => weight = getWeightMatrix(para.weightRadius,para.weightRadius)
       case Weight.Square => weight = getWeightMatrixSquare(para.weightRadius)
@@ -143,22 +143,6 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
     sumOfTile/tile.size
   }
 
-//  def getSummOverTiles(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
-//    layer.map(x=>x._2).reduce(_+_)
-//  }
-
-//  def xMean(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
-//    val count = layer.count()
-//    getSummOverTiles(layer)/count
-//  }
-
-
-
-//  def standartDeviation(layer: RDD[(SpaceTimeKey, Tile)]): Tile ={
-//    val count = layer.count()
-//    layer.map(x=>x._2).fold(IntConstantTile(0, 1, 1))((x, y)=>x+y*y)/count-(xMean(layer)*xMean(layer))
-//  }
-
   def getWeightMatrix(): ArrayTile = {
     //From R example
     val arrayTile = Array[Double](
@@ -207,21 +191,6 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
     rasterTile
   }
 
-  def getWeightMatrixSquare(radius : Int): ArrayTile ={
-    val arrayTile = Array.ofDim[Int](radius*2+1,radius*2+1)
-
-    for (i <- -radius to radius) {
-      for (j <- -radius to radius) {
-        if(Math.sqrt(i*i+j*j)<=radius) {
-          arrayTile(radius + i)(radius + j) = 1
-        } else {
-          arrayTile(radius + i)(radius + j) = 0
-        }
-      }
-    }
-    val weightTile = new IntRawArrayTile(arrayTile.flatten, radius*2+1,radius*2+1)
-    weightTile
-  }
 
   def getWeightMatrixHigh(): ArrayTile ={
     val arrayTile = Array[Double](
