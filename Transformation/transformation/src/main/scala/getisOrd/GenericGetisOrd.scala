@@ -1,6 +1,6 @@
 package getisOrd
 
-import geotrellis.raster.{ArrayTile, IntRawArrayTile, Tile}
+import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntRawArrayTile, Tile}
 import geotrellis.raster.mapalgebra.focal.Circle
 import parmeters.Settings
 
@@ -26,18 +26,38 @@ class GenericGetisOrd {
   }
 
   def getWeightMatrixSquare(radius : Int): ArrayTile ={
-    val arrayTile = Array.ofDim[Int](radius*2+1,radius*2+1)
+    val arrayTile  = Array.ofDim[Double](radius*2+1,radius*2+1)
 
     for (i <- -radius to radius) {
       for (j <- -radius to radius) {
         if(Math.sqrt(i*i+j*j)<=radius) {
-          arrayTile(radius + i)(radius + j) = 1
+          arrayTile(radius + i)(radius + j) = 1.0
         } else {
-          arrayTile(radius + i)(radius + j) = 0
+          arrayTile(radius + i)(radius + j) = 0.1
         }
       }
     }
-    val weightTile = new IntRawArrayTile(arrayTile.flatten, radius*2+1,radius*2+1)
+    val weightTile = new DoubleRawArrayTile(arrayTile.flatten, radius*2+1,radius*2+1)
+    weightTile
+  }
+
+  def getWeightMatrixSquareSigmoid(radius : Int, constantRange: Int): ArrayTile ={
+    val variableRange = radius*2-constantRange
+    if(variableRange<0){
+      throw new IllegalArgumentException
+    }
+    val arrayTile  = Array.ofDim[Double](radius*2+1,radius*2+1)
+
+    for (i <- -radius to radius) {
+      for (j <- -radius to radius) {
+        if(Math.sqrt(i*i+j*j)<=radius && Math.sqrt(i*i+j*j)>constantRange) {
+          arrayTile(radius + i)(radius + j) = 1.0
+        } else {
+          1/(1+Math.exp(-variableRange))
+        }
+      }
+    }
+    val weightTile = new DoubleRawArrayTile(arrayTile.flatten, radius*2+1,radius*2+1)
     weightTile
   }
 }

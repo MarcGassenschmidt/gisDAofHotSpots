@@ -23,6 +23,23 @@ class TestGetisOrd extends FunSuite {
     assert(gStart.getWeightMatrixSquare(3).equals(getTestTile()))
   }
 
+  test("Test w2sum"){
+    val testTile: Array[Double] = Array.fill(1200)(2.0)
+    val rasterTile = new DoubleRawArrayTile(testTile, 30, 40)
+    val gStart = new GetisOrd(rasterTile, set)
+    assert(4.0*1200==gStart.getPowerOfTwoForElementsAsSum(rasterTile))
+    assert(1200*2.0==gStart.getSummForTile(rasterTile))
+    assert(0==(1200*gStart.getPowerOfTwoForElementsAsSum(rasterTile)-gStart.getSummForTile(rasterTile)*gStart.getSummForTile(rasterTile))/(1200-1))
+  }
+
+  ignore("Test ND"){
+    val testTile: Array[Double] = Array.fill(1200)(Double.NaN)
+    val rasterTile = new DoubleRawArrayTile(testTile, 30, 40)
+    println(rasterTile.asciiDrawDouble())
+    println(rasterTile.mapIfSet(x=> x).asciiDrawDouble())
+
+  }
+
   def getTestTile(): ArrayTile ={
     val arrayTile = Array[Double](
       0,0,0,1,0,0,0,

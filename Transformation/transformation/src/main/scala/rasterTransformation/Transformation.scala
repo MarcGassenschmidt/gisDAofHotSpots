@@ -26,13 +26,13 @@ import scala.io.Source
 class Transformation {
 
 
-  def transformOneFileOld(rootPath: String, config: SparkConf, para : Settings): IntArrayTile ={
+  def transformOneFileOld(rootPath: String, config: SparkConf, para : Settings): DoubleArrayTile ={
     val spark = SparkSession.builder.config(config).getOrCreate()
 
 
     val files = spark.read.format("CSV").option("header","true").option("delimiter", ",").textFile(rootPath)
 
-    val tile = IntArrayTile.ofDim(para.rasterLatLength,para.rasterLonLength)
+    val tile = DoubleArrayTile.ofDim(para.rasterLatLength,para.rasterLonLength)
 
     tile
   }
@@ -103,7 +103,7 @@ class Transformation {
     for(row <- file){
       colIndex = ((row.lat-latMin)/parmeters.sizeOfRasterLat).toInt
       rowIndex = ((row.lon-lonMin)/parmeters.sizeOfRasterLon).toInt
-      tile.set(colIndex,rowIndex,tile.get(colIndex,rowIndex)+1)
+      tile.setDouble(colIndex,rowIndex,tile.get(colIndex,rowIndex)+1)
     }
 //    file.map(row => {
 //      colIndex = ((row.lat*mulitToCalcWihtInt-latMin)/1000).toInt

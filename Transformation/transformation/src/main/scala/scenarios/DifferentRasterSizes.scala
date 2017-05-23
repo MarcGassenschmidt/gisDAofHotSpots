@@ -20,6 +20,8 @@ class DifferentRasterSizes {
   def saveResult(settings: Settings, outPutResults: ListBuffer[SoHResult]): Unit = {
     val pw = new PrintWriter(new File(settings.ouptDirectory+"result.csv"))
     outPutResults.map(x => pw.println(x.format()))
+    pw.flush()
+    pw.close()
   }
 
   def runScenario(): Unit ={
@@ -67,6 +69,8 @@ class DifferentRasterSizes {
     if(!globalSettings.fromFile){
       val actualLat = ((globalSettings.latMax-globalSettings.latMin)/(10 + 990/runs *i)).toInt
       val actualLon = ((globalSettings.lonMax-globalSettings.lonMin)/(10 + 990/runs *i)).toInt
+      globalSettings.sizeOfRasterLat = actualLat
+      globalSettings.sizeOfRasterLon = actualLon
       raster = raster.resample(actualLat,actualLon)
     }
 
