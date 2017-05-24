@@ -42,7 +42,7 @@ class GenericGetisOrd {
   }
 
   def getWeightMatrixSquareSigmoid(radius : Int, constantRange: Int): ArrayTile ={
-    val variableRange = radius*2-constantRange
+    val variableRange = radius-constantRange
     if(variableRange<0){
       throw new IllegalArgumentException
     }
@@ -50,10 +50,10 @@ class GenericGetisOrd {
 
     for (i <- -radius to radius) {
       for (j <- -radius to radius) {
-        if(Math.sqrt(i*i+j*j)<=radius && Math.sqrt(i*i+j*j)>constantRange) {
+        if(Math.sqrt(i*i+j*j)<=constantRange) {
           arrayTile(radius + i)(radius + j) = 1.0
         } else {
-          1/(1+Math.exp(-variableRange))
+          arrayTile(radius + i)(radius + j) = 1/(1+Math.exp(-variableRange+Math.sqrt(i*i+j*j)-constantRange))
         }
       }
     }
