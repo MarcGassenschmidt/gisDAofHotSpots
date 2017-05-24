@@ -13,12 +13,13 @@ import parmeters.Settings
   */
 class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
   var weight : Tile = createNewWeight(setting)
-  private var sumOfTile : Double = this.getSummForTile(tile)
+  var sumOfTile : Double = 0.0
   var sumOfWeight : Double = this.getSummForTile(weight)
-  var xMean : Double = this.getXMean(tile)
+  var xMean : Double = 0.0
+  var standardDeviation : Double = 0.0
   var powerOfWeight : Double =  getPowerOfTwoForElementsAsSum(weight)
   var powerOfTile : Double =  getPowerOfTwoForElementsAsSum(tile)
-  var standardDeviation: Double = this.getStandartDeviationForTile(tile)
+
 
 
 
@@ -70,6 +71,9 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
 
 
   def gStarComplete(): Tile ={
+    sumOfTile = this.getSummForTile(tile)
+    xMean = this.getXMean(tile)
+    standardDeviation= this.getStandartDeviationForTile(tile)
     val tileG = DoubleArrayTile.ofDim(tile.cols, tile.rows)
     for(i <- 0 to tile.cols-1){
       for(j <- 0 to tile.rows-1){

@@ -71,7 +71,7 @@ class TestGetisOrd extends FunSuite {
     println("Weight ="+gStart.weight.asciiDraw())
 
     println("Sum of Weight="+gStart.sumOfWeight)
-    println("X-Mean="+gStart.xMean)
+
     println("Power of Weight element wise="+gStart.powerOfWeight)
     println("Power of Tile element wise="+gStart.powerOfTile)
     println("Standard Devivation="+gStart.getStandartDeviationForTile(rasterTile))

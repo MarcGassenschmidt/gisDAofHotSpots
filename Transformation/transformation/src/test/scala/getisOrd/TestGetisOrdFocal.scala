@@ -66,13 +66,13 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
   }
 
   test("Test focal Mean row,cols"){
-    getis.setFocalRadius(1)
+    //getis.setFocalRadius(1)
     val sum = (rasterTile.get(9,9)+rasterTile.get(8,9)+rasterTile.get(9,8))
     assert(rasterTile.focalMean(Circle(setting.focalRange)).getDouble(9,9)==sum/3)
   }
 
   test("Test focal Mean"){
-    getis.setFocalRadius(1)
+   // getis.setFocalRadius(1)
     val sum = rasterTile.get(5,5)+rasterTile.get(5,6)+rasterTile.get(6,5)+rasterTile.get(4,5)+rasterTile.get(5,4)
     assert(rasterTile.focalMean(Circle(setting.focalRange)).getDouble(5,5)==sum/5.0)
   }
