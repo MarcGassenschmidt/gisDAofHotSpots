@@ -9,11 +9,15 @@ import org.apache.spark.SparkConf
 class Settings extends Serializable{
   var scenario = "NotScenarioSet"
   var multiToInt = 1000000
-  var shiftToPostive = 74.018704*multiToInt
-  var latMin = 40.701915*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
-  var lonMin = -74.018704*multiToInt+shiftToPostive//Math.max(file.map(row => row.lon).min,-74.407877)
-  var latMax = 40.763458*multiToInt//Math.min(file.map(row => row.lat).max,41.330106)
-  var lonMax = -73.967244*multiToInt+shiftToPostive//Math.min(file.map(row => row.lon).max,-73.292793)
+  //40.701915, -74.018704
+  //40.763458, -73.967244
+  val buttom = (40.701915, -74.018704)
+  val top = (40.763458, -73.967244)
+  var shiftToPostive = -1*buttom._2*multiToInt
+  var latMin = buttom._1*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
+  var lonMin = buttom._2*multiToInt+shiftToPostive//Math.max(file.map(row => row.lon).min,-74.407877)
+  var latMax = top._1*multiToInt//Math.min(file.map(row => row.lat).max,41.330106)
+  var lonMax = top._2*multiToInt+shiftToPostive//Math.min(file.map(row => row.lon).max,-73.292793)
   var sizeOfRasterLat = 10 //meters
   var sizeOfRasterLon = 10 //meters
   var rasterLatLength = ((latMax-latMin)/sizeOfRasterLat).ceil.toInt

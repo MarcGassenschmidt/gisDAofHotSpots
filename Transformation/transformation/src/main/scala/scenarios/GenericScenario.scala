@@ -136,7 +136,7 @@ class GenericScenario {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = true
       globalSettings.focalRange = 22
-      if(i==0){
+      if(i==3){
         globalSettings.fromFile = true
       } else {
         globalSettings.fromFile = false
@@ -147,12 +147,12 @@ class GenericScenario {
   }
 
   def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, Settings, ((Tile, Int), (Tile, Int)), (Double, Double)) = {
+    val actualLat = ((globalSettings.latMax-globalSettings.latMin)/(10 + 990/runs *i)).toInt
+    val actualLon = ((globalSettings.lonMax-globalSettings.lonMin)/(10 + 990/runs *i)).toInt
+    globalSettings.sizeOfRasterLat = actualLat
+    globalSettings.sizeOfRasterLon = actualLon
     var raster = getRaster(globalSettings)
     if(!globalSettings.fromFile){
-      val actualLat = ((globalSettings.latMax-globalSettings.latMin)/(10 + 990/runs *i)).toInt
-      val actualLon = ((globalSettings.lonMax-globalSettings.lonMin)/(10 + 990/runs *i)).toInt
-      globalSettings.sizeOfRasterLat = actualLat
-      globalSettings.sizeOfRasterLon = actualLon
       raster = raster.resample(actualLat,actualLon)
     }
 

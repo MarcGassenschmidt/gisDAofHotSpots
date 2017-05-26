@@ -71,38 +71,29 @@ class Transformation {
     //40.800296, -73.928375
     //40.703286, -74.019012
 
-    //sample
-    //40.763458, -73.967244
-    //40.701915, -74.018704
     val bufferedSource = Source.fromFile(parmeters.inputDirectoryCSV)
-    val multiToInt = 1000000
-    val shiftToPostive = 74.018704*multiToInt
-    val latMin = 40.701915*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
-    val lonMin = -74.018704*multiToInt+shiftToPostive//Math.max(file.map(row => row.lon).min,-74.407877)
-    val latMax = 40.763458*multiToInt//Math.min(file.map(row => row.lat).max,41.330106)
-    val lonMax = -73.967244*multiToInt+shiftToPostive//Math.min(file.map(row => row.lon).max,-73.292793)
-    //2016-02-25 17:24:20
+
     val formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
     val file = bufferedSource.getLines.drop(1).map(line => {
       val cols = line.split(",").map(_.trim)
       val result = new RowTransformationTime(
-          lon = (cols(9).toDouble*multiToInt+shiftToPostive).toInt,
-          lat = (cols(10).toDouble*multiToInt).toInt,
+          lon = (cols(9).toDouble*parmeters.multiToInt+parmeters.shiftToPostive).toInt,
+          lat = (cols(10).toDouble*parmeters.multiToInt).toInt,
           time = formatter.parseDateTime(cols(2)))
       result
-    }).filter(row => row.lon>lonMin && row.lon<lonMax && row.lat>latMin && row.lat<latMax) //To remove entries not in range
+    }).filter(row => row.lon>parmeters.lonMin && row.lon<parmeters.lonMax && row.lat>parmeters.latMin && row.lat<parmeters.latMax) //To remove entries not in range
     //.filter(row => (row.time.getHourOfDay> 20 && row.time.getHourOfDay()< 22)) //To look at data range
 
 
 
-    val rasterLatLength = ((latMax-latMin)/parmeters.sizeOfRasterLat).ceil.toInt
-    val rasterLonLength = ((lonMax-lonMin)/parmeters.sizeOfRasterLon).ceil.toInt
+    val rasterLatLength = ((parmeters.latMax-parmeters.latMin)/parmeters.sizeOfRasterLat).ceil.toInt
+    val rasterLonLength = ((parmeters.lonMax-parmeters.lonMin)/parmeters.sizeOfRasterLon).ceil.toInt
     val tile = IntArrayTile.ofDim(rasterLatLength,rasterLonLength)
     var colIndex = 0
     var rowIndex = 0
     for(row <- file){
-      colIndex = ((row.lat-latMin)/parmeters.sizeOfRasterLat).toInt
-      rowIndex = ((row.lon-lonMin)/parmeters.sizeOfRasterLon).toInt
+      colIndex = ((row.lat-parmeters.latMin)/parmeters.sizeOfRasterLat).toInt
+      rowIndex = ((row.lon-parmeters.lonMin)/parmeters.sizeOfRasterLon).toInt
       tile.setDouble(colIndex,rowIndex,tile.get(colIndex,rowIndex)+1)
     }
 //    file.map(row => {
