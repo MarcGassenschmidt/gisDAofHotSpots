@@ -97,12 +97,14 @@ class TileVisualizer {
     }
     var sub = "global/"
     if(para.focal){
-      sub = "focal/"
+      sub = "focal/"+"FocalRange_"+para.focalRange+"/"
     }
-    val f = new File(para.ouptDirectory+sub+ extra+"/" +tile.rows+"/")
+    sub += "Time_"+DateTime.now().toString("dd_MM")+"/"
+    val dir = para.ouptDirectory+para.scenario+"/"+sub+ extra+"/" +tile.rows+"/"
+    val f = new File(dir)
     f.mkdirs()
-    val fos = new FileOutputStream(para.ouptDirectory+sub+ extra+"/" +tile.rows+"/"+ "parent" + para.parent +"_" +
-       para.weightMatrix+"r_"+para.weightRadius+"_cluster_meta_"+tile.rows+"_"+tile.cols+ DateTime.now().toString("MM_dd_HH_mm_ss" ) + ".png");
+    val fos = new FileOutputStream(dir+ "parent" + para.parent +"_" +
+       para.weightMatrix+"r_"+para.weightRadius+"_cluster_meta_"+tile.rows+"_"+tile.cols+ DateTime.now().toString("HH_mm_ss" ) + ".png");
     ImageIO.write(bfI, "PNG", fos);
     fos.close();
 
