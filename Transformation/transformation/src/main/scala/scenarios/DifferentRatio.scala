@@ -3,7 +3,7 @@ package scenarios
 import clustering.ClusterHotSpots
 import export.SoHResult
 import geotrellis.raster.Tile
-import getisOrd.SoH
+import getisOrd.{SoH, Weight}
 import parmeters.Settings
 
 import scala.collection.mutable.ListBuffer
@@ -16,6 +16,7 @@ class DifferentRatio extends GenericScenario{
   override def runScenario(): Unit ={
     val globalSettings =new Settings()
     globalSettings.fromFile = true
+    globalSettings.weightMatrix = Weight.Sigmoid
     globalSettings.scenario = "Ratio"
     val outPutResults = ListBuffer[SoHResult]()
     val runs = 10
@@ -57,6 +58,7 @@ class DifferentRatio extends GenericScenario{
     para.focalRange = global.focalRange
     para.sizeOfRasterLat = global.sizeOfRasterLat
     para.sizeOfRasterLon = global.sizeOfRasterLon
+    para.weightMatrix = para.weightMatrix
     para.focal = global.focal
     val paraChild = new Settings()
     paraChild.scenario = global.scenario
@@ -64,6 +66,7 @@ class DifferentRatio extends GenericScenario{
     paraChild.focalRange = global.focalRange
     paraChild.sizeOfRasterLat = global.sizeOfRasterLat
     paraChild.sizeOfRasterLon = global.sizeOfRasterLon
+    paraChild.weightMatrix = global.weightMatrix
     paraChild.parent = false
     paraChild.weightRadius = global.weightRadius-1
     (para, paraChild)

@@ -6,7 +6,7 @@ import au.com.bytecode.opencsv.CSVWriter
 import clustering.ClusterHotSpots
 import export.{SerializeTile, SoHResult, TileVisualizer}
 import geotrellis.raster.Tile
-import getisOrd.{GenericGetisOrd, GetisOrd, GetisOrdFocal, SoH}
+import getisOrd._
 import parmeters.Settings
 import rasterTransformation.Transformation
 
@@ -24,6 +24,7 @@ class DifferentRasterSizes extends GenericScenario{
     val globalSettings =new Settings()
     globalSettings.fromFile = true
     globalSettings.scenario = "RasterSizes"
+    globalSettings.weightMatrix = Weight.Sigmoid
     val outPutResults = ListBuffer[SoHResult]()
     val runs = 10
     //bigger area
@@ -48,6 +49,7 @@ class DifferentRasterSizes extends GenericScenario{
     para.focalRange = global.focalRange
     para.sizeOfRasterLat = global.sizeOfRasterLat
     para.sizeOfRasterLon = global.sizeOfRasterLon
+    para.weightMatrix = global.weightMatrix
     para.focal = global.focal
     val paraChild = new Settings()
     paraChild.scenario = global.scenario
@@ -55,6 +57,8 @@ class DifferentRasterSizes extends GenericScenario{
     paraChild.focalRange = global.focalRange
     paraChild.sizeOfRasterLat = global.sizeOfRasterLat
     paraChild.sizeOfRasterLon = global.sizeOfRasterLon
+
+    paraChild.weightMatrix = global.weightMatrix
     paraChild.parent = false
     paraChild.weightRadius = 2
     (para, paraChild)

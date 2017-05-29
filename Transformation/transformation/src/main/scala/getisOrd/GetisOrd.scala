@@ -175,17 +175,18 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
   }
 
   def getWeightMatrixDefined(cols : Int, rows : Int): ArrayTile = {
-    var array = Array.ofDim[Double](cols,rows)
-    for(i <- 0 to cols-1){
-      for(j <- 0 to rows-1){
-        array(i)(j) = 0.7
+    val arrayTile  = Array.ofDim[Double](cols*2+1,cols*2+1)
+
+    for (i <- -cols to cols) {
+      for (j <- -cols to cols) {
+        if(Math.sqrt(i*i+j*j)<=cols) {
+          arrayTile(cols + i)(cols + j) = 1.0
+        } else {
+          arrayTile(cols + i)(cols + j) = 0.1
+        }
       }
     }
-    setCenter(array, cols, rows)
-
-
-
-    val weightTile = new DoubleRawArrayTile(array.flatten, cols, rows)
+    val weightTile = new DoubleRawArrayTile(arrayTile.flatten, cols*2+1,cols*2+1)
     weightTile
   }
 
@@ -212,5 +213,5 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
 
 object Weight extends Enumeration {
   type Weight = Value
-  val One, Square, Big, High, Defined = Value
+  val One, Square, Big, High, Defined, Sigmoid = Value
 }

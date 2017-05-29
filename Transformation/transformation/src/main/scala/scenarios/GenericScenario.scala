@@ -5,7 +5,7 @@ import java.io.{File, PrintWriter}
 import clustering.ClusterHotSpots
 import export.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
 import geotrellis.raster.Tile
-import getisOrd.{GetisOrd, GetisOrdFocal, SoH}
+import getisOrd.{GetisOrd, GetisOrdFocal, SoH, Weight}
 import org.joda.time.DateTime
 import parmeters.Settings
 import rasterTransformation.Transformation
@@ -20,6 +20,7 @@ class GenericScenario {
   def runScenario(): Unit ={
     val globalSettings =new Settings()
     globalSettings.fromFile = true
+    globalSettings.weightMatrix = Weight.Sigmoid
     val outPutResults = ListBuffer[SoHResult]()
     val runs = 10
 
@@ -34,12 +35,14 @@ class GenericScenario {
     para.focalRange = global.focalRange
     para.sizeOfRasterLat = global.sizeOfRasterLat
     para.sizeOfRasterLon = global.sizeOfRasterLon
+    para.weightMatrix = global.weightMatrix
     para.focal = global.focal
     val paraChild = new Settings()
     paraChild.focal = global.focal
     paraChild.focalRange = global.focalRange
     paraChild.sizeOfRasterLat = global.sizeOfRasterLat
     paraChild.sizeOfRasterLon = global.sizeOfRasterLon
+    paraChild.weightMatrix = global.weightMatrix
     paraChild.parent = false
     paraChild.weightRadius = 2
     (para, paraChild)

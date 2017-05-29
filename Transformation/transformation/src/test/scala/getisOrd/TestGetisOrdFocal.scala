@@ -266,7 +266,9 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     assert(M.getDouble(0,0)==4.0/6.0)
     println(M.asciiDrawDouble())
     val MW = M*getParentWeigth().toArrayDouble().reduce(_+_)
-    assert((MW-(M*5)).toArrayDouble().reduce(_+_)==0)
+    println(MW.asciiDrawDouble())
+    println((M*5.4).asciiDrawDouble())
+    assert((MW-(M*5.4)).toArrayDouble().reduce(_+_)<0.001 && (MW-(M*5.4)).toArrayDouble().reduce(_+_)> -0.001)
     println(MW.asciiDrawDouble())
     val S = getSD()
     println(S.asciiDrawDouble())
@@ -289,9 +291,10 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     val setting = new Settings
     setting.focalRange=2
     setting.weightRadius = 1
+    setting.weightMatrix= Weight.Defined
     val getisOrdFocal = new GetisOrdFocal(getTestMatrix(),setting)
     val r = getisOrdFocal.debugFocalgStar()
-    assert(getisOrdFocal.sumOfWeight==5)
+    assert(getisOrdFocal.sumOfWeight>5.3 &&getisOrdFocal.sumOfWeight<5.4)
 
     testSD(S, r)
     assert((r._6-RoW).toArrayDouble().reduce(_+_)==0.0)
@@ -345,9 +348,9 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
 
   def getParentWeigth(): ArrayTile ={
     val arrayTile = Array[Double](
-      0,1,0,
+      0.1,1,0.1,
       1,1,1,
-      0,1,0
+      0.1,1,0.1
     )
     val weightTile = new DoubleRawArrayTile(arrayTile, 3,3)
     weightTile

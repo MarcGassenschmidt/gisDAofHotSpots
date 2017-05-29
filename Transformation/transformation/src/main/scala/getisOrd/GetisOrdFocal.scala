@@ -51,7 +51,7 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
     for(i <- 0 to tile.cols-1){
       for(j <- 0 to tile.rows-1){
         val qt = q.getDouble(i,j)
-        if(qt==0){
+        if(qt<=0){
           tileG.setDouble(i,j,0)
         } else {
           tileG.setDouble(i,j,RoW.getDouble(i,j)/q.getDouble(i,j))
@@ -87,7 +87,7 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
     for(i <- 0 to tile.cols-1){
       for(j <- 0 to tile.rows-1){
         val qt = q.getDouble(i,j)
-        if(qt.equals(Double.NaN) || qt.equals(Double.MinValue) || qt.equals(Double.NegativeInfinity) || qt==0){
+        if(qt.equals(Double.NaN) || qt.equals(Double.MinValue) || qt.equals(Double.NegativeInfinity) || qt<=0){
           tileG.setDouble(i,j,0)
         } else {
           tileG.setDouble(i,j,RoWM.getDouble(i,j)/q.getDouble(i,j))
@@ -109,6 +109,8 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
       case Weight.Defined => weight = getWeightMatrixDefined(para.weightRadius, para.weightRadius)
       case Weight.Big => weight = getWeightMatrix(para.weightRadius, para.weightRadius)
       case Weight.High => weight = getWeightMatrixHigh()
+      case Weight.Sigmoid => weight = getWeightMatrixSquareSigmoid(para.weightRadius, para.weightRadius/2)
+
     }
 
     sumOfWeight = this.getSummForTile(weight)
