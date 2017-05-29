@@ -33,8 +33,6 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
 
     var S = tile.focalStandardDeviation(F)
 
-    println(sumOfWeight)
-    println(powerOfWeight)
     val q = S * ((N * powerOfWeight - sumOfWeight * sumOfWeight) / (N - 1)).mapDouble(x => {
       var result: Double = x
       if (x <= 0 || x > Double.MaxValue) {
@@ -47,18 +45,13 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
     var M = tile.focalMean(F)
     M = M * sumOfWeight
 
-    var RoW = tile.focalSum(W)
+    var RoW = tile.focalSum(W) //Todo if different Weight then 1
     RoW = (RoW - M)
     M = null
   //  println(q.resample(100, 100).asciiDrawDouble())
-    printHeapSize()
+  //  printHeapSize()
 //    println(n.resample(100, 100).asciiDrawDouble())
-    println(tile.cols)
-    println(tile.rows)
-    println(q.cols)
-    println(q.rows)
-    println(RoW.cols)
-    println(RoW.rows)
+
 
     val tileG = DoubleArrayTile.ofDim(tile.cols, tile.rows)
     for(i <- 0 to tile.cols-1){
@@ -72,6 +65,48 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
       }
     }
     tileG
+
+  }
+
+  def debugFocalgStar(): (Tile,Tile,Tile,Tile,Tile,Tile,Tile) = {
+    //(RoW-M*sumOfWeight)/(S*((N*powerOfWeight-sumOfWeight*sumOfWeight)/(N-1)).mapIfSetDouble (x => Math.sqrt(x)))
+    //    (RoW-M*sumOfWeight)/(S*Math.sqrt((N*powerOfWeight-sumOfWeight*sumOfWeight)/(N-1)))
+    var F = Circle(setting.focalRange)
+    var W = Circle(setting.weightRadius)
+    var N = tile.focalSum(F)
+
+    var S = tile.focalStandardDeviation(F)
+
+    val q = S * ((N * powerOfWeight - sumOfWeight * sumOfWeight) / (N - 1)).mapDouble(x => {
+      var result: Double = x
+      if (x <= 0 || x > Double.MaxValue) {
+        result = 1.0
+      }
+      result
+    }).mapDouble(x => Math.sqrt(Math.max(0, x)))
+    var M = tile.focalMean(F)
+    val MW = M * sumOfWeight
+
+    var RoW = tile.focalSum(W) //Todo if different Weight then 1
+    val RoWM = (RoW - MW)
+
+    //  println(q.resample(100, 100).asciiDrawDouble())
+    //  printHeapSize()
+    //    println(n.resample(100, 100).asciiDrawDouble())
+
+
+    val tileG = DoubleArrayTile.ofDim(tile.cols, tile.rows)
+    for(i <- 0 to tile.cols-1){
+      for(j <- 0 to tile.rows-1){
+        val qt = q.getDouble(i,j)
+        if(qt==Double.NaN||qt==Double.MinValue){
+          tileG.setDouble(i,j,0)
+        } else {
+          tileG.setDouble(i,j,RoW.getDouble(i,j)/q.getDouble(i,j))
+        }
+      }
+    }
+    (tileG,RoWM,S,q,N,RoW,MW)
 
   }
 
