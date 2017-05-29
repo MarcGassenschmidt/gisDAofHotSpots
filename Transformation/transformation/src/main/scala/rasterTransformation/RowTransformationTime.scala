@@ -7,6 +7,6 @@ import org.joda.time.DateTime
   */
 class RowTransformationTime(lon : Int,
                             lat : Int,
-                            val time : DateTime)  extends RowTransformation(lon, lat){
+                            var time : DateTime)  extends RowTransformation(lon, lat){
 
 }

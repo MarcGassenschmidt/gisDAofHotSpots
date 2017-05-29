@@ -33,13 +33,7 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
 
     var S = tile.focalStandardDeviation(F)
 
-    val q = S * ((N * powerOfWeight - sumOfWeight * sumOfWeight) / (N - 1)).mapDouble(x => {
-      var result: Double = x
-      if (x <= 0 || x > Double.MaxValue) {
-        result = 1.0
-      }
-      result
-    }).mapDouble(x => Math.sqrt(Math.max(0, x)))
+    val q = S * ((N * powerOfWeight - sumOfWeight * sumOfWeight) / (N - 1)).mapDouble(x => Math.sqrt(Math.max(0, x)))
     S = null
     N = null
     var M = tile.focalMean(F)
@@ -57,7 +51,7 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
     for(i <- 0 to tile.cols-1){
       for(j <- 0 to tile.rows-1){
         val qt = q.getDouble(i,j)
-        if(qt==Double.NaN||qt==Double.MinValue){
+        if(qt==0){
           tileG.setDouble(i,j,0)
         } else {
           tileG.setDouble(i,j,RoW.getDouble(i,j)/q.getDouble(i,j))
@@ -77,13 +71,7 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
 
     var S = tile.focalStandardDeviation(F)
 
-    val q = S * ((N * powerOfWeight - sumOfWeight * sumOfWeight) / (N - 1)).mapDouble(x => {
-      var result: Double = x
-      if (x <= 0 || x > Double.MaxValue) {
-        result = 1.0
-      }
-      result
-    }).mapDouble(x => Math.sqrt(Math.max(0, x)))
+    val q = S * ((N * powerOfWeight - sumOfWeight * sumOfWeight) / (N - 1)).mapDouble(x => Math.sqrt(Math.max(0, x)))
     var M = tile.focalMean(F)
     val MW = M * sumOfWeight
 
@@ -99,10 +87,11 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
     for(i <- 0 to tile.cols-1){
       for(j <- 0 to tile.rows-1){
         val qt = q.getDouble(i,j)
-        if(qt==Double.NaN||qt==Double.MinValue){
+        if(qt.equals(Double.NaN) || qt.equals(Double.MinValue) || qt.equals(Double.NegativeInfinity) || qt==0){
           tileG.setDouble(i,j,0)
         } else {
-          tileG.setDouble(i,j,RoW.getDouble(i,j)/q.getDouble(i,j))
+          tileG.setDouble(i,j,RoWM.getDouble(i,j)/q.getDouble(i,j))
+          println(RoWM.getDouble(i,j)/q.getDouble(i,j))
         }
       }
     }

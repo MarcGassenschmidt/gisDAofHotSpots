@@ -28,11 +28,11 @@ class DifferentRasterSizes extends GenericScenario{
     val runs = 10
     //bigger area
     //(40.567483, -74.091993) to (40.988291, -73.540960)
-    globalSettings.shiftToPostive = 74.091993*globalSettings.multiToInt
-    globalSettings.latMin = 40.567483*globalSettings.multiToInt
-    globalSettings.lonMin = -74.091993*globalSettings.multiToInt+globalSettings.shiftToPostive
-    globalSettings.latMax = 40.988291*globalSettings.multiToInt
-    globalSettings.lonMax = -73.540960*globalSettings.multiToInt+globalSettings.shiftToPostive
+//    globalSettings.shiftToPostive = 74.091993*globalSettings.multiToInt
+//    globalSettings.latMin = 40.567483*globalSettings.multiToInt
+//    globalSettings.lonMin = -74.091993*globalSettings.multiToInt+globalSettings.shiftToPostive
+//    globalSettings.latMax = 40.988291*globalSettings.multiToInt
+//    globalSettings.lonMax = -73.540960*globalSettings.multiToInt+globalSettings.shiftToPostive
     forFocalG(globalSettings, outPutResults, runs)
     //forGlobalG(globalSettings, outPutResults, runs)
     saveResult(globalSettings, outPutResults)

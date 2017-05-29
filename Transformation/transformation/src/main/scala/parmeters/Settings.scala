@@ -7,17 +7,17 @@ import org.apache.spark.SparkConf
   * Created by marc on 12.05.17.
   */
 class Settings extends Serializable{
-  var scenario = "NotScenarioSet"
+  var scenario = "NoScenarioSet"
   var multiToInt = 1000000
   //40.701915, -74.018704
   //40.763458, -73.967244
-  val buttom = (40.701915, -74.018704)
-  val top = (40.763458, -73.967244)
+  val buttom = (40.699607, -74.020265)
+  val top = (40.769239, -73.948286)
   var shiftToPostive = -1*buttom._2*multiToInt
-  var latMin = buttom._1*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
-  var lonMin = buttom._2*multiToInt+shiftToPostive//Math.max(file.map(row => row.lon).min,-74.407877)
-  var latMax = top._1*multiToInt//Math.min(file.map(row => row.lat).max,41.330106)
-  var lonMax = top._2*multiToInt+shiftToPostive//Math.min(file.map(row => row.lon).max,-73.292793)
+  val latMin = buttom._1*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
+  val lonMin = buttom._2*multiToInt+shiftToPostive//Math.max(file.map(row => row.lon).min,-74.407877)
+  val latMax = top._1*multiToInt//Math.min(file.map(row => row.lat).max,41.330106)
+  val lonMax = top._2*multiToInt+shiftToPostive//Math.min(file.map(row => row.lon).max,-73.292793)
   var sizeOfRasterLat = 10 //meters
   var sizeOfRasterLon = 10 //meters
   var rasterLatLength = ((latMax-latMin)/sizeOfRasterLat).ceil.toInt
@@ -39,7 +39,9 @@ class Settings extends Serializable{
   var ouptDirectory = "/home/marc/media/SS_17/output/"
 
   //var inputDirectoryCSV = "/home/marc/Downloads/in.csv"
-  var inputDirectoryCSV = "/home/marc/media/Downloads/in.csv"
+  var inputDirectoryCSV = "/home/media/Downloads/"
+  var csvMonth = 5
+  var csvYear = 2011
 
   val conf = new SparkConf().setAppName("Test")
   conf.setMaster("local[*]")

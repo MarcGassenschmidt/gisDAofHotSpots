@@ -60,7 +60,7 @@ class Transformation {
     tile
   }
 
-  def transformCSVtoRaster(parmeters : Settings): IntArrayTile ={
+  def transformCSVtoRaster(settings : Settings): IntArrayTile ={
     //https://www.google.com/maps/place/40%C2%B033'06.6%22N+74%C2%B007'46.0%22W/@40.7201276,-74.0195387,11.25z/data=!4m5!3m4!1s0x0:0x0!8m2!3d40.551826!4d-74.129441
     //lat = 40.551826, lon=-74.129441
     //https://www.google.com/maps/place/40%C2%B059'32.5%22N+73%C2%B035'51.3%22W/@40.8055274,-73.8900207,10.46z/data=!4m5!3m4!1s0x0:0x0!8m2!3d40.992352!4d-73.597571
@@ -71,29 +71,32 @@ class Transformation {
     //40.800296, -73.928375
     //40.703286, -74.019012
 
-    val bufferedSource = Source.fromFile(parmeters.inputDirectoryCSV)
+    val bufferedSource = Source.fromFile(settings.inputDirectoryCSV+settings.csvYear+"_"+settings.csvMonth+".csv")
 
     val formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
     val file = bufferedSource.getLines.drop(1).map(line => {
       val cols = line.split(",").map(_.trim)
-      val result = new RowTransformationTime(
-          lon = (cols(9).toDouble*parmeters.multiToInt+parmeters.shiftToPostive).toInt,
-          lat = (cols(10).toDouble*parmeters.multiToInt).toInt,
-          time = formatter.parseDateTime(cols(2)))
+      val result = new NotDataRowTransformation(0,0,null,true)
+      if(cols.length>7){
+          result.lon = (cols(5).toDouble*settings.multiToInt+settings.shiftToPostive).toInt
+          result.lat = (cols(6).toDouble*settings.multiToInt).toInt
+          result.time = formatter.parseDateTime(cols(2))
+          result.data = false
+      }
       result
-    }).filter(row => row.lon>parmeters.lonMin && row.lon<parmeters.lonMax && row.lat>parmeters.latMin && row.lat<parmeters.latMax) //To remove entries not in range
+    }).filter(row => row.lon>settings.lonMin && row.lon<settings.lonMax && row.lat>settings.latMin && row.lat<settings.latMax && row.data==false) //To remove entries not in range
     //.filter(row => (row.time.getHourOfDay> 20 && row.time.getHourOfDay()< 22)) //To look at data range
 
 
 
-    val rasterLatLength = ((parmeters.latMax-parmeters.latMin)/parmeters.sizeOfRasterLat).ceil.toInt
-    val rasterLonLength = ((parmeters.lonMax-parmeters.lonMin)/parmeters.sizeOfRasterLon).ceil.toInt
+    val rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).ceil.toInt
+    val rasterLonLength = ((settings.lonMax-settings.lonMin)/settings.sizeOfRasterLon).ceil.toInt
     val tile = IntArrayTile.ofDim(rasterLatLength,rasterLonLength)
     var colIndex = 0
     var rowIndex = 0
     for(row <- file){
-      colIndex = ((row.lat-parmeters.latMin)/parmeters.sizeOfRasterLat).toInt
-      rowIndex = ((row.lon-parmeters.lonMin)/parmeters.sizeOfRasterLon).toInt
+      colIndex = ((row.lat-settings.latMin)/settings.sizeOfRasterLat).toInt
+      rowIndex = ((row.lon-settings.lonMin)/settings.sizeOfRasterLon).toInt
       tile.setDouble(colIndex,rowIndex,tile.get(colIndex,rowIndex)+1)
     }
 //    file.map(row => {

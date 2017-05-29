@@ -112,6 +112,7 @@ class GenericScenario {
     var startTime = System.currentTimeMillis()
     val transform = new Transformation
     val arrayTile = transform.transformCSVtoRaster(settings)
+    arrayTile.histogram.values().map(x => println(x))
     println("Time for RasterTransformation =" + ((System.currentTimeMillis() - startTime) / 1000))
     println("Raster Size (cols,rows)=(" + arrayTile.cols + "," + arrayTile.rows + ")")
     arrayTile
@@ -137,7 +138,7 @@ class GenericScenario {
       globalSettings.focal = true
       globalSettings.focalRange = 22
       if(i==3){
-        globalSettings.fromFile = true
+        globalSettings.fromFile = false
       } else {
         globalSettings.fromFile = false
       }
@@ -147,8 +148,8 @@ class GenericScenario {
   }
 
   def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, Settings, ((Tile, Int), (Tile, Int)), (Double, Double)) = {
-    val actualLat = ((globalSettings.latMax-globalSettings.latMin)/(10 + 990/runs *i)).toInt
-    val actualLon = ((globalSettings.lonMax-globalSettings.lonMin)/(10 + 990/runs *i)).toInt
+    val actualLat = ((globalSettings.latMax-globalSettings.latMin)/(10.0 + 990.0/runs.toDouble *i)).ceil.toInt
+    val actualLon = ((globalSettings.lonMax-globalSettings.lonMin)/(10.0 + 990.0/runs.toDouble *i)).ceil.toInt
     globalSettings.sizeOfRasterLat = actualLat
     globalSettings.sizeOfRasterLon = actualLon
     var raster = getRaster(globalSettings)

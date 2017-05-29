@@ -33,7 +33,7 @@ class GenericGetisOrd {
         if(Math.sqrt(i*i+j*j)<=radius) {
           arrayTile(radius + i)(radius + j) = 1.0
         } else {
-          arrayTile(radius + i)(radius + j) = 0
+          arrayTile(radius + i)(radius + j) = 0.0
         }
       }
     }
