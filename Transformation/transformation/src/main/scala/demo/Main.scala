@@ -8,6 +8,7 @@ object Main {
   def helloSentence = "Start"
 
   def main(args: Array[String]): Unit = {
+    println(System.getProperty("sun.arch.data.model"))
 //    val downloader = new DownloadFilesFromWeb()
 //    val setting = new Settings()
 //    setting.csvMonth = 5

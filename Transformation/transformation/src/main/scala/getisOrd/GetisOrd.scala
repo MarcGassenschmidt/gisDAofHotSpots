@@ -59,6 +59,7 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
 
   def getGstartForChildToo(paraParent : Settings, paraChild : Settings): (Tile, Tile) ={
     //createNewWeight(paraParent)
+
     val parent = gStarComplete()
     val size = (weight.cols,weight.rows)
     createNewWeight(paraChild)
@@ -90,6 +91,7 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
       case Weight.Defined => weight = getWeightMatrixDefined(para.weightRadius,para.weightRadius)
       case Weight.Big => weight = getWeightMatrix(para.weightRadius,para.weightRadius)
       case Weight.High => weight = getWeightMatrixHigh()
+      case Weight.Sigmoid => weight = getWeightMatrixSquareSigmoid(para.weightRadius,para.weightRadius/2)
     }
 
 

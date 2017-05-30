@@ -122,7 +122,7 @@ class GenericScenario {
   }
 
   def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 3 to runs) {
+    for (i <- 0 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = false
       if(i==0){
@@ -136,11 +136,11 @@ class GenericScenario {
   }
 
   def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 3 to runs) {
+    for (i <- 0 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = true
       globalSettings.focalRange = 22
-      if(i==3){
+      if(i==0){
         globalSettings.fromFile = false
       } else {
         globalSettings.fromFile = false
@@ -153,8 +153,8 @@ class GenericScenario {
   def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, Settings, ((Tile, Int), (Tile, Int)), (Double, Double)) = {
     val actualLat = ((globalSettings.latMax-globalSettings.latMin)/(10.0 + 990.0/runs.toDouble *i)).ceil.toInt
     val actualLon = ((globalSettings.lonMax-globalSettings.lonMin)/(10.0 + 990.0/runs.toDouble *i)).ceil.toInt
-    globalSettings.sizeOfRasterLat = actualLat
-    globalSettings.sizeOfRasterLon = actualLon
+    globalSettings.sizeOfRasterLat =(10.0 + 990.0/runs.toDouble *i).ceil.toInt
+    globalSettings.sizeOfRasterLon =(10.0 + 990.0/runs.toDouble *i).ceil.toInt
     var raster = getRaster(globalSettings)
     if(!globalSettings.fromFile){
       raster = raster.resample(actualLat,actualLon)

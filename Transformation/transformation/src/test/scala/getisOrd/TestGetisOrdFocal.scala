@@ -75,6 +75,26 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     assert(rasterTile.focalMean(Circle(1)).getDouble(5,5)==sum/5.0)
   }
 
+  test("Test focal SD"){
+    setting.focalRange = 2
+    getis = new GetisOrdFocal(rasterTile, setting)
+    val index = (0,0)
+    val xMean =rasterTile.focalMean(Circle(setting.focalRange)).getDouble(index._1, index._2)
+    var sum = 0.0
+    var size = 0
+    for(i <- -setting.focalRange to setting.focalRange) {
+      for (j <- -setting.focalRange to setting.focalRange) {
+        if(Math.sqrt(i*i+j*j)<=setting.focalRange && index._1+i>=0 && index._2+j>=0){
+          val tmp = (rasterTile.getDouble(index._1+i, index._2+j))
+          sum += Math.pow(tmp-xMean,2)
+          size +=1
+        }
+      }
+    }
+    val sd = Math.sqrt(sum/size)
+
+    assert(rasterTile.focalStandardDeviation(Circle(setting.focalRange)).getDouble(0,0)==sd)
+  }
 
 
   test("Test other focal SD"){
@@ -264,25 +284,28 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
 
     val M = getTestMatrix().focalMean(new Circle(2))
     assert(M.getDouble(0,0)==4.0/6.0)
-    println(M.asciiDrawDouble())
+    println("Mean: "+M.asciiDrawDouble())
     val MW = M*getParentWeigth().toArrayDouble().reduce(_+_)
     println(MW.asciiDrawDouble())
-    println((M*5.4).asciiDrawDouble())
-    assert((MW-(M*5.4)).toArrayDouble().reduce(_+_)<0.001 && (MW-(M*5.4)).toArrayDouble().reduce(_+_)> -0.001)
+    println((M*5).asciiDrawDouble())
+    assert((MW-(M*5)).toArrayDouble().reduce(_+_)<0.001 && (MW-(M*5)).toArrayDouble().reduce(_+_)> -0.001)
     println(MW.asciiDrawDouble())
     val S = getSD()
-    println(S.asciiDrawDouble())
-    val N = getTestMatrix().focalSum(new Circle(2))
-    println(N.asciiDrawDouble())
+    println("SD: "+ S.asciiDrawDouble())
+    val testTile : Array[Double]= Array.fill(4*5)(1)
+
+    val N = new DoubleRawArrayTile(testTile, 4, 5).focalSum(new Circle(2))
+    println("N:"+N.asciiDrawDouble())
 
     val W = getParentWeigth().toArrayDouble().foldLeft(0.0){(x,y)=>x+y*y}
     val mW = Math.pow(getParentWeigth().toArrayDouble().reduce(_+_),2)
     println(W)
     println(mW)
     val WmW =N*W-mW
-    println(WmW.asciiDrawDouble())
+    println("WmW: "+WmW.asciiDrawDouble())
     val numerator = (RoW-MW)
-    val denumerator = (S*(WmW/(N-1)).mapDouble(x => Math.sqrt(Math.max(0,x))))
+    val denumerator = S*(WmW/(N-1)).mapDouble(x => Math.sqrt(Math.max(0,x)))
+
     println(numerator.asciiDrawDouble())
     println(denumerator.asciiDrawDouble())
     val gStar = numerator/denumerator
@@ -291,19 +314,23 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     val setting = new Settings
     setting.focalRange=2
     setting.weightRadius = 1
-    setting.weightMatrix= Weight.Defined
+    setting.weightMatrix= Weight.Square
     val getisOrdFocal = new GetisOrdFocal(getTestMatrix(),setting)
     val r = getisOrdFocal.debugFocalgStar()
-    assert(getisOrdFocal.sumOfWeight>5.3 &&getisOrdFocal.sumOfWeight<5.4)
+    assert(getisOrdFocal.sumOfWeight>4.9 &&getisOrdFocal.sumOfWeight<5.1)
 
     testSD(S, r)
     assert((r._6-RoW).toArrayDouble().reduce(_+_)==0.0)
 
     println((r._7-MW).toArrayDouble().reduce(_+_)==0)
+    assert((r._5-N).toArrayDouble().reduce(_+_)==0.0)
+    assert(((N-1)-(r._5-1)).toArrayDouble().reduce(_+_)==0)
+    assert((r._8-WmW).toArrayDouble().reduce(_+_)==0)
+    assert(((WmW/(N-1))-(r._8/(r._5-1))).toArrayDouble().reduce(_+_)==0)
 
     testForNumerator(numerator, r)
     testDenumerator(denumerator, r)
-    assert((r._5-N).toArrayDouble().reduce(_+_)==0.0)
+
 
     println((r._1-gStar).asciiDrawDouble())
     println(r._1.asciiDrawDouble())
@@ -318,29 +345,29 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
         }
       }
     }
-    println(tileG.asciiDrawDouble())
+    println("Result: "+tileG.asciiDrawDouble())
     assert((r._1-tileG).toArrayDouble().reduce(_+_) ==0.0)
     assert((getisOrdFocal.gStarComplete()-tileG).toArrayDouble().reduce(_+_) ==0.0)
   }
 
 
-  def testDenumerator(denumerator: Tile, r: (Tile, Tile, Tile, Tile, Tile,Tile,Tile)): Unit = {
+  def testDenumerator(denumerator: Tile, r: (Tile, Tile, Tile, Tile, Tile,Tile,Tile, Tile)): Unit = {
 
-    println((denumerator).asciiDrawDouble())
+    println("Denumerator: "+(denumerator).asciiDrawDouble())
     println((r._4 - denumerator).asciiDrawDouble())
 
     //Because Test does not handel ND values
     assert((r._4 - denumerator).toArrayDouble().reduce(_ + _)==0)
   }
 
-  def testSD(S: Tile, r: (Tile, Tile, Tile, Tile, Tile,Tile,Tile)): Unit = {
+  def testSD(S: Tile, r: (Tile, Tile, Tile, Tile, Tile,Tile,Tile, Tile)): Unit = {
     println(r._3.asciiDraw())
     println(S.asciiDraw())
     assert((r._3 - S).toArrayDouble().reduce(_ + _) ==0.0)
   }
 
-  def testForNumerator(numerator: Tile, r: (Tile, Tile, Tile, Tile, Tile,Tile,Tile)): Unit = {
-    //    println(r._2.asciiDrawDouble())
+  def testForNumerator(numerator: Tile, r: (Tile, Tile, Tile, Tile, Tile,Tile,Tile, Tile)): Unit = {
+    println("Numerator: "+r._2.asciiDrawDouble())
     //    println(numerator.asciiDrawDouble())
     println((r._2-numerator).asciiDrawDouble())
     assert((r._2-numerator).toArrayDouble().reduce(_+_)==0.0)
@@ -348,9 +375,9 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
 
   def getParentWeigth(): ArrayTile ={
     val arrayTile = Array[Double](
-      0.1,1,0.1,
+      0,1,0,
       1,1,1,
-      0.1,1,0.1
+      0,1,0
     )
     val weightTile = new DoubleRawArrayTile(arrayTile, 3,3)
     weightTile
@@ -402,8 +429,31 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
   def getSD(): Tile ={
     val sd = getTestMatrix().focalStandardDeviation(new Circle(2))
     println(sd.asciiDrawDouble())
-    //assert(sd.getDouble(0,0)==143) //TODO why?
+    assert(sd.getDouble(0,0)-getSDValue()<0.01 && sd.getDouble(0,0)-getSDValue()> -0.01)
     sd
   }
+
+  def getSDValue(): Double = {
+    val index = (0,0)
+    val xMean =getTestMatrix().focalMean(new Circle(2)).getDouble(index._1, index._2)
+    var sum = 0.0
+    var size = 0.0
+    for(i <- -2 to 2) {
+      for (j <- -2 to 2) {
+        if(Math.sqrt(i*i+j*j)<=2 && index._1+i>=0 && index._2+j>=0){
+          val tmp : Double = (getTestMatrix().getDouble(index._1+i, index._2+j))
+          sum += Math.pow(tmp-xMean,2)
+          println(i+","+j)
+          println(tmp+","+xMean)
+          size +=1
+        }
+      }
+    }
+    val sd = Math.sqrt(sum/size)
+
+    assert(getTestMatrix().focalStandardDeviation(new Circle(2)).getDouble(0,0)-sd<0.01 && getTestMatrix().focalStandardDeviation(new Circle(2)).getDouble(0,0)-sd> -0.01)
+    sd
+  }
+
 
 }

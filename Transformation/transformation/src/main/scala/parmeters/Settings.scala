@@ -34,6 +34,7 @@ class Settings extends Serializable{
 
   //var serilizeDirectory = "/home/marc/Masterarbeit/outPut/raster"
   var serilizeDirectory = "/home/marc/media/SS_17/output/raster"
+  var statDirectory = "/home/marc/media/SS_17/output/"
 
   //var ouptDirectory = "/home/marc/Masterarbeit/outPut/"
   var ouptDirectory = "/home/marc/media/SS_17/output/"
