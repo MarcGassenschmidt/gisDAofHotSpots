@@ -20,7 +20,7 @@ class GenericScenario {
   def runScenario(): Unit ={
     val globalSettings =new Settings()
     globalSettings.fromFile = true
-    globalSettings.weightMatrix = Weight.Sigmoid
+    globalSettings.weightMatrix = Weight.Square
     val outPutResults = ListBuffer[SoHResult]()
     val runs = 10
 
@@ -122,7 +122,7 @@ class GenericScenario {
   }
 
   def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 0 to runs) {
+    for (i <- 3 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = false
       if(i==0){
@@ -136,7 +136,7 @@ class GenericScenario {
   }
 
   def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 0 to runs) {
+    for (i <- 3 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = true
       globalSettings.focalRange = 22
@@ -164,10 +164,12 @@ class GenericScenario {
     //image.visualTileNew(raster, globalSettings, "plainRaster")
     val (para: Settings, paraChild: Settings) = getParentChildSetting(globalSettings)
     val score = gStar(raster, para, paraChild)
+    println("G* End")
     val chs = ((new ClusterHotSpots(score._1)).findClusters(para.clusterRange, para.critivalValue),
       (new ClusterHotSpots(score._2)).findClusters(paraChild.clusterRange, paraChild.critivalValue))
-
+    println("End Cluster")
     visulizeCluster((para,paraChild), chs)
+    println("End Visual Cluster")
     val soh = new SoH()
     val sohVal :(Double,Double) = soh.getSoHDowAndUp(chs)
     (para, paraChild, chs, sohVal)

@@ -16,7 +16,7 @@ class DifferentRatio extends GenericScenario{
   override def runScenario(): Unit ={
     val globalSettings =new Settings()
     globalSettings.fromFile = true
-    globalSettings.weightMatrix = Weight.Sigmoid
+    globalSettings.weightMatrix = Weight.Square
     globalSettings.scenario = "Ratio"
     val outPutResults = ListBuffer[SoHResult]()
     val runs = 10

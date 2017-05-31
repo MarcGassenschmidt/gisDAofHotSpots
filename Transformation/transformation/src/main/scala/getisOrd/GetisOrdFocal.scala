@@ -26,56 +26,28 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
     println("Free Heap Size " + heapFreeSize)
   }
 
-  def gStarCompleteOld(): Tile = {
+  override def gStarComplete(): Tile = {
     //(RoW-M*sumOfWeight)/(S*((N*powerOfWeight-sumOfWeight*sumOfWeight)/(N-1)).mapIfSetDouble (x => Math.sqrt(x)))
     //    (RoW-M*sumOfWeight)/(S*Math.sqrt((N*powerOfWeight-sumOfWeight*sumOfWeight)/(N-1)))
     var F = Circle(setting.focalRange)
-    var W = Circle(setting.weightRadius) 
+    var W = Circle(setting.weightRadius)
+    println("Calculate N")
     var N = getPixelMatrix(tile).focalSum(F)
-
-    val q = DoubleArrayTile.ofDim(tile.cols, tile.rows)
-
-    for(i <- 0 to N.cols-1){
-      for(j <- 0 to N.rows-1){
-        val qt = N.getDouble(i,j)
-        if(qt<=0){
-          q.setDouble(i,j,0)
-        } else {
-          q.setDouble(i,j,Math.sqrt((N.getDouble(i,j)* powerOfWeight - sumOfWeight * sumOfWeight)/N.getDouble(i,j)))
-        }
-      }
-    }
+    println("Calculate WmW")
+    var denominator = (N*powerOfWeight-sumOfWeight*sumOfWeight)/(N-1)
     N = null
+    println("Calculate WmW2")
+    denominator = denominator.mapDouble(x => Math.sqrt(x))
+    println("Calculate S")
     var S = tile.focalStandardDeviation(F)
-    for(i <- 0 to q.cols-1){
-      for(j <- 0 to q.rows-1){
-          q.setDouble(i,j,S.getDouble(i,j)*q.getDouble(i,j))
-      }
-    }
+    denominator = S*denominator
     S = null
-    var M = tile.focalMean(F)
-    M = M * sumOfWeight
-    var RoW = tile.focalSum(W) //Todo if different Weight then 1
-    RoW = (RoW - M)
-    M = null
-  //  println(q.resample(100, 100).asciiDrawDouble())
-  //  printHeapSize()
-//    println(n.resample(100, 100).asciiDrawDouble())
-
-
-    val tileG = DoubleArrayTile.ofDim(tile.cols, tile.rows)
-    for(i <- 0 to tile.cols-1){
-      for(j <- 0 to tile.rows-1){
-        val qt = q.getDouble(i,j)
-        if(qt<=0){
-          tileG.setDouble(i,j,0)
-        } else {
-          tileG.setDouble(i,j,RoW.getDouble(i,j)/qt)
-        }
-      }
-    }
-    tileG
-
+    println("Calculate F")
+    var nominator = tile.focalMean(F)
+    nominator = nominator*sumOfWeight
+    nominator = tile.focalSum(W)-nominator
+    println("Calculate Devision")
+    nominator/denominator
   }
 
   def getPixelMatrix(tile: Tile) : Tile = {
@@ -83,23 +55,29 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
     new DoubleRawArrayTile(testTile, tile.cols, tile.rows)
   }
 
-  override def gStarComplete(): Tile ={
-    gSaveStarComplete(true)
-  }
+
 
   def gSaveStarComplete(rerun : Boolean): Tile = {
     //(RoW-M*sumOfWeight)/(S*((N*powerOfWeight-sumOfWeight*sumOfWeight)/(N-1)).mapIfSetDouble (x => Math.sqrt(x)))
     var F = Circle(setting.focalRange)
     var W = Circle(setting.weightRadius)
-    write(getPixelMatrix(tile).focalSum(F), setting.statDirectory+"N",rerun)
-    write(tile.focalStandardDeviation(F), setting.statDirectory+"S",rerun)
-    write(tile.focalMean(F), setting.statDirectory+"M",rerun)
-    write(tile.focalSum(W), setting.statDirectory+"RoW",false)
-    write((read(setting.statDirectory+"N")*powerOfWeight-sumOfWeight*sumOfWeight)/read(setting.statDirectory+"N"), setting.statDirectory+"WmW",false)
-    write((read(setting.statDirectory+"WmW").mapDouble(x => Math.sqrt(x))), setting.statDirectory+"WmW2",false)
-    write(read(setting.statDirectory+"RoW")-read(setting.statDirectory+"M")*sumOfWeight, setting.statDirectory+"Numerator",false)
-    write(read(setting.statDirectory+"S")*read(setting.statDirectory+"WmW2"), setting.statDirectory+"Denumerator",false)
-    read(setting.statDirectory+"Numerator")/read(setting.statDirectory+"Denumerator")
+    println("Read N")
+    var N = read(setting.statDirectory+"N")
+    println("End N")
+    var WmW = (N*powerOfWeight-sumOfWeight*sumOfWeight)/(N-1)
+    N = null
+    WmW = WmW.mapDouble(x => Math.sqrt(x))
+    println("Read S")
+    var S = read(setting.statDirectory+"S")
+    println("End S")
+    WmW = S*WmW
+    S = null
+    println("Read M")
+    var M = read(setting.statDirectory+"M")
+    println("End M")
+    M = M*sumOfWeight
+    M = tile.focalSum(W)-M
+    M/WmW
   }
 
   def write(tile : Tile, path: String, rerun : Boolean): Unit ={

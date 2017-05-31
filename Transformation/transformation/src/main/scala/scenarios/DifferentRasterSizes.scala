@@ -24,7 +24,7 @@ class DifferentRasterSizes extends GenericScenario{
     val globalSettings =new Settings()
     globalSettings.fromFile = true
     globalSettings.scenario = "RasterSizes"
-    globalSettings.weightMatrix = Weight.Sigmoid
+    globalSettings.weightMatrix = Weight.Square
     val outPutResults = ListBuffer[SoHResult]()
     val runs = 10
     //bigger area
