@@ -27,7 +27,7 @@ class DifferentRatio extends GenericScenario{
   }
 
   override def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 3 to runs) {
+    for (i <- 2 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = true
       if(i==0){
@@ -35,12 +35,12 @@ class DifferentRatio extends GenericScenario{
       } else {
         globalSettings.fromFile = false
       }
-      for(j <-0 to runs){
+      for(j <-0 to 10){
         globalSettings.weightRadius = 3
-        globalSettings.focalRange = 2+i*6
+        globalSettings.focalRange = 2+j*6
         //globalSettings.weightRadius = weightRatio(globalSettings, runs, j)
-        val (para: Settings, paraChild: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double)) = oneCase(globalSettings, i, runs)
-        saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, paraChild, chs, sohVal)
+        val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double,Double,Double), lat : (Int,Int)) = oneCase(globalSettings, i, runs)
+        saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, chs, sohVal, lat)
       }
     }
   }
@@ -51,26 +51,26 @@ class DifferentRatio extends GenericScenario{
 
 
 
-  override def getParentChildSetting(global : Settings): (Settings, Settings) = {
-    val para = new Settings()
-    para.scenario = global.scenario
-    para.weightRadius = global.weightRadius
-    para.focalRange = global.focalRange
-    para.sizeOfRasterLat = global.sizeOfRasterLat
-    para.sizeOfRasterLon = global.sizeOfRasterLon
-    para.weightMatrix = para.weightMatrix
-    para.focal = global.focal
-    val paraChild = new Settings()
-    paraChild.scenario = global.scenario
-    paraChild.focal = global.focal
-    paraChild.focalRange = global.focalRange
-    paraChild.sizeOfRasterLat = global.sizeOfRasterLat
-    paraChild.sizeOfRasterLon = global.sizeOfRasterLon
-    paraChild.weightMatrix = global.weightMatrix
-    paraChild.parent = false
-    paraChild.weightRadius = global.weightRadius-1
-    (para, paraChild)
-  }
+//  override def getParentChildSetting(global : Settings): (Settings, Settings) = {
+//    val para = new Settings()
+//    para.scenario = global.scenario
+//    para.weightRadius = global.weightRadius
+//    para.focalRange = global.focalRange
+//    para.sizeOfRasterLat = global.sizeOfRasterLat
+//    para.sizeOfRasterLon = global.sizeOfRasterLon
+//    para.weightMatrix = para.weightMatrix
+//    para.focal = global.focal
+//    val paraChild = new Settings()
+//    paraChild.scenario = global.scenario
+//    paraChild.focal = global.focal
+//    paraChild.focalRange = global.focalRange
+//    paraChild.sizeOfRasterLat = global.sizeOfRasterLat
+//    paraChild.sizeOfRasterLon = global.sizeOfRasterLon
+//    paraChild.weightMatrix = global.weightMatrix
+//    paraChild.parent = false
+//    paraChild.weightRadius = global.weightRadius-1
+//    (para, paraChild)
+//  }
 
 
 

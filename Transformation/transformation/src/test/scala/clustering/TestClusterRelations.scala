@@ -17,7 +17,11 @@ class TestClusterRelations extends FunSuite{
     assert(tile1.rows==tile2.rows)
     tile1 = getTile(7,7)
     tile2 = getTile(4,5)
+    println(tile1.asciiDrawDouble())
+    println(tile2.asciiDrawDouble())
     var result = cr.rescaleBiggerTile(tile1,tile2)
+    println(result._1.asciiDrawDouble())
+    println(result._2.asciiDrawDouble())
     assert(result._1.cols==7)
     assert(7==result._2.cols)
     assert(result._1.rows==7)
@@ -62,7 +66,8 @@ class TestClusterRelations extends FunSuite{
 
   test("Test ClusterRelations::getNumberChildrenAndParentsWhichIntersect"){
     val cr = new ClusterRelations()
-    assert(cr.getNumberChildrenAndParentsWhichIntersect(getTestClusterParent(),getTestClusterChild())==(6,7))
+    assert((getTestClusterChild()-getTestClusterParent()).toArrayDouble().filter(x => x>0).distinct.length==3)
+    assert(cr.getNumberChildrenAndParentsWhichIntersect(getTestClusterParent(),getTestClusterChild())==(3,7))
   }
 
   def getTestClusterChild(): ArrayTile ={

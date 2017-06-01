@@ -25,6 +25,9 @@ class DifferentRasterSizes extends GenericScenario{
     globalSettings.fromFile = true
     globalSettings.scenario = "RasterSizes"
     globalSettings.weightMatrix = Weight.Square
+    globalSettings.weightRadius = 7
+    globalSettings.clusterRange = 1.9
+
     val outPutResults = ListBuffer[SoHResult]()
     val runs = 10
     //bigger area
@@ -42,27 +45,7 @@ class DifferentRasterSizes extends GenericScenario{
 
 
 
-  override def getParentChildSetting(global : Settings): (Settings, Settings) = {
-    val para = new Settings()
-    para.scenario = global.scenario
-    para.weightRadius = 3
-    para.focalRange = global.focalRange
-    para.sizeOfRasterLat = global.sizeOfRasterLat
-    para.sizeOfRasterLon = global.sizeOfRasterLon
-    para.weightMatrix = global.weightMatrix
-    para.focal = global.focal
-    val paraChild = new Settings()
-    paraChild.scenario = global.scenario
-    paraChild.focal = global.focal
-    paraChild.focalRange = global.focalRange
-    paraChild.sizeOfRasterLat = global.sizeOfRasterLat
-    paraChild.sizeOfRasterLon = global.sizeOfRasterLon
 
-    paraChild.weightMatrix = global.weightMatrix
-    paraChild.parent = false
-    paraChild.weightRadius = 2
-    (para, paraChild)
-  }
 
 
 

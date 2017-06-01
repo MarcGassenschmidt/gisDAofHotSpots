@@ -348,6 +348,8 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     println("Result: "+tileG.asciiDrawDouble())
     assert((r._1-tileG).toArrayDouble().reduce(_+_) ==0.0)
     assert((getisOrdFocal.gStarComplete()-tileG).toArrayDouble().reduce(_+_) ==0.0)
+    val globalgStar = new GetisOrd(getTestMatrix(),setting)
+    println("G*: "+globalgStar.gStarComplete().asciiDrawDouble())
   }
 
 

@@ -25,7 +25,7 @@ class ClusterHotSpots(tile : Tile) {
         if(clusterCol+j<tile.cols && clusterCol+j>=0
           && clusterRow+i<tile.rows && clusterRow+i>=0
           && Math.sqrt(j*j+i*i)<=range) {
-          if(Math.abs(tile.get(clusterCol+j,clusterRow+i))>=critical) {
+          if(Math.abs(tile.get(clusterCol+j,clusterRow+i))>critical) {
               clusterTile.set(clusterCol + j, clusterRow + i, counterCluster)
           }
         }
@@ -42,7 +42,7 @@ class ClusterHotSpots(tile : Tile) {
           && Math.sqrt(j * j + i * i) <= range
           && visit.get(clusterCol + j, clusterRow + i) == 0) {
           visit.set(clusterCol + j, clusterRow + i, 1)
-          if (Math.abs(tile.get(clusterCol + j, clusterRow + i)) >= critical) {
+          if (Math.abs(tile.get(clusterCol + j, clusterRow + i)) > critical) {
             neighborhood = (clusterCol + j, clusterRow + i) :: neighborhood
           }
         }
@@ -60,7 +60,7 @@ class ClusterHotSpots(tile : Tile) {
           && Math.sqrt(j * j + i * i) <= range
           && visit.get(clusterCol + j, clusterRow + i) == 0) {
           visit.set(clusterCol + j, clusterRow + i, 1)
-          if (-1*(tile.get(clusterCol + j, clusterRow + i)) >= critical) {
+          if (-1*(tile.get(clusterCol + j, clusterRow + i)) > critical) {
             neighborhood = (clusterCol + j, clusterRow + i) :: neighborhood
           }
         }
@@ -93,6 +93,8 @@ class ClusterHotSpots(tile : Tile) {
 
   //inspired by dbscan
   def findClusters(range : Double, critical : Double) : (Tile,Int) ={
+
+    val q = Math.max(tile.histogramDouble.quantileBreaks(100)(98),critical)
     var counterCluster = 0
 
     var tempCluster = 0;
@@ -100,21 +102,22 @@ class ClusterHotSpots(tile : Tile) {
     var clusterTile = IntArrayTile.fill(0,tile.cols,tile.rows)
     for(i <- 0 to tile.cols-1){
       for(j <- 0 to tile.rows-1){
-        if((tile.getDouble(i,j))>=critical){
-          if(clusterTile.get(i,j)==0){
+        if((tile.getDouble(i,j))>q) {
+          if (clusterTile.get(i, j) == 0) {
             counterCluster += 1
-            visit.set(i,j,1)
-            clusterTile.set(i,j,counterCluster)
-            expandCluster(clusterTile, range, critical, visit, counterCluster, regionQuery(range, critical, i, j, visit))
-          }
-        } else if(-1*(tile.getDouble(i,j))>=critical){
-          if(clusterTile.get(i,j)==0){
-            counterCluster += 1
-            visit.set(i,j,1)
-            clusterTile.set(i,j,counterCluster)
-            expandClusterNegative(clusterTile, range, critical, visit, counterCluster, regionQuery(range, critical, i, j, visit))
+            visit.set(i, j, 1)
+            clusterTile.set(i, j, counterCluster)
+            expandCluster(clusterTile, range, q, visit, counterCluster, regionQuery(range, q, i, j, visit))
           }
         }
+//         else if(-1*(tile.getDouble(i,j))>=q){
+//          if(clusterTile.get(i,j)==0){
+//            counterCluster += 1
+//            visit.set(i,j,1)
+//            clusterTile.set(i,j,counterCluster)
+//            expandClusterNegative(clusterTile, range, q, visit, counterCluster, regionQuery(range, q, i, j, visit))
+//          }
+//        }
       }
 
     }
@@ -130,7 +133,7 @@ class ClusterHotSpots(tile : Tile) {
     var clusterTile = IntArrayTile.fill(0,tile.cols,tile.rows)
     for(i <- 0 to tile.cols-1){
       for(j <- 0 to tile.rows-1){
-        if(Math.abs(tile.getDouble(i,j))>=critical){
+        if(Math.abs(tile.getDouble(i,j))>critical){
           if(clusterTile.get(i,j)==0){
             counterCluster += 1
             findRelated(clusterTile, i, j, range, critical, counterCluster)

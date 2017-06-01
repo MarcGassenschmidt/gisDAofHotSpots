@@ -1,6 +1,6 @@
 package clustering
 
-import geotrellis.raster.{IntArrayTile, Tile}
+import geotrellis.raster.{DoubleRawArrayTile, IntArrayTile, IntRawArrayTile, Tile}
 
 /**
   * Created by marc on 12.05.17.
@@ -14,15 +14,21 @@ class ClusterRelations {
     var result = scala.collection.mutable.Set[(Int, Int)]()
     var childSet = scala.collection.mutable.Set[Int]()
     var parentSet = scala.collection.mutable.Set[Int]()
+    //assert(parent.cols==child.cols && parent.rows==child.rows)
     for(i <- 0 to parent.cols-1){
       for(j <- 0 to parent.rows-1) {
-        if(child.get(i,j)!=0 && parent.get(i,j)!=0){
-          result += ((child.get(i,j), parent.get(i,j)))
+        if (i < child.cols && j < child.rows) {
+          if (child.get(i, j) != 0 && parent.get(i, j) != 0) {
+            result += ((child.get(i, j), parent.get(i, j)))
+          }
+          if (parent.get(i, j) == 0 && child.get(i, j) != 0) {
+            childSet += child.get(i, j)
+          }
         }
       }
      }
     for((child, parent) <- result){
-      childSet += child
+      //childSet += child
       parentSet += parent
     }
     (childSet.size, parentSet.size)

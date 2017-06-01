@@ -6,7 +6,7 @@ import org.apache.spark.SparkConf
 /**
   * Created by marc on 12.05.17.
   */
-class Settings extends Serializable{
+class Settings extends Serializable with Cloneable{
   var scenario = "NoScenarioSet"
   var multiToInt = 1000000
   //40.701915, -74.018704
@@ -25,8 +25,8 @@ class Settings extends Serializable{
   var weightMatrix = Weight.Square
   var weightRadius = 20
   var fromFile = false
-  var clusterRange = 1
-  var critivalValue = 2
+  var clusterRange = 1.0
+  var critivalValue = 5
   var focal = false
   var focalRange = 11
   var parent = true
