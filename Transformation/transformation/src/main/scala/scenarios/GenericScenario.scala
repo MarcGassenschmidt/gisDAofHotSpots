@@ -2,6 +2,7 @@ package scenarios
 
 import java.io.{File, PrintWriter}
 
+import `import`.ImportGeoTiff
 import clustering.ClusterHotSpots
 import export.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
 import geotrellis.raster.Tile
@@ -66,28 +67,25 @@ class GenericScenario {
     image.visualTileNew(chs._2._1, setting, "cluster")
   }
 
-  def gStar(tile : Tile, tile_plusOne : Tile, settings : parmeters.Settings, first : Boolean): (Tile, Tile) = {
+  def gStar(tile : Tile, settings : parmeters.Settings, visualize : Boolean): Tile = {
     var startTime = System.currentTimeMillis()
     var ord : GetisOrd = null
-    var ord_plusOne : GetisOrd = null
     if(settings.focal){
       ord = new GetisOrdFocal(tile, settings)
-      ord_plusOne = new GetisOrdFocal(tile_plusOne, settings)
     } else {
       ord = new GetisOrd(tile, settings)
-      ord_plusOne = new GetisOrd(tile_plusOne, settings)
     }
     println("Time for G* values =" + ((System.currentTimeMillis() - startTime) / 1000))
     startTime = System.currentTimeMillis()
-    val score =(ord.gStarComplete(),ord_plusOne.gStarComplete())
+    val score =ord.gStarComplete()
     println("Time for G* =" + ((System.currentTimeMillis() - startTime) / 1000))
-    val image = new TileVisualizer()
-    startTime = System.currentTimeMillis()
-    if(first){
-      image.visualTileNew(score._1, settings, "gStar")
+
+    if(visualize){
+      startTime = System.currentTimeMillis()
+      val image = new TileVisualizer()
+      image.visualTileNew(score, settings, "gStar")
+      println("Time for Image G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     }
-    image.visualTileNew(score._2, settings, "gStar")
-    println("Time for Image G* =" + ((System.currentTimeMillis() - startTime) / 1000))
     score
   }
 
@@ -132,8 +130,8 @@ class GenericScenario {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = true
       globalSettings.focalRange = 30
-      if(i==0){
-        globalSettings.fromFile = false
+      if(i==1){
+        globalSettings.fromFile = true
       } else {
         globalSettings.fromFile = false
       }
@@ -143,22 +141,28 @@ class GenericScenario {
   }
 
   def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), (Double, Double, Double, Double), (Int, Int)) = {
-    val raster_plus1 = getRasterWithCorrectResolution(globalSettings, i, runs, 1)
-    val raster = getRasterWithCorrectResolution(globalSettings, i, runs, 0)
+    val raster : Tile = getRasterFromGeoTiff(globalSettings, i, runs, 0, "raster", getRasterWithCorrectResolution(globalSettings, i, runs, 0)._1)
+    val raster_plus1 = getRasterFromGeoTiff(globalSettings, i, runs, 1, "raster", getRasterWithCorrectResolution(globalSettings, i, runs, 1)._1)
 
-    //val image = new TileVisualizer()
-    //image.visualTileNew(raster, globalSettings, "plainRaster")
+    val gStarParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "gStar", gStar(raster, globalSettings, i==0))
+    val gStarChild = getRasterFromGeoTiff(globalSettings, i, runs, 1, "gStar", gStar(raster_plus1, globalSettings, i<runs))
 
-    val score = gStar(raster._1, raster_plus1._1, globalSettings, i==0)
     println("G* End")
-    val chs = ((new ClusterHotSpots(score._1)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue),
-      (new ClusterHotSpots(score._2)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue))
+
+    val clusterParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "cluster",((new ClusterHotSpots(gStarParent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue))._1)
+    val clusterChild =getRasterFromGeoTiff(globalSettings, i, runs, 1, "cluster", (new ClusterHotSpots(gStarChild)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)._1)
+    val time = System.currentTimeMillis()
+    val numberclusterParent = clusterParent.findMinMax._2
+    val numberclusterChild = clusterChild.findMinMax._2
+    System.out.println("Time for Number of Cluster:"+(System.currentTimeMillis()-time)/1000)
     println("End Cluster")
-    visulizeCluster(globalSettings, chs, i==0)
+    visulizeCluster(globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), i==0)
     println("End Visual Cluster")
     val soh = new SoH()
-    val sohVal :(Double,Double,Double,Double) = soh.getSoHDowAndUp(chs)
-    (globalSettings, chs, sohVal, (raster._2, raster_plus1._2))
+    val sohVal :(Double,Double,Double,Double) = soh.getSoHDowAndUp((clusterParent,numberclusterParent),(clusterChild,numberclusterChild))
+    (globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), sohVal,
+      ((10.0 + 990.0 / runs.toDouble * i).ceil.toInt, //Just lat for export
+        (10.0 + 990.0 / runs.toDouble * i +1).ceil.toInt)) //Just lat for export
   }
 
   def getRasterWithCorrectResolution(globalSettings: Settings, i : Int, runs : Int, next : Int): (Tile,Int,Int) = {
@@ -172,5 +176,15 @@ class GenericScenario {
     (raster_plus1,(10.0 + 990.0 / runs.toDouble * i + next).ceil.toInt,(10.0 + 990.0 / runs.toDouble * i + next).ceil.toInt)
   }
 
+  def getRasterFromGeoTiff(globalSettings : Settings, i : Int, runs : Int, next : Int, extra : String, tileFunction :  => Tile): Tile = {
+    val importer = new ImportGeoTiff()
+    if (false && importer.geoTiffExists(globalSettings, i+next, runs, extra)) {
+      return importer.getGeoTiff(globalSettings, i+next, runs, extra)
+    } else {
+      val tile = tileFunction
+      importer.writeGeoTiff(tile, globalSettings, i+next, runs, extra)
+      return tile
+    }
+  }
 
 }

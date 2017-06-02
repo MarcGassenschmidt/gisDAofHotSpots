@@ -4,6 +4,8 @@ import clustering.ClusterRelations
 import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntRawArrayTile}
 import org.scalatest.FunSuite
 
+import scala.util.Random
+
 /**
   * Created by marc on 12.05.17.
   */
@@ -59,7 +61,7 @@ class TestClusterRelations extends FunSuite{
   }
 
   def getTile(cols : Int, rows : Int): ArrayTile ={
-    val testTile = Array.fill(rows*cols)(1)
+    val testTile = Array.fill(rows*cols)(1)//new Random().nextInt(100))
     val rasterTile = new IntRawArrayTile(testTile, cols, rows)
     rasterTile
   }

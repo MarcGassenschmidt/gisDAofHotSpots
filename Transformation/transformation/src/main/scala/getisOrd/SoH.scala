@@ -16,15 +16,15 @@ class SoH {
       (down, up)
     }
 
-  def getSoHDowAndUp(tuple : ((Tile,Int),(Tile,Int))): (Double, Double, Double, Double) ={
-    val childParent = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(tuple._1._1,tuple._2._1)
-    val childParentInverse = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(tuple._2._1,tuple._1._1)
-    var down = childParent._2.toDouble/tuple._1._2.toDouble
-    var up = 1-childParent._1.toDouble/tuple._2._2.toDouble
-    var downInv = childParentInverse._2.toDouble/tuple._2._2.toDouble
-    var upInv = 1-childParentInverse._1.toDouble/tuple._1._2.toDouble
+  def getSoHDowAndUp(parent : (Tile,Int), child : (Tile,Int)): (Double, Double, Double, Double) ={
+    val childParent = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(parent._1,child._1)
+    val childParentInverse = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(child._1,parent._1)
+    var down = childParent._2.toDouble/parent._2.toDouble
+    var up = 1-childParent._1.toDouble/child._2.toDouble
+    var downInv = childParentInverse._2.toDouble/child._2.toDouble
+    var upInv = 1-childParentInverse._1.toDouble/parent._2.toDouble
     val visul = new TileVisualizer()
-    val t = (new ClusterRelations).rescaleBiggerTile(tuple._1._1,tuple._2._1)
+    val t = (new ClusterRelations).rescaleBiggerTile(parent._1,child._1)
     if(t._1.cols!=t._2.cols || t._1.rows!=t._2.rows){
       println("--------------------------------------------------------------------------------------------------------------------------"+t._1.cols+","+t._2.cols +","+ t._1.rows+","+t._2.rows)
     } else {
