@@ -93,8 +93,12 @@ class ClusterHotSpots(tile : Tile) {
 
   //inspired by dbscan
   def findClusters(range : Double, critical : Double) : (Tile,Int) ={
+    val breaks = tile.histogramDouble.quantileBreaks(100)
+    var q = critical
+    if(breaks.length==100){
+      q = Math.max(breaks(98),critical)
+    }
 
-    val q = Math.max(tile.histogramDouble.quantileBreaks(100)(98),critical)
     var counterCluster = 0
 
     var tempCluster = 0;

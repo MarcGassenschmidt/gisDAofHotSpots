@@ -14,8 +14,8 @@ object Main {
 //    setting.csvMonth = 5
 //    setting.csvYear = 2015
 //    downloader.downloadNewYorkTaxiFiles(setting)
-    val scenario = new DifferentRasterSizes()
-    //val scenario = new DifferentRatio()
+    //val scenario = new DifferentRasterSizes()
+    val scenario = new DifferentRatio()
     scenario.runScenario()
   }
 

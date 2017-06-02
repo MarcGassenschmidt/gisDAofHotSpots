@@ -17,9 +17,10 @@ class DifferentRatio extends GenericScenario{
     val globalSettings =new Settings()
     globalSettings.fromFile = true
     globalSettings.weightMatrix = Weight.Square
+    globalSettings.weightRadius = 2
     globalSettings.scenario = "Ratio"
     val outPutResults = ListBuffer[SoHResult]()
-    val runs = 10
+    val runs = 20
 
     forFocalG(globalSettings, outPutResults, runs)
     //forGlobalG(globalSettings, outPutResults, runs)
@@ -27,7 +28,7 @@ class DifferentRatio extends GenericScenario{
   }
 
   override def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 2 to runs) {
+    for (i <- 0 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = true
       if(i==0){
@@ -35,13 +36,11 @@ class DifferentRatio extends GenericScenario{
       } else {
         globalSettings.fromFile = false
       }
-      for(j <-0 to 10){
-        globalSettings.weightRadius = 3
-        globalSettings.focalRange = 2+j*6
+
         //globalSettings.weightRadius = weightRatio(globalSettings, runs, j)
         val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double,Double,Double), lat : (Int,Int)) = oneCase(globalSettings, i, runs)
         saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, chs, sohVal, lat)
-      }
+
     }
   }
 
@@ -51,26 +50,43 @@ class DifferentRatio extends GenericScenario{
 
 
 
-//  override def getParentChildSetting(global : Settings): (Settings, Settings) = {
-//    val para = new Settings()
-//    para.scenario = global.scenario
-//    para.weightRadius = global.weightRadius
-//    para.focalRange = global.focalRange
-//    para.sizeOfRasterLat = global.sizeOfRasterLat
-//    para.sizeOfRasterLon = global.sizeOfRasterLon
-//    para.weightMatrix = para.weightMatrix
-//    para.focal = global.focal
-//    val paraChild = new Settings()
-//    paraChild.scenario = global.scenario
-//    paraChild.focal = global.focal
-//    paraChild.focalRange = global.focalRange
-//    paraChild.sizeOfRasterLat = global.sizeOfRasterLat
-//    paraChild.sizeOfRasterLon = global.sizeOfRasterLon
-//    paraChild.weightMatrix = global.weightMatrix
-//    paraChild.parent = false
-//    paraChild.weightRadius = global.weightRadius-1
-//    (para, paraChild)
-//  }
+  override def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), (Double, Double, Double, Double), (Int, Int)) = {
+    globalSettings.sizeOfRasterLat = 200
+    globalSettings.sizeOfRasterLon = 200
+
+    val raster : Tile = getRasterFromGeoTiff(globalSettings, 3, runs, 0, "raster", getRaster(globalSettings))
+
+    globalSettings.focalRange =3+i*6
+
+    val gStarParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "gStar", gStar(raster, globalSettings, true))
+
+    globalSettings.focalRange = 3+(i+1)*6
+    val gStarChild = getRasterFromGeoTiff(globalSettings, i, runs, 1, "gStar", gStar(raster, globalSettings, true))
+
+    println("G* End")
+
+    val clusterParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "cluster",((new ClusterHotSpots(gStarParent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue))._1)
+    val clusterChild =getRasterFromGeoTiff(globalSettings, i, runs, 1, "cluster", (new ClusterHotSpots(gStarChild)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)._1)
+    val time = System.currentTimeMillis()
+    val numberclusterParent = clusterParent.findMinMax._2
+    val numberclusterChild = clusterChild.findMinMax._2
+    System.out.println("Time for Number of Cluster:"+(System.currentTimeMillis()-time)/1000)
+    println("End Cluster")
+    globalSettings.parent = true
+    globalSettings.focalRange = 3+i*6
+    visulizeCluster(globalSettings, clusterParent)
+    globalSettings.parent = false
+    globalSettings.focalRange = 3+(i+1)*6
+    visulizeCluster(globalSettings, clusterChild)
+
+    println("End Visual Cluster")
+    val soh = new SoH()
+    val sohVal :(Double,Double,Double,Double) = soh.getSoHDowAndUp((clusterParent,numberclusterParent),(clusterChild,numberclusterChild))
+    (globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), sohVal,
+      (3+i*6, //Just lat for export
+      3+(i+1)*6)) //Just lat for export
+  }
+
 
 
 

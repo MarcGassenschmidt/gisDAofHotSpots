@@ -17,13 +17,15 @@ class TestClusterRelations extends FunSuite{
     cr.rescaleBiggerTile(tile1,tile2)
     assert(tile1.cols==tile2.cols)
     assert(tile1.rows==tile2.rows)
-    tile1 = getTile(7,7)
+    tile1 = getTile(2,2)
     tile2 = getTile(4,5)
     println(tile1.asciiDrawDouble())
-    println(tile2.asciiDrawDouble())
+    println(tile1.resample(1,1).asciiDrawDouble())
+
     var result = cr.rescaleBiggerTile(tile1,tile2)
     println(result._1.asciiDrawDouble())
     println(result._2.asciiDrawDouble())
+
     assert(result._1.cols==7)
     assert(7==result._2.cols)
     assert(result._1.rows==7)

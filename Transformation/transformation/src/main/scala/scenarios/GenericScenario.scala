@@ -67,6 +67,11 @@ class GenericScenario {
     image.visualTileNew(chs._2._1, setting, "cluster")
   }
 
+  def visulizeCluster(setting: Settings, clusters: Tile): Unit = {
+    val image = new TileVisualizer()
+    image.visualTileNew(clusters, setting, "cluster")
+  }
+
   def gStar(tile : Tile, settings : parmeters.Settings, visualize : Boolean): Tile = {
     var startTime = System.currentTimeMillis()
     var ord : GetisOrd = null
@@ -112,10 +117,10 @@ class GenericScenario {
   }
 
   def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 1 to runs) {
+    for (i <- 3 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = false
-      if(i==0){
+      if(i==3){
         globalSettings.fromFile = false
       } else {
         globalSettings.fromFile = false
@@ -126,7 +131,7 @@ class GenericScenario {
   }
 
   def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 1 to runs) {
+    for (i <- 3 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = true
       globalSettings.focalRange = 30
@@ -168,10 +173,12 @@ class GenericScenario {
   def getRasterWithCorrectResolution(globalSettings: Settings, i : Int, runs : Int, next : Int): (Tile,Int,Int) = {
     val actualLat = ((globalSettings.latMax - globalSettings.latMin) / (10.0 + 990.0 / runs.toDouble * i + next)).ceil.toInt
     val actualLon = ((globalSettings.lonMax - globalSettings.lonMin) / (10.0 + 990.0 / runs.toDouble * i + next)).ceil.toInt
-
+    globalSettings.sizeOfRasterLat = actualLat
+    globalSettings.sizeOfRasterLon = actualLon
     var raster_plus1 = getRaster(globalSettings)
     if (!globalSettings.fromFile) {
       raster_plus1 = raster_plus1.resample(actualLat, actualLon)
+      println("Raster Size (cols,rows)=(" + raster_plus1.cols + "," + raster_plus1.rows + ")")
     }
     (raster_plus1,(10.0 + 990.0 / runs.toDouble * i + next).ceil.toInt,(10.0 + 990.0 / runs.toDouble * i + next).ceil.toInt)
   }
@@ -182,9 +189,11 @@ class GenericScenario {
       return importer.getGeoTiff(globalSettings, i+next, runs, extra)
     } else {
       val tile = tileFunction
-      importer.writeGeoTiff(tile, globalSettings, i+next, runs, extra)
+      //importer.writeGeoTiff(tile, globalSettings, i+next, runs, extra)
       return tile
     }
   }
+
+
 
 }

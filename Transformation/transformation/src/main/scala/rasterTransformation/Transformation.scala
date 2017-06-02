@@ -115,7 +115,8 @@ class Transformation {
 //      tile.set(colIndex,rowIndex,tile.get(colIndex,rowIndex)+1)
 //    })
     bufferedSource.close()
-    flip(tile)
+    //flip(tile)
+    tile
 
   }
 }
