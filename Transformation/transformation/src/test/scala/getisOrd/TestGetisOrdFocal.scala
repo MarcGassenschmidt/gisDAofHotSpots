@@ -142,13 +142,13 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
   }
 
 
-  ignore("SparkReadingWriting"){
+  test("SparkReadingWriting"){
     setting.focalRange = 5
     val rnd = new Random(1)
     val testTile : Array[Double]= Array.fill(1000000)(rnd.nextInt(100))
     rasterTile = new DoubleRawArrayTile(testTile, 1000, 1000)
     SinglebandGeoTiff.apply(rasterTile, new Extent(0, 0, rasterTile.cols, rasterTile.rows),
-      CRS.fromName("EPSG:3005")).write(setting.ouptDirectory+"geoTiff.tiff")
+      CRS.fromName("EPSG:3857")).write(setting.ouptDirectory+"geoTiff.tiff")
     val sc = SparkContext.getOrCreate(setting.conf)
     val inputRdd: RDD[(ProjectedExtent, Tile)] =
       sc.hadoopGeoTiffRDD(setting.ouptDirectory+"geoTiff.tiff")
@@ -417,14 +417,14 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
   }
 
   def getTestMatrix(): ArrayTile ={
-    val arrayTile = Array[Double](
+    val arrayTile = Array[Int](
       0,0,1,1,
       1,2,1000,1,
       0,0,3,1,
       1,1,1000,1,
       1,1,1,1
     )
-    val weightTile = new DoubleRawArrayTile(arrayTile, 4,5)
+    val weightTile = new IntRawArrayTile(arrayTile, 4,5)
     weightTile
   }
 

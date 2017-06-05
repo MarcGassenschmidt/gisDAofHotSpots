@@ -5,7 +5,7 @@ import java.io.{FileInputStream, FileOutputStream, ObjectInputStream, ObjectOutp
 import geotrellis.proj4.CRS
 import geotrellis.raster.io.geotiff.SinglebandGeoTiff
 import geotrellis.raster.resample.Bilinear
-import geotrellis.raster.{DoubleArrayTile, MultibandTile, Tile}
+import geotrellis.raster.{DoubleArrayTile, FloatArrayTile, MultibandTile, Tile}
 import geotrellis.spark.{SpatialKey, TileLayerMetadata}
 import geotrellis.vector.{Extent, ProjectedExtent}
 import org.apache.spark.SparkContext

@@ -19,6 +19,7 @@ import org.joda.time.DateTime
 import parmeters.Settings
 import geotrellis.spark.io.hadoop.{HadoopAttributeStore, HadoopLayerDeleter, HadoopLayerReader, HadoopLayerWriter, HadoopSparkContextMethodsWrapper}
 import geotrellis.spark.{LayerId, TileLayerMetadata, TileLayerRDD, withProjectedExtentTilerKeyMethods, withTileRDDReprojectMethods, withTilerMethods}
+import importExport.PathFormatter
 /**
   * Created by marc on 08.05.17.
   */
@@ -106,17 +107,9 @@ class TileVisualizer {
         bfI.setRGB(i, j, (logScale(content,minMax._1,minMax._2)).getRGB)
       }
     }
-    var sub = "global/"
-    if(para.focal){
-      sub = "focal/"+"FocalRange_"+para.focalRange+"/"
-    }
-    sub += "Time_"+DateTime.now().toString("dd_MM")+"/"
-    val dir = para.ouptDirectory+para.scenario+"/"+sub+ extra+"/" +tile.rows+"/"
-    val f = new File(dir)
-    f.mkdirs()
 
-    val fos = new FileOutputStream(dir +"_" +
-       para.weightMatrix+"r_"+para.weightRadius+tile.rows+"_"+tile.cols+ DateTime.now().toString("HH_mm_ss" ) + ".png");
+    val fileName = (new PathFormatter).getDirectory(para, extra) +tile.rows+"______"+para.weightMatrix+"r_"+para.weightRadius+"_"+tile.cols+"Time_"+ DateTime.now().toString("HH_mm" ) + ".png"
+    val fos = new FileOutputStream(fileName);
     ImageIO.write(bfI, "PNG", fos);
     fos.close();
 

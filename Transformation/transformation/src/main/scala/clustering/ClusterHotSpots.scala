@@ -60,7 +60,7 @@ class ClusterHotSpots(tile : Tile) {
           && Math.sqrt(j * j + i * i) <= range
           && visit.get(clusterCol + j, clusterRow + i) == 0) {
           visit.set(clusterCol + j, clusterRow + i, 1)
-          if (-1*(tile.get(clusterCol + j, clusterRow + i)) > critical) {
+          if ((tile.get(clusterCol + j, clusterRow + i)) < critical) {
             neighborhood = (clusterCol + j, clusterRow + i) :: neighborhood
           }
         }
@@ -83,7 +83,7 @@ class ClusterHotSpots(tile : Tile) {
   private def expandClusterNegative(clusterTile: IntArrayTile, range: Double, critical: Double, visit: IntArrayTile, counterCluster: Int, neigbourhoud : List[(Int,Int)] ) : Unit = {
     var nextNeigbours = List[(Int,Int)]()
     for((x,y) <- neigbourhoud){
-      clusterTile.set(x,y,counterCluster)
+      clusterTile.set(x,y,-1*counterCluster)
       nextNeigbours = List.concat(nextNeigbours, regionQueryNegative(range, critical, x, y, visit))
     }
     if(nextNeigbours.size>0){
@@ -94,9 +94,11 @@ class ClusterHotSpots(tile : Tile) {
   //inspired by dbscan
   def findClusters(range : Double, critical : Double) : (Tile,Int) ={
     val breaks = tile.histogramDouble.quantileBreaks(100)
+    var qNegativ = -critical
     var q = critical
     if(breaks.length==100){
-      q = Math.max(breaks(98),critical)
+      q = breaks(98)//Math.max(breaks(98),critical)
+      qNegativ = breaks(1)//Math.min(breaks(1),-critical)
     }
 
     var counterCluster = 0
@@ -114,14 +116,14 @@ class ClusterHotSpots(tile : Tile) {
             expandCluster(clusterTile, range, q, visit, counterCluster, regionQuery(range, q, i, j, visit))
           }
         }
-//         else if(-1*(tile.getDouble(i,j))>=q){
-//          if(clusterTile.get(i,j)==0){
-//            counterCluster += 1
-//            visit.set(i,j,1)
-//            clusterTile.set(i,j,counterCluster)
-//            expandClusterNegative(clusterTile, range, q, visit, counterCluster, regionQuery(range, q, i, j, visit))
-//          }
-//        }
+         else if((tile.getDouble(i,j))<qNegativ){
+          if(clusterTile.get(i,j)==0){
+            counterCluster += 1
+            visit.set(i,j,1)
+            clusterTile.set(i,j,counterCluster)
+            expandClusterNegative(clusterTile, range, qNegativ, visit, counterCluster, regionQueryNegative(range, qNegativ, i, j, visit))
+          }
+        }
       }
 
     }

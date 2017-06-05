@@ -1,4 +1,4 @@
-package `import`
+package importExport
 
 import java.io.{File, FileOutputStream}
 
@@ -25,15 +25,9 @@ class ImportGeoTiff {
   }
 
   def getFileName(globalSettings: Settings, i: Int, runs: Int, extra : String): String = {
-    var sub = "global/"
-    if (globalSettings.focal) {
-      sub = "focal/" + "FocalRange_" + globalSettings.focalRange + "/"
-    }
-    val dir = globalSettings.ouptDirectory + globalSettings.scenario + "/" + sub + extra+"/"
-    val f = new File(dir)
-    f.mkdirs()
 
-    (dir + "_it_" + i + "runs_" + runs + ".tiff")
+
+    ((new PathFormatter).getDirectory(globalSettings, extra) + "it_" + i + "runs_" + runs + ".tiff")
   }
 
   def geoTiffExists(file : String): Boolean ={
@@ -61,15 +55,13 @@ class ImportGeoTiff {
   }
 
   def writeGeoTiff(tile: Tile, settings: Settings, i : Int, runs : Int, extra : String): Unit = {
-    writeGeoTiff(tile, settings, getFileName(settings, i, runs, extra))
+    val name = getFileName(settings, i, runs, extra)
+    //println(name)
+    writeGeoTiff(tile, settings, name)
   }
 
   def writeGeoTiff(tile: Tile, para: Settings, file : String): Unit = {
-
     SinglebandGeoTiff.apply(tile, new Extent(para.buttom._1,para.buttom._2,para.top._1,para.top._2),
       CRS.fromName("EPSG:3857")).write(file)
-
-
-
   }
 }

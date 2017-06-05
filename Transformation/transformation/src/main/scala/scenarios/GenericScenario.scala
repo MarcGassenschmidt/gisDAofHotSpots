@@ -2,7 +2,7 @@ package scenarios
 
 import java.io.{File, PrintWriter}
 
-import `import`.ImportGeoTiff
+import importExport.ImportGeoTiff
 import clustering.ClusterHotSpots
 import export.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
 import geotrellis.raster.Tile
@@ -135,7 +135,7 @@ class GenericScenario {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = true
       globalSettings.focalRange = 30
-      if(i==1){
+      if(i==3){
         globalSettings.fromFile = true
       } else {
         globalSettings.fromFile = false
@@ -185,11 +185,12 @@ class GenericScenario {
 
   def getRasterFromGeoTiff(globalSettings : Settings, i : Int, runs : Int, next : Int, extra : String, tileFunction :  => Tile): Tile = {
     val importer = new ImportGeoTiff()
-    if (false && importer.geoTiffExists(globalSettings, i+next, runs, extra)) {
+    if (false && globalSettings.fromFile && importer.geoTiffExists(globalSettings, i+next, runs, extra)) {
       return importer.getGeoTiff(globalSettings, i+next, runs, extra)
     } else {
       val tile = tileFunction
-      //importer.writeGeoTiff(tile, globalSettings, i+next, runs, extra)
+      importer.writeGeoTiff(tile, globalSettings, i+next, runs, extra)
+
       return tile
     }
   }

@@ -20,7 +20,7 @@ class DifferentRatio extends GenericScenario{
     globalSettings.weightRadius = 2
     globalSettings.scenario = "Ratio"
     val outPutResults = ListBuffer[SoHResult]()
-    val runs = 20
+    val runs = 10
 
     forFocalG(globalSettings, outPutResults, runs)
     //forGlobalG(globalSettings, outPutResults, runs)
@@ -34,6 +34,7 @@ class DifferentRatio extends GenericScenario{
       if(i==0){
         globalSettings.fromFile = false
       } else {
+
         globalSettings.fromFile = false
       }
 
@@ -53,17 +54,15 @@ class DifferentRatio extends GenericScenario{
   override def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), (Double, Double, Double, Double), (Int, Int)) = {
     globalSettings.sizeOfRasterLat = 200
     globalSettings.sizeOfRasterLon = 200
-
     val raster : Tile = getRasterFromGeoTiff(globalSettings, 3, runs, 0, "raster", getRaster(globalSettings))
 
+
     globalSettings.focalRange =3+i*6
-
     val gStarParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "gStar", gStar(raster, globalSettings, true))
-
     globalSettings.focalRange = 3+(i+1)*6
     val gStarChild = getRasterFromGeoTiff(globalSettings, i, runs, 1, "gStar", gStar(raster, globalSettings, true))
-
     println("G* End")
+
 
     val clusterParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "cluster",((new ClusterHotSpots(gStarParent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue))._1)
     val clusterChild =getRasterFromGeoTiff(globalSettings, i, runs, 1, "cluster", (new ClusterHotSpots(gStarChild)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)._1)
@@ -72,14 +71,17 @@ class DifferentRatio extends GenericScenario{
     val numberclusterChild = clusterChild.findMinMax._2
     System.out.println("Time for Number of Cluster:"+(System.currentTimeMillis()-time)/1000)
     println("End Cluster")
+
+
     globalSettings.parent = true
     globalSettings.focalRange = 3+i*6
     visulizeCluster(globalSettings, clusterParent)
     globalSettings.parent = false
     globalSettings.focalRange = 3+(i+1)*6
     visulizeCluster(globalSettings, clusterChild)
-
     println("End Visual Cluster")
+
+
     val soh = new SoH()
     val sohVal :(Double,Double,Double,Double) = soh.getSoHDowAndUp((clusterParent,numberclusterParent),(clusterChild,numberclusterChild))
     (globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), sohVal,
