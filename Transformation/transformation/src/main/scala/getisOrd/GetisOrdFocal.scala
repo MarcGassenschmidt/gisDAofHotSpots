@@ -29,8 +29,8 @@ class GetisOrdFocal(tile: Tile, setting: Settings) extends GetisOrd(tile, settin
   override def gStarComplete(): Tile = {
     //(RoW-M*sumOfWeight)/(S*((N*powerOfWeight-sumOfWeight*sumOfWeight)/(N-1)).mapIfSetDouble (x => Math.sqrt(x)))
     //    (RoW-M*sumOfWeight)/(S*Math.sqrt((N*powerOfWeight-sumOfWeight*sumOfWeight)/(N-1)))
-    var F = Circle(setting.focalRange)
-    var W = Circle(setting.weightRadius)
+    var F = new Circle(setting.focalRange)
+    var W = new Circle(setting.weightRadius)
     println("Calculate N")
     var N = getPixelMatrix(tile).focalSum(F)
     println("Calculate WmW")

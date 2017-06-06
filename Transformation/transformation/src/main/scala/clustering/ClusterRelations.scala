@@ -1,5 +1,7 @@
 package clustering
 
+
+import geotrellis.raster.resample.NearestNeighbor
 import geotrellis.raster.{DoubleRawArrayTile, IntArrayTile, IntRawArrayTile, Tile}
 
 /**
@@ -32,6 +34,31 @@ class ClusterRelations {
       parentSet += parent
     }
     (childSet.size, parentSet.size)
+  }
+
+
+  def sum(): (Int, Int) => Unit = {
+
+    null
+  }
+
+  def aggregateTile(tile : Tile): Tile ={
+
+    val result : Tile = tile.downsample(tile.cols/2, tile.rows/2)(f =>
+    {var sum = 0
+      f.foreach((x:Int,y:Int)=>if(x<tile.cols && y<tile.rows) sum+=tile.get(x,y) else sum+=0)
+      sum}
+    )
+    println(result.asciiDrawDouble())
+
+//    print("T")
+    result
+  }
+
+  //Greatest common divisor
+  //euclide algorithm
+  def gcd(a: Int,b: Int): Int = {
+    if(b ==0) a else gcd(b, a%b)
   }
 
   def rescaleBiggerTile(parent : Tile, child : Tile): (Tile,Tile) ={

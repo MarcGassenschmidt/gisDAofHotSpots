@@ -353,6 +353,51 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
   }
 
 
+  test("Focal G* zeros"){
+    val para = new Settings()
+    para.focalRange = 3
+    para.weightRadius = 2
+    val tile = getZeroMatrix()
+    println(tile.asciiDrawDouble())
+    val g = new GetisOrdFocal(tile, para)
+    val result = g.gStarComplete()
+    println(result.asciiDrawDouble())
+    val resultDebug = g.debugFocalgStar()
+    //(tileG,RoWM,S,q,N,RoW,MW, WmW)
+    println("RoWM"+resultDebug._2.asciiDrawDouble())
+    println("S"+resultDebug._3.asciiDrawDouble())
+    println("q"+resultDebug._4.asciiDrawDouble())
+    println("N"+resultDebug._5.asciiDrawDouble())
+    println("RoW"+resultDebug._6.asciiDrawDouble())
+    println("MW"+resultDebug._7.asciiDrawDouble())
+    println("WmW"+resultDebug._8.asciiDrawDouble())
+    println("G*"+resultDebug._1.asciiDrawDouble())
+
+
+  }
+
+  def getZeroMatrix(): ArrayTile ={
+    val arrayTile = Array[Int](
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,1,2,1000,1,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,3,1,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,1,1,1000,1,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+    )
+    val weightTile = new IntRawArrayTile(arrayTile, 17,15)
+    weightTile
+  }
+
   def testDenumerator(denumerator: Tile, r: (Tile, Tile, Tile, Tile, Tile,Tile,Tile, Tile)): Unit = {
 
     println("Denumerator: "+(denumerator).asciiDrawDouble())

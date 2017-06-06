@@ -7,9 +7,10 @@ import java.util.Random
 import javax.imageio.ImageIO
 
 import geotrellis.proj4.CRS
+import geotrellis.raster
 import geotrellis.raster.io.geotiff.SinglebandGeoTiff
 import geotrellis.raster.resample.Bilinear
-import geotrellis.raster.{DoubleRawArrayTile, Tile}
+import geotrellis.raster.{DoubleRawArrayTile, Raster, Tile}
 import geotrellis.spark.{SpatialKey, TileLayerMetadata}
 import geotrellis.spark.tiling.FloatingLayoutScheme
 import geotrellis.vector.{Extent, ProjectedExtent}
@@ -103,8 +104,12 @@ class TileVisualizer {
     var content: Double = 0.0
     for (i <- 0 to tile.cols - 1) {
       for (j <- 0 to tile.rows - 1) {
-        content = (tile.getDouble(i, j))
-        bfI.setRGB(i, j, (logScale(content,minMax._1,minMax._2)).getRGB)
+        if(raster.isData(tile.getDouble(i,j))){
+          content = (tile.getDouble(i, j))
+          bfI.setRGB(i, j, (logScale(content,minMax._1,minMax._2)).getRGB)
+        } else {
+          bfI.setRGB(i, j, 0)
+        }
       }
     }
 

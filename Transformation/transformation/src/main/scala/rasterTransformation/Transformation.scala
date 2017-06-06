@@ -71,8 +71,8 @@ class Transformation {
     //40.800296, -73.928375
     //40.703286, -74.019012
 
-    val bufferedSource = Source.fromFile(settings.inputDirectoryCSV+settings.csvYear+"_"+settings.csvMonth+".csv")
-
+   // val bufferedSource = Source.fromFile(settings.inputDirectoryCSV+settings.csvYear+"_"+settings.csvMonth+".csv")
+   val bufferedSource = Source.fromFile(settings.inputDirectoryCSV+"in.csv")
     val formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
     val file = bufferedSource.getLines.drop(1).map(line => {
       val cols = line.split(",").map(_.trim)

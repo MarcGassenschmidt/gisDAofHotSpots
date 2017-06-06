@@ -20,7 +20,7 @@ class DifferentRatio extends GenericScenario{
     globalSettings.weightRadius = 2
     globalSettings.scenario = "Ratio"
     val outPutResults = ListBuffer[SoHResult]()
-    val runs = 10
+    val runs = 1
 
     forFocalG(globalSettings, outPutResults, runs)
     //forGlobalG(globalSettings, outPutResults, runs)
@@ -32,7 +32,7 @@ class DifferentRatio extends GenericScenario{
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = true
       if(i==0){
-        globalSettings.fromFile = false
+        globalSettings.fromFile = true
       } else {
 
         globalSettings.fromFile = false
