@@ -7,10 +7,10 @@ import parmeters.Settings
 /**
   * Created by marc on 11.05.17.
   */
-class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, sohValue : (Double,Double,Double,Double), lat : Int) {
+class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, sohValue : (Double,Double), lat : Int) {
 
   def copySettings(): Settings = {
-    var set = new Settings
+    val set = new Settings
     set.sizeOfRasterLat = wParent.sizeOfRasterLat
     set.focal = wParent.focal
     set.focalRange = wParent.focalRange
@@ -32,7 +32,7 @@ class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, s
   }
 
   def formatShort(): String = {
-    return getLat+","+sohValue._1+","+sohValue._2+","+sohValue._3+","+sohValue._4+","
+    return getLat+","+sohValue._1+","+sohValue._2
   }
 
   def headerShort() : String = {
@@ -49,6 +49,15 @@ class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, s
     }
     "rasterSize(meters),parentFocal,focalRange,cols,rows,weighParent,weightParentRadius,duration(seconds),downward"+wParent.focal+"-"+wParent.focalRange+",upward"+wParent.focal+"-"+wParent.focalRange+","
   }
+
+  def getSohUp(): Double = {
+    sohValue._1
+  }
+
+  def getSohDown(): Double = {
+    sohValue._2
+  }
+
 
 
 

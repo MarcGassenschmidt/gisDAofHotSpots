@@ -72,32 +72,39 @@ class Transformation {
     //40.703286, -74.019012
 
    // val bufferedSource = Source.fromFile(settings.inputDirectoryCSV+settings.csvYear+"_"+settings.csvMonth+".csv")
-   val bufferedSource = Source.fromFile(settings.inputDirectoryCSV+"in.csv")
+    transformCSVtoRasterParametrised(settings,settings.inputDirectoryCSV+"in.csv",5,6,2)
+  }
+
+
+  def transformCSVtoRasterParametrised(settings : Settings, fileName : String, indexLon : Int, indexLat : Int, indexDate : Int): IntArrayTile ={
+    val bufferedSource = Source.fromFile(fileName)
     val formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
     val file = bufferedSource.getLines.drop(1).map(line => {
       val cols = line.split(",").map(_.trim)
       val result = new NotDataRowTransformation(0,0,null,true)
-      if(cols.length>7){
-          result.lon = (cols(5).toDouble*settings.multiToInt+settings.shiftToPostive).toInt
-          result.lat = (cols(6).toDouble*settings.multiToInt).toInt
-          result.time = formatter.parseDateTime(cols(2))
-          result.data = false
+      if(cols.length>Math.max(indexDate,Math.max(indexLat,indexLon))){
+        result.lon = (cols(indexLon).toDouble*settings.multiToInt+settings.shiftToPostive).toInt
+        result.lat = (cols(indexLat).toDouble*settings.multiToInt).toInt
+        result.time = formatter.parseDateTime(cols(indexDate))
+        result.data = false
       }
       result
-    }).filter(row => row.lon>settings.lonMin && row.lon<settings.lonMax && row.lat>settings.latMin && row.lat<settings.latMax && row.data==false) //To remove entries not in range
-    //.filter(row => (row.time.getHourOfDay> 20 && row.time.getHourOfDay()< 22)) //To look at data range
+    }).filter(row => row.lon>=settings.lonMin && row.lon<=settings.lonMax && row.lat>=settings.latMin && row.lat<=settings.latMax && row.data==false)
 
-    val rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).ceil.toInt
-    val rasterLonLength = ((settings.lonMax-settings.lonMin)/settings.sizeOfRasterLon).ceil.toInt
+    val rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt
+    val rasterLonLength = ((settings.lonMax-settings.lonMin)/settings.sizeOfRasterLon).toInt
     val tile = IntArrayTile.ofDim(rasterLatLength,rasterLonLength)
     var colIndex = 0
     var rowIndex = 0
     for(row <- file){
-      colIndex = ((row.lon-settings.lonMin)/settings.sizeOfRasterLon).ceil.toInt
-      rowIndex = tile.rows-((row.lat-settings.latMin)/settings.sizeOfRasterLat).ceil.toInt
+      colIndex = ((row.lon-settings.lonMin)/settings.sizeOfRasterLon).toInt
+      rowIndex = tile.rows-((row.lat-settings.latMin)/settings.sizeOfRasterLat).toInt-1
       if(rowIndex >= 0 && colIndex >=0 && colIndex < tile.cols && rowIndex < tile.rows){
         tile.set(colIndex,rowIndex,tile.get(colIndex,rowIndex)+1)
+      } else {
+        //println("Not in range")
       }
+
     }
     bufferedSource.close()
     tile

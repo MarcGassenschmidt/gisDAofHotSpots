@@ -37,7 +37,7 @@ class DifferentRasterSizes extends GenericScenario{
 //    globalSettings.lonMin = -74.091993*globalSettings.multiToInt+globalSettings.shiftToPostive
 //    globalSettings.latMax = 40.988291*globalSettings.multiToInt
 //    globalSettings.lonMax = -73.540960*globalSettings.multiToInt+globalSettings.shiftToPostive
-    forFocalG(globalSettings, outPutResults, runs)
+ //   forFocalG(globalSettings, outPutResults, runs)
     forGlobalG(globalSettings, outPutResults, runs)
     saveResult(globalSettings, outPutResults)
     println("Total="+(System.currentTimeMillis()-time)/1000)

@@ -19,7 +19,7 @@ class TestClusterHotSpots extends FunSuite{
     val testTile = Array.fill(500*500)(3)
     val rasterTile = new IntRawArrayTile(testTile, 500, 500)
     val chs = new ClusterHotSpots(rasterTile)
-    assert(chs.findClusters(1.5, 2)._2==1)
+    assert(chs.findClusters(1.5, 2)._2==0)
   }
 
 

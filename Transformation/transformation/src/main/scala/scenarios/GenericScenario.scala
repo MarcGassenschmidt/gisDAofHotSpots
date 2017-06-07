@@ -38,7 +38,7 @@ class GenericScenario {
     val f = new File(dir)
     f.mkdirs()
     val pw = new PrintWriter(new File(dir+DateTime.now().toString("dd_MM___HH_mm_")+"result.csv"))
-    outPutResultPrinter.printResults(outPutResults,false,pw)
+    outPutResultPrinter.printResultsList(outPutResults)
     //outPutResults.map(x => pw.println(x.format()))
     pw.flush()
     pw.close()
@@ -48,7 +48,7 @@ class GenericScenario {
     pwShort.close()
   }
 
-  def saveSoHResults(totalTime: Long, outPutResults: ListBuffer[SoHResult], globalSettings: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double, Double, Double), lat : (Int,Int)): Unit = {
+  def saveSoHResults(totalTime: Long, outPutResults: ListBuffer[SoHResult], globalSettings: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double), lat : (Int,Int)): Unit = {
     val outPutResultPrinter = new SoHResultTabell()
     outPutResults += new SoHResult(chs._1._1,
       chs._2._1,
@@ -117,35 +117,35 @@ class GenericScenario {
   }
 
   def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 3 to runs) {
+    for (i <- 5 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = false
-      if(i==3){
-        globalSettings.fromFile = false
+      if(i==5){
+        globalSettings.fromFile = true
       } else {
         globalSettings.fromFile = false
       }
-      val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double,Double,Double),  lat : (Int,Int)) = oneCase(globalSettings, i, runs)
+      val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double),  lat : (Int,Int)) = oneCase(globalSettings, i, runs)
       saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, chs, sohVal, lat)
     }
   }
 
   def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 3 to runs) {
+    for (i <- 5 to runs) {
       var totalTime = System.currentTimeMillis()
       globalSettings.focal = true
       globalSettings.focalRange = 30
-      if(i==3){
+      if(i==5){
         globalSettings.fromFile = true
       } else {
         globalSettings.fromFile = false
       }
-      val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double, Double, Double), lat : (Int,Int)) = oneCase(globalSettings, i, runs)
+      val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double), lat : (Int,Int)) = oneCase(globalSettings, i, runs)
       saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, chs, sohVal, lat)
     }
   }
 
-  def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), (Double, Double, Double, Double), (Int, Int)) = {
+  def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), (Double, Double), (Int, Int)) = {
     val raster : Tile = getRasterFromGeoTiff(globalSettings, i, runs, 0, "raster", getRasterWithCorrectResolution(globalSettings, i, runs, 0)._1)
     val raster_plus1 = getRasterFromGeoTiff(globalSettings, i, runs, 1, "raster", getRasterWithCorrectResolution(globalSettings, i, runs, 1)._1)
 
@@ -164,7 +164,7 @@ class GenericScenario {
     visulizeCluster(globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), i==0)
     println("End Visual Cluster")
     val soh = new SoH()
-    val sohVal :(Double,Double,Double,Double) = soh.getSoHDowAndUp((clusterParent,numberclusterParent),(clusterChild,numberclusterChild))
+    val sohVal :(Double,Double) = soh.getSoHDowAndUp(clusterParent,clusterChild)
     (globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), sohVal,
       ((10.0 + 990.0 / runs.toDouble * i).ceil.toInt, //Just lat for export
         (10.0 + 990.0 / runs.toDouble * i +1).ceil.toInt)) //Just lat for export

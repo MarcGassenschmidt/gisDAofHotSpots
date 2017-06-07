@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
 class SoHResultTabell {
 
   def printResults(results : ListBuffer[SoHResult], shortFormat: Boolean): Unit ={
-    val resultsSorted = results.sortWith((x,y)=> x.getLat()<=y.getLat())
+    val resultsSorted = results.sortWith((x,y)=> x.getLat()<y.getLat())
     var line = ""
     var headerLine =""
     var header = true
@@ -37,7 +37,7 @@ class SoHResultTabell {
   }
 
   def printResults(results : ListBuffer[SoHResult], shortFormat: Boolean, writer : PrintWriter): Unit ={
-    val resultsSorted = results.sortWith((x,y)=> x.getLat()<=y.getLat())
+    val resultsSorted = results.sortWith((x,y)=> x.getLat()<y.getLat())
     var line = ""
     var headerLine =""
     var header = true
@@ -61,6 +61,13 @@ class SoHResultTabell {
     writer.println(line)
   }
 
+
+  def printResultsList(results : ListBuffer[SoHResult]): Unit ={
+    for(r <- results){
+      println(r.localSet.focalRange*2+1+","+r.localSet.weightRadius*2+1+","+r.getSohUp()+","+r.getSohDown())
+    }
+
+  }
 
 
 

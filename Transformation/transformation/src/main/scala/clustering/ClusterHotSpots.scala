@@ -83,7 +83,7 @@ class ClusterHotSpots(tile : Tile) {
   private def expandClusterNegative(clusterTile: IntArrayTile, range: Double, critical: Double, visit: IntArrayTile, counterCluster: Int, neigbourhoud : List[(Int,Int)] ) : Unit = {
     var nextNeigbours = List[(Int,Int)]()
     for((x,y) <- neigbourhoud){
-      clusterTile.set(x,y,-1*counterCluster)
+      clusterTile.set(x,y,counterCluster)
       nextNeigbours = List.concat(nextNeigbours, regionQueryNegative(range, critical, x, y, visit))
     }
     if(nextNeigbours.size>0){
@@ -120,8 +120,8 @@ class ClusterHotSpots(tile : Tile) {
           if(clusterTile.get(i,j)==0){
             counterCluster += 1
             visit.set(i,j,1)
-            clusterTile.set(i,j,counterCluster)
-            expandClusterNegative(clusterTile, range, qNegativ, visit, counterCluster, regionQueryNegative(range, qNegativ, i, j, visit))
+            clusterTile.set(i,j,-counterCluster)
+            expandClusterNegative(clusterTile, range, qNegativ, visit, -counterCluster, regionQueryNegative(range, qNegativ, i, j, visit))
           }
         }
       }

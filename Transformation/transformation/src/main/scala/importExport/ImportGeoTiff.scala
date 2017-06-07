@@ -40,7 +40,7 @@ class ImportGeoTiff {
 
   def getGeoTiff(file : String, setting : Settings): Tile ={
     if(!geoTiffExists(file)){
-      throw new IllegalAccessError("No GeoTiffExist")
+      throw new IllegalAccessError("No GeoTiffExist:"+file)
     }
     val sc = SparkContext.getOrCreate(setting.conf)
     val inputRdd: RDD[(ProjectedExtent, Tile)] =

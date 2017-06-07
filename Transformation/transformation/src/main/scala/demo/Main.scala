@@ -1,6 +1,6 @@
 package demo
 
-import `import`.DownloadFilesFromWeb
+import importExport.DownloadFilesFromWeb
 import parmeters.Settings
 import scenarios.{DifferentRasterSizes, DifferentRatio}
 
