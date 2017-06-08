@@ -7,6 +7,8 @@ import org.apache.spark.SparkConf
   * Created by marc on 12.05.17.
   */
 class Settings extends Serializable with Cloneable{
+  var zoomLevel = 1
+
   var scenario = "NoScenarioSet"
   var multiToInt = 1000000
   //40.701915, -74.018704

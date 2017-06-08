@@ -3,6 +3,7 @@ package scripts
 import java.io.PrintWriter
 
 import clustering.ClusterHotSpots
+import export.TileVisualizer
 import getisOrd.SoH
 import importExport.ImportGeoTiff
 import parmeters.Settings
@@ -31,7 +32,13 @@ object SoHfromGeoTiff {
       val parent = imp.getGeoTiff(format+"focalgstar-221x213-w"+(7+(i+1)*2).formatted("%02d")+".tif", globalSettings)
       val clusterParent = (new ClusterHotSpots(child)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
       val clusterChild = (new ClusterHotSpots(parent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
-
+      val vis = new TileVisualizer()
+      globalSettings.parent = false
+      globalSettings.focal = true
+      globalSettings.weightRadius = (7+(i+1)*2)
+      vis.visualTileNew(clusterChild._1, globalSettings, "cluster")
+      globalSettings.parent = true
+      vis.visualTileNew(clusterParent._1, globalSettings, "cluster")
       val soh = new SoH()
       val sohVal :(Double,Double) = soh.getSoHDowAndUp(clusterParent._1,clusterChild._1)
       pw.println((7+i*2).formatted("%02d")+","+sohVal._1+","+sohVal._2)
@@ -45,7 +52,13 @@ object SoHfromGeoTiff {
       val parent = imp.getGeoTiff(format+"gstar-221x213-w"+(7+(i+1)*2).formatted("%02d")+".tif", globalSettings)
       val clusterParent = (new ClusterHotSpots(child)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
       val clusterChild = (new ClusterHotSpots(parent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
-
+      val vis = new TileVisualizer()
+      globalSettings.parent = false
+      globalSettings.focal = false
+      globalSettings.weightRadius = (7+(i+1)*2)
+      vis.visualTileNew(clusterChild._1, globalSettings, "cluster")
+      globalSettings.parent = true
+      vis.visualTileNew(clusterParent._1, globalSettings, "cluster")
       val soh = new SoH()
       val sohVal :(Double,Double) = soh.getSoHDowAndUp(clusterParent._1,clusterChild._1)
       pw.println((7+i*2).formatted("%02d")+","+sohVal._1+","+sohVal._2)

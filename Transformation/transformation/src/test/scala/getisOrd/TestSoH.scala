@@ -15,12 +15,81 @@ class TestSoH extends FunSuite{
     var sohValuesBad = soh.getSoHDowAndUp(getTestClusterParent(),getTestClusterChild2())
     println(sohValuesBad)
     assert(sohValuesGood._1>sohValuesBad._1 && sohValuesGood._2>sohValuesBad._2)
-    var sohValues = soh.getSoHDowAndUp(getSmallChild1(),getSmallParent())
+    var sohValues = soh.getSoHDowAndUp(getSmallParent(),getSmallChild1())
     println(sohValues)
-    sohValues = soh.getSoHDowAndUp(getSmallChild2(),getSmallParent())
+    sohValues = soh.getSoHDowAndUp(getSmallParent(),getSmallChild2())
     println(sohValues)
+    assert(soh.getSoHDowAndUp(getParent1(),getChild1)==(1,1))
+    assert(soh.getSoHDowAndUp(getParent1(),getChild2)==(1,0))
+    assert(soh.getSoHDowAndUp(getParent1(),getChild3)==(1,1))
+    assert(soh.getSoHDowAndUp(getParent2(),getChild4)==(1,0))
+    assert(soh.getSoHDowAndUp(getParent2(),getChild1)==(0,0))
+    assert(soh.getSoHDowAndUp(getParent2(),getChild5)==(0.5,1))
 
 
+  }
+
+  def getParent1(): ArrayTile ={
+    val arrayTile = Array[Double](
+      0,1,1,1,0,
+      0,0,1,0,0
+    )
+    val weightTile = new DoubleRawArrayTile(arrayTile, 2,5)
+    weightTile
+  }
+
+  def getParent2(): ArrayTile ={
+    val arrayTile = Array[Double](
+      0,1,0,2,0,
+      0,0,0,0,0
+    )
+    val weightTile = new DoubleRawArrayTile(arrayTile, 2,5)
+    weightTile
+  }
+
+  def getChild1(): ArrayTile ={
+    val arrayTile = Array[Double](
+      0,0,1,0,0,
+      0,0,0,0,0
+    )
+    val weightTile = new DoubleRawArrayTile(arrayTile, 2,5)
+    weightTile
+  }
+
+  def getChild2(): ArrayTile ={
+    val arrayTile = Array[Double](
+      0,0,1,1,1,
+      0,0,0,1,0
+    )
+    val weightTile = new DoubleRawArrayTile(arrayTile, 2,5)
+    weightTile
+  }
+
+  def getChild3(): ArrayTile ={
+    val arrayTile = Array[Double](
+      0,1,0,2,0,
+      0,0,0,0,0
+    )
+    val weightTile = new DoubleRawArrayTile(arrayTile, 2,5)
+    weightTile
+  }
+
+  def getChild4(): ArrayTile ={
+    val arrayTile = Array[Double](
+      0,1,1,1,0,
+      0,0,1,0,0
+    )
+    val weightTile = new DoubleRawArrayTile(arrayTile, 2,5)
+    weightTile
+  }
+
+  def getChild5(): ArrayTile ={
+    val arrayTile = Array[Double](
+      0,1,0,0,0,
+      0,0,0,0,0
+    )
+    val weightTile = new DoubleRawArrayTile(arrayTile, 2,5)
+    weightTile
   }
 
   def getSmallChild2(): ArrayTile ={

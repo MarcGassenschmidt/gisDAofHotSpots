@@ -16,6 +16,7 @@ class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, s
     set.focalRange = wParent.focalRange
     set.weightMatrix = wParent.weightMatrix
     set.weightRadius = wParent.weightRadius
+    set.zoomLevel = wParent.zoomLevel
     set
   }
 
@@ -51,11 +52,11 @@ class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, s
   }
 
   def getSohUp(): Double = {
-    sohValue._1
+    sohValue._2
   }
 
   def getSohDown(): Double = {
-    sohValue._2
+    sohValue._1
   }
 
 

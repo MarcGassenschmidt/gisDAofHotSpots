@@ -116,14 +116,14 @@ class ClusterHotSpots(tile : Tile) {
             expandCluster(clusterTile, range, q, visit, counterCluster, regionQuery(range, q, i, j, visit))
           }
         }
-         else if((tile.getDouble(i,j))<qNegativ){
-          if(clusterTile.get(i,j)==0){
-            counterCluster += 1
-            visit.set(i,j,1)
-            clusterTile.set(i,j,-counterCluster)
-            expandClusterNegative(clusterTile, range, qNegativ, visit, -counterCluster, regionQueryNegative(range, qNegativ, i, j, visit))
-          }
-        }
+//         else if((tile.getDouble(i,j))<qNegativ){
+//          if(clusterTile.get(i,j)==0){
+//            counterCluster += 1
+//            visit.set(i,j,1)
+//            clusterTile.set(i,j,-counterCluster)
+//            expandClusterNegative(clusterTile, range, qNegativ, visit, -counterCluster, regionQueryNegative(range, qNegativ, i, j, visit))
+//          }
+//        }
       }
 
     }

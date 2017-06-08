@@ -96,14 +96,32 @@ class GenericScenario {
 
 
   def getRaster(settings : Settings): Tile = {
-    val serilizer = new SerializeTile(settings.serilizeDirectory)
+    val serializer = new SerializeTile(settings.serilizeDirectory)
+    var raster : Tile = null
     if(settings.fromFile){
-      val raster = creatRaster(settings)
-      serilizer.write(raster)
-      return raster
+      raster = creatRaster(settings)
+      serializer.write(raster)
     } else {
-      return serilizer.read()
+      raster = serializer.read()
     }
+    aggregateToZoom(raster, settings.zoomLevel)
+  }
+
+  def aggregateToZoom(tile : Tile, zoomLevel : Int) : Tile = {
+      if(zoomLevel==0){
+        return tile
+      } else {
+        aggregateToZoom(aggregateTile(tile),zoomLevel-1)
+      }
+  }
+
+  def aggregateTile(tile : Tile): Tile ={
+    val result : Tile = tile.downsample(tile.cols/2, tile.rows/2)(f =>
+    {var sum = 0
+      f.foreach((x:Int,y:Int)=>if(x<tile.cols && y<tile.rows) sum+=tile.get(x,y) else sum+=0)
+      sum}
+    )
+    result
   }
 
   def creatRaster(settings : Settings): Tile = {

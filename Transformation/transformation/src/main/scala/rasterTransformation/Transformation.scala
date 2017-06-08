@@ -93,7 +93,7 @@ class Transformation {
 
     val rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt
     val rasterLonLength = ((settings.lonMax-settings.lonMin)/settings.sizeOfRasterLon).toInt
-    val tile = IntArrayTile.ofDim(rasterLatLength,rasterLonLength)
+    val tile = IntArrayTile.ofDim(rasterLonLength,rasterLatLength)
     var colIndex = 0
     var rowIndex = 0
     for(row <- file){

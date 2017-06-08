@@ -62,21 +62,10 @@ class TestClusterRelations extends FunSuite{
     assert(result._1.findMinMax==(1,1))
     assert((1,1)==result._2.findMinMax)
   }
-  test("test aggregate"){
-    var cr = new ClusterRelations()
-    println(cr.gcd(7,9))
-    println(cr.gcd(60,90))
-    println(cr.gcd(214,213))
-    println(cr.gcd(12,6))
-    println(cr.gcd(6,12))
-    val tile1 = getTile(6,6)
-    println(tile1.asciiDrawDouble())
-    val tile2 = getTile(9,9)
-    cr.aggregateTile(tile1)
-  }
+
 
   def getTile(cols : Int, rows : Int): ArrayTile ={
-    val testTile = Array.fill(rows*cols)(new Random().nextInt(100))
+    val testTile = Array.fill(rows*cols)(1)//new Random().nextInt(100))
     val rasterTile = new IntRawArrayTile(testTile, cols, rows)
     rasterTile
   }

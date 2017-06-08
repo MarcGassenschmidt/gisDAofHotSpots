@@ -5,6 +5,7 @@ import java.io.{File, FileOutputStream}
 import geotrellis.proj4.CRS
 import geotrellis.raster.Tile
 import geotrellis.raster.io.geotiff.SinglebandGeoTiff
+import geotrellis.raster.io.geotiff.reader.GeoTiffReader
 import geotrellis.raster.resample.Bilinear
 import geotrellis.spark.{SpatialKey, TileLayerMetadata}
 import geotrellis.spark.tiling.FloatingLayoutScheme
@@ -39,19 +40,20 @@ class ImportGeoTiff {
   }
 
   def getGeoTiff(file : String, setting : Settings): Tile ={
-    if(!geoTiffExists(file)){
-      throw new IllegalAccessError("No GeoTiffExist:"+file)
-    }
-    val sc = SparkContext.getOrCreate(setting.conf)
-    val inputRdd: RDD[(ProjectedExtent, Tile)] =
-      sc.hadoopGeoTiffRDD(file)
-    val (_, rasterMetaData) =
-      TileLayerMetadata.fromRdd(inputRdd, FloatingLayoutScheme(512))
-    val tiled: RDD[(SpatialKey, Tile)] =
-      inputRdd
-        .tileToLayout(rasterMetaData.cellType, rasterMetaData.layout, Bilinear)
-        .repartition(100)
-    tiled.first()._2
+    GeoTiffReader.readSingleband(file)
+//    if(!geoTiffExists(file)){
+//      throw new IllegalAccessError("No GeoTiffExist:"+file)
+//    }
+//    val sc = SparkContext.getOrCreate(setting.conf)
+//    val inputRdd: RDD[(ProjectedExtent, Tile)] =
+//      sc.hadoopGeoTiffRDD(file)
+//    val (_, rasterMetaData) =
+//      TileLayerMetadata.fromRdd(inputRdd, FloatingLayoutScheme(512))
+//    val tiled: RDD[(SpatialKey, Tile)] =
+//      inputRdd
+//        .tileToLayout(rasterMetaData.cellType, rasterMetaData.layout, Bilinear)
+//        .repartition(1)
+//    tiled.first()._2
   }
 
   def writeGeoTiff(tile: Tile, settings: Settings, i : Int, runs : Int, extra : String): Unit = {

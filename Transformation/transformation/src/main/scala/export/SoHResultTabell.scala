@@ -64,9 +64,8 @@ class SoHResultTabell {
 
   def printResultsList(results : ListBuffer[SoHResult]): Unit ={
     for(r <- results){
-      println(r.localSet.focalRange*2+1+","+r.localSet.weightRadius*2+1+","+r.getSohUp()+","+r.getSohDown())
+      println((r.localSet.focalRange*2+1)+","+(r.localSet.weightRadius*2+1)+","+(r.localSet.zoomLevel)+","+r.getSohUp()+","+r.getSohDown())
     }
-
   }
 
 
