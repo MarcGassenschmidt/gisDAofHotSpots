@@ -13,7 +13,7 @@ import rasterTransformation.Transformation
 
 import scala.collection.mutable.ListBuffer
 import com.typesafe.scalalogging.slf4j.LazyLogging
-import org.joda.time.DateTime
+
 /**
   * Created by marc on 24.05.17.
   */
