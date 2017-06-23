@@ -25,6 +25,9 @@ class TestClusterRelations extends FunSuite{
     println(result._1.asciiDrawDouble())
     println(result._2.asciiDrawDouble())
 
+    tile1 = getTile(2,7)
+    tile2 = getTile(7,5)
+    result = cr.rescaleBiggerTile(tile1,tile2)
     assert(result._1.cols==7)
     assert(7==result._2.cols)
     assert(result._1.rows==7)

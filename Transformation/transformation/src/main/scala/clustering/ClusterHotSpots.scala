@@ -42,7 +42,7 @@ class ClusterHotSpots(tile : Tile) {
           && Math.sqrt(j * j + i * i) <= range
           && visit.get(clusterCol + j, clusterRow + i) == 0) {
           visit.set(clusterCol + j, clusterRow + i, 1)
-          if (Math.abs(tile.get(clusterCol + j, clusterRow + i)) > critical) {
+          if (tile.get(clusterCol + j, clusterRow + i) > critical) {
             neighborhood = (clusterCol + j, clusterRow + i) :: neighborhood
           }
         }

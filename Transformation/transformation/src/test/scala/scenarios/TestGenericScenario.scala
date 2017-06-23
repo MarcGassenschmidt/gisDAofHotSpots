@@ -1,10 +1,10 @@
 package scenarios
 
-import clustering.ClusterRelations
 import geotrellis.raster.{ArrayTile, IntRawArrayTile}
 import org.scalatest.FunSuite
 
 import scala.util.Random
+
 
 /**
   * Created by marc on 08.06.17.

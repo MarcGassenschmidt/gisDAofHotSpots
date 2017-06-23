@@ -2,45 +2,24 @@ package getisOrd
 
 import java.util.Random
 
-import geotrellis.proj4.CRS
-import geotrellis.raster.io.geotiff.GeoTiff
+import geotrellis.proj4.{CRS, WebMercator}
+import geotrellis.raster.io.geotiff._
 import geotrellis.raster.mapalgebra.focal.Circle
 import geotrellis.raster.resample.Bilinear
-import geotrellis.raster.{DoubleArrayTile, DoubleRawArrayTile,IntArrayTile, IntRawArrayTile, Tile}
-import geotrellis.spark.{SpatialKey, TileLayerMetadata}
-import geotrellis.spark.tiling.{FloatingLayoutScheme, Tiler}
-import geotrellis.vector.ProjectedExtent
-import org.apache.spark.rdd.RDD
-import org.apache.spark.{SparkConf, SparkContext}
-import org.scalatest.{BeforeAndAfter, FunSuite}
-import parmeters.Settings
-import geotrellis.raster._
-import geotrellis.raster.io.geotiff._
-import geotrellis.raster.resample._
-import geotrellis.spark._
-import geotrellis.spark.io._
-import geotrellis.spark.tiling._
-import geotrellis.vector._
-import org.apache.spark.HashPartitioner
-import org.apache.spark.rdd.RDD
-import geotrellis.spark.tiling.{FloatingLayoutScheme, ZoomedLayoutScheme}
-import geotrellis.spark.{LayerId, TileLayerMetadata, TileLayerRDD, withProjectedExtentTilerKeyMethods, withTileRDDReprojectMethods, withTilerMethods}
-import com.typesafe.scalalogging.LazyLogging
-import geotrellis.proj4.WebMercator
-import geotrellis.raster.withTileMethods
+import geotrellis.raster.{DoubleArrayTile, DoubleRawArrayTile, IntArrayTile, IntRawArrayTile, Tile, withTileMethods, _}
 import geotrellis.spark.io.file.{FileAttributeStore, FileLayerManager, FileLayerWriter}
-import geotrellis.spark.io.hadoop.{HadoopAttributeStore, HadoopLayerDeleter, HadoopLayerReader, HadoopLayerWriter, HadoopSparkContextMethodsWrapper}
+import geotrellis.spark.io.hadoop.HadoopSparkContextMethodsWrapper
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod.spatialKeyIndexMethod
-import geotrellis.spark.io.{SpatialKeyFormat, spatialKeyAvroFormat, tileLayerMetadataFormat, tileUnionCodec}
+import geotrellis.spark.io.{SpatialKeyFormat, spatialKeyAvroFormat, tileLayerMetadataFormat, _}
 import geotrellis.spark.pyramid.Pyramid
 import geotrellis.spark.tiling.{FloatingLayoutScheme, ZoomedLayoutScheme}
-import geotrellis.spark.{LayerId, TileLayerMetadata, TileLayerRDD, withProjectedExtentTilerKeyMethods, withTileRDDReprojectMethods, withTilerMethods}
-import org.apache.hadoop.fs.Path
-import org.apache.spark.{SparkContext, SparkException}
-import org.apache.spark.SparkConf
-import geotrellis.spark.withTilerMethods
-import geotrellis.spark.tiling.FloatingLayoutScheme
+import geotrellis.spark.{LayerId, SpatialKey, TileLayerMetadata, withProjectedExtentTilerKeyMethods, withTileRDDReprojectMethods, withTilerMethods, _}
+import geotrellis.vector.{ProjectedExtent, _}
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.rdd.RDD
+import org.scalatest.{BeforeAndAfter, FunSuite}
+import parmeters.Settings
 /**
   * Created by marc on 10.05.17.
   */
