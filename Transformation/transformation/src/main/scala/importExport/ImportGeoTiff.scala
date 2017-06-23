@@ -1,20 +1,12 @@
 package importExport
 
-import java.io.{File, FileOutputStream}
+import java.io.File
 
 import geotrellis.proj4.CRS
 import geotrellis.raster.Tile
 import geotrellis.raster.io.geotiff.SinglebandGeoTiff
 import geotrellis.raster.io.geotiff.reader.GeoTiffReader
-import geotrellis.raster.resample.Bilinear
-import geotrellis.spark.{SpatialKey, TileLayerMetadata}
-import geotrellis.spark.tiling.FloatingLayoutScheme
-import geotrellis.vector.{Extent, ProjectedExtent}
-import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
-import geotrellis.spark.io.hadoop.{HadoopAttributeStore, HadoopLayerDeleter, HadoopLayerReader, HadoopLayerWriter, HadoopSparkContextMethodsWrapper}
-import geotrellis.spark.{LayerId, TileLayerMetadata, TileLayerRDD, withProjectedExtentTilerKeyMethods, withTileRDDReprojectMethods, withTilerMethods}
-import org.joda.time.DateTime
+import geotrellis.vector.Extent
 import parmeters.Settings
 /**
   * Created by marc on 02.06.17.

@@ -1,10 +1,8 @@
 package clustering
 
-import clustering.ClusterRelations
 import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntRawArrayTile}
 import org.scalatest.FunSuite
 
-import scala.util.Random
 
 /**
   * Created by marc on 12.05.17.

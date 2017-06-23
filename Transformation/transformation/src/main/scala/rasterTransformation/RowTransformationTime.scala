@@ -1,12 +1,12 @@
 package rasterTransformation
 
 
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 /**
   * Created by marc on 10.05.17.
   */
 class RowTransformationTime(lon : Int,
                             lat : Int,
-                            var time : DateTime)  extends RowTransformation(lon, lat){
+                            var time : LocalDateTime)  extends RowTransformation(lon, lat){
 
 }

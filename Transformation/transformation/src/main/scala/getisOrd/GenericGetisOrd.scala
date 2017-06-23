@@ -60,4 +60,20 @@ class GenericGetisOrd {
     val weightTile = new DoubleRawArrayTile(arrayTile.flatten, radius*2+1,radius*2+1)
     weightTile
   }
+
+  def padding(tile : Tile, padSize : Int) : Tile = {
+    val rangeLeft = padSize
+    val rangeRight = tile.cols-padSize
+    val rangeTop = tile.rows-padSize
+    val rangeButtom = padSize
+    def isInRange(x : Int, y : Int) : Boolean = {
+      if(x>=rangeLeft && x<rangeTop && y<rangeRight && y>=rangeButtom){
+        return true
+      }
+      false
+    }
+    tile.mapDouble((x,y,d)=>if(isInRange(x,y)) d else 0)
+  }
+
+
 }

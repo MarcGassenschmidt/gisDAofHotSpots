@@ -3,6 +3,7 @@ package export
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.{File, FileOutputStream}
+import java.time.LocalDateTime
 import java.util.Random
 import javax.imageio.ImageIO
 
@@ -16,7 +17,6 @@ import geotrellis.spark.tiling.FloatingLayoutScheme
 import geotrellis.vector.{Extent, ProjectedExtent}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.joda.time.DateTime
 import parmeters.Settings
 import geotrellis.spark.io.hadoop.{HadoopAttributeStore, HadoopLayerDeleter, HadoopLayerReader, HadoopLayerWriter, HadoopSparkContextMethodsWrapper}
 import geotrellis.spark.{LayerId, TileLayerMetadata, TileLayerRDD, withProjectedExtentTilerKeyMethods, withTileRDDReprojectMethods, withTilerMethods}
@@ -113,7 +113,7 @@ class TileVisualizer {
       }
     }
 
-    val fileName = (new PathFormatter).getDirectory(para, extra) +tile.rows+"______"+para.weightMatrix+"r_"+para.weightRadius+"_"+tile.cols+"Time_"+ DateTime.now().toString("HH_mm" ) + ".png"
+    val fileName = (new PathFormatter).getDirectory(para, extra) +tile.rows+"______"+para.weightMatrix+"r_"+para.weightRadius+"_"+tile.cols+"Time_"+ LocalDateTime.now().formatted("HH_mm" ) + ".png"
     val fos = new FileOutputStream(fileName);
     ImageIO.write(bfI, "PNG", fos);
     fos.close();
@@ -184,7 +184,7 @@ class TileVisualizer {
 
   def visualTile(tile: Tile, para: Settings, extra : String): Unit = {
     val fos = new FileOutputStream(para.ouptDirectory + extra+"focal"+ para.focal +"_"+ "parent" + para.parent +"_" +
-    para.weightMatrix+"r_"+para.weightRadius+"_cluster_meta_"+tile.rows+"_"+tile.cols+ DateTime.now().toString("MM_dd_HH_mm_ss" ) + ".png");
+    para.weightMatrix+"r_"+para.weightRadius+"_cluster_meta_"+tile.rows+"_"+tile.cols+ LocalDateTime.now().formatted("MM_dd_HH_mm_ss" ) + ".png");
     ImageIO.write(tile.toBufferedImage, "PNG", fos);
     fos.close();
   }

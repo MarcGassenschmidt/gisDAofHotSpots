@@ -2,7 +2,7 @@ package importExport
 
 import java.io.File
 
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 import parmeters.Settings
 
 /**
@@ -11,7 +11,7 @@ import parmeters.Settings
 class PathFormatter {
 
   def getDirectory(settings : Settings, extra : String): String ={
-    var sub = "Time_"+DateTime.now().toString("dd_MM")+"/"
+    var sub = "Time_"+LocalDateTime.now().formatted("dd_MM")+"/"
     if(extra.equals("raster")){
       //For alle settings equal
     } else if(settings.focal){

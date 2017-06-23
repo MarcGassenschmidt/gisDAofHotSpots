@@ -68,6 +68,13 @@ class SoHResultTabell {
     }
   }
 
+  def getFormatedResultsListShort(results : ListBuffer[SoHResult]): String ={
+    var out = ""
+    for(r <- results){
+      out += ((r.localSet.focalRange*2+1)+","+(r.localSet.weightRadius*2+1)+","+(r.localSet.zoomLevel)+","+r.getSohUp()+","+r.getSohDown())+"\n"
+    }
+    out
+  }
 
 
 }

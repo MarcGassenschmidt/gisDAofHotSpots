@@ -14,8 +14,12 @@ class TestGenericScenario extends FunSuite{
   test("test aggregate zoom"){
     val gs =new GenericScenario()
     val tile1 = getTile(8,8)
-    val result = gs.aggregateToZoom(tile1,4)
+    var result = gs.aggregateToZoom(tile1,8)
     assert(result.getDouble(0,0)==tile1.toArrayDouble().reduce(_+_))
+    result = gs.aggregateToZoom(tile1,2)
+    assert(result.cols==4)
+    result = gs.aggregateToZoom(tile1,3)
+    assert(result.cols==2)
   }
 
 

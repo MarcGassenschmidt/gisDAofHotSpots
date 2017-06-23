@@ -2,6 +2,8 @@ package rasterTransformation
 
 import java.io.{File, PrintWriter}
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 import clustering.Row
 import geotrellis.raster._
@@ -15,7 +17,6 @@ import org.apache.hadoop.mapred.{FileInputFormat, JobConf}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
-import org.joda.time.format.DateTimeFormat
 import parmeters.Settings
 
 import scala.collection.immutable.TreeMap
@@ -44,11 +45,12 @@ class Transformation {
     println(files.count())
     val file = files.map(line => line.drop(1)).map(line => {
       val cols = line.split(",").map(_.trim)
-      val formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
+      val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
       val result = new RowTransformationTime(
         lon = (cols(9).toDouble*para.multiToInt+para.shiftToPostive).toInt,
         lat = (cols(10).toDouble*para.multiToInt).toInt,
-        time = formatter.parseDateTime(cols(2)))
+        time = LocalDateTime.from(formatter.parse(cols(2)))
+      )
       result
     })//.filter(row => row.lon>para.lonMin && row.lon<para.lonMax && row.lat>para.latMin && row.lat<para.latMax)
 
@@ -78,14 +80,14 @@ class Transformation {
 
   def transformCSVtoRasterParametrised(settings : Settings, fileName : String, indexLon : Int, indexLat : Int, indexDate : Int): IntArrayTile ={
     val bufferedSource = Source.fromFile(fileName)
-    val formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     val file = bufferedSource.getLines.drop(1).map(line => {
       val cols = line.split(",").map(_.trim)
       val result = new NotDataRowTransformation(0,0,null,true)
       if(cols.length>Math.max(indexDate,Math.max(indexLat,indexLon))){
         result.lon = (cols(indexLon).toDouble*settings.multiToInt+settings.shiftToPostive).toInt
         result.lat = (cols(indexLat).toDouble*settings.multiToInt).toInt
-        result.time = formatter.parseDateTime(cols(indexDate))
+        result.time =LocalDateTime.from(formatter.parse(cols(indexDate)))
         result.data = false
       }
       result

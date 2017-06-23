@@ -1,22 +1,23 @@
 package scenarios
 
 import java.io.{File, PrintWriter}
+import java.time.LocalDateTime
 
 import importExport.ImportGeoTiff
 import clustering.ClusterHotSpots
 import export.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
 import geotrellis.raster.Tile
 import getisOrd.{GetisOrd, GetisOrdFocal, SoH, Weight}
-import org.joda.time.DateTime
 import parmeters.Settings
 import rasterTransformation.Transformation
 
 import scala.collection.mutable.ListBuffer
-
+import com.typesafe.scalalogging.slf4j.LazyLogging
+import org.joda.time.DateTime
 /**
   * Created by marc on 24.05.17.
   */
-class GenericScenario {
+class GenericScenario extends LazyLogging {
 
   def runScenario(): Unit ={
     val globalSettings =new Settings()
@@ -37,12 +38,12 @@ class GenericScenario {
     val dir = settings.ouptDirectory+settings.scenario+"/"
     val f = new File(dir)
     f.mkdirs()
-    val pw = new PrintWriter(new File(dir+DateTime.now().toString("dd_MM___HH_mm_")+"result.csv"))
+    val pw = new PrintWriter(new File(dir+LocalDateTime.now().formatted("dd_MM___HH_mm_")+"result.csv"))
     outPutResultPrinter.printResultsList(outPutResults)
-    //outPutResults.map(x => pw.println(x.format()))
+    outPutResults.map(x => pw.println(x.format(false)))
     pw.flush()
     pw.close()
-    val pwShort = new PrintWriter(new File(dir+DateTime.now().toString("dd_MM___HH_mm_")+"short_result.csv"))
+    val pwShort = new PrintWriter(new File(dir+LocalDateTime.now().formatted("dd_MM___HH_mm_")+"short_result.csv"))
     outPutResultPrinter.printResults(outPutResults,true, pwShort)
     pwShort.flush()
     pwShort.close()
@@ -56,6 +57,16 @@ class GenericScenario {
       ((System.currentTimeMillis() - totalTime) / 1000),
       sohVal,
       lat._1)
+    val dir = globalSettings.ouptDirectory+globalSettings.scenario+"/"
+    val pwShort = new PrintWriter(new File(dir+"focal_"+globalSettings.focal+"d3.csv"))
+    pwShort.println("F,W,Z,Down,Up")
+    pwShort.println(outPutResultPrinter.getFormatedResultsListShort(outPutResults))
+    pwShort.flush()
+    pwShort.close()
+    println("grepTextStart--------------------------------------")
+    outPutResultPrinter.printResultsList(outPutResults)
+    println("grepTextEnd--------------------------------------")
+
     println(outPutResultPrinter.printResults(outPutResults,true))
   }
 
@@ -108,11 +119,12 @@ class GenericScenario {
   }
 
   def aggregateToZoom(tile : Tile, zoomLevel : Int) : Tile = {
-      if(zoomLevel==0){
-        return tile
-      } else {
-        aggregateToZoom(aggregateTile(tile),zoomLevel-1)
-      }
+    val result : Tile = tile.downsample(tile.cols/zoomLevel, tile.rows/zoomLevel)(f =>
+    {var sum = 0
+      f.foreach((x:Int,y:Int)=>if(x<tile.cols && y<tile.rows) sum+=tile.get(x,y) else sum+=0)
+      sum}
+    )
+    result
   }
 
   def aggregateTile(tile : Tile): Tile ={
