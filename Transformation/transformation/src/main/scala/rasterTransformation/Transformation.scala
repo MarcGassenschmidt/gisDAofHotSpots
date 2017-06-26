@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import clustering.Row
-import geotrellis.raster._
+import geotrellis.raster.{Tile, _}
 import geotrellis.spark._
 import geotrellis.spark.io._
 import geotrellis.spark.io.hadoop._
@@ -21,6 +21,7 @@ import parmeters.Settings
 
 import scala.collection.immutable.TreeMap
 import scala.io.Source
+import scalaz.stream.nio.file
 /**
   * Created by marc on 21.04.17.
   */
@@ -111,4 +112,48 @@ class Transformation {
     bufferedSource.close()
     tile
   }
+
+  def transformCSVtoTimeRasterParametrised(settings : Settings, fileName : String, indexLon : Int, indexLat : Int, indexDate : Int): ArrayMultibandTile ={
+    val bufferedSource = Source.fromFile(fileName)
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    val file = bufferedSource.getLines.drop(1).map(line => {
+      val cols = line.split(",").map(_.trim)
+      val result = new NotDataRowTransformation(0,0,null,true)
+      if(cols.length>Math.max(indexDate,Math.max(indexLat,indexLon))){
+        result.lon = (cols(indexLon).toDouble*settings.multiToInt+settings.shiftToPostive).toInt
+        result.lat = (cols(indexLat).toDouble*settings.multiToInt).toInt
+        result.time =LocalDateTime.from(formatter.parse(cols(indexDate)))
+        result.data = false
+      }
+      result
+    }).filter(row => row.lon>=settings.lonMin && row.lon<=settings.lonMax && row.lat>=settings.latMin && row.lat<=settings.latMax && row.data==false)
+    val multibandTile = new Array[IntArrayTile](24)
+
+    val rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt
+    val rasterLonLength = ((settings.lonMax-settings.lonMin)/settings.sizeOfRasterLon).toInt
+
+
+    var colIndex = 0
+    var rowIndex = 0
+    for (row <- file) {
+        colIndex = ((row.lon - settings.lonMin) / settings.sizeOfRasterLon).toInt
+        rowIndex = rasterLatLength - ((row.lat - settings.latMin) / settings.sizeOfRasterLat).toInt - 1
+        if (rowIndex >= 0 && colIndex >= 0 && colIndex < rasterLonLength && rowIndex < rasterLatLength) {
+          val index = row.time.getHour
+          if(multibandTile(index)==null){
+            multibandTile(index)=IntArrayTile.ofDim(rasterLonLength,rasterLatLength)
+          }
+          (multibandTile(index)).set(colIndex, rowIndex, (multibandTile(index)).get(colIndex, rowIndex) + 1)
+        } else {
+          //println("Not in range")
+        }
+
+    }
+
+
+    bufferedSource.close()
+    new ArrayMultibandTile(multibandTile.map(arrayTile => arrayTile.toArrayTile()))
+  }
+
+
 }

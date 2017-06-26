@@ -50,6 +50,52 @@ class TestTransformation extends FunSuite{
     assert(tile.toArrayDouble().reduce(_+_)==7)
   }
 
+
+  test("Test CSV TransformationTime"){
+    val settings = new Settings()
+    settings.latMin = 0
+    settings.lonMin = 0
+    settings.latMax = 100
+    settings.lonMax = 100
+    settings.sizeOfRasterLat = 10
+    settings.sizeOfRasterLon = 10
+    settings.multiToInt = 1
+    settings.shiftToPostive = 0
+    val fileName = "/tmp/test.csv"
+    val testFile = new File(fileName)
+    val writer = new PrintWriter(testFile)
+    writer.println("Header")
+
+
+    for(i <- 0 to 23){
+      //Corners
+      writer.println("99.0,99.0,2001-01-01 "+i.formatted("%02d")+":00:00")
+      writer.println("0.00001,0.0001,2001-01-01 "+i.formatted("%02d")+":00:00")
+      writer.println("99.99,99.99,2001-01-01 "+i.formatted("%02d")+":00:00")
+      writer.println("0.0001,99.99,2001-01-01 "+i.formatted("%02d")+":00:00")
+      writer.println("99.9,0.0001,2001-01-01 "+i.formatted("%02d")+":00:00")
+      writer.println("0.0,0.0,2001-01-01 "+i.formatted("%02d")+":00:00")
+    }
+
+
+    writer.flush()
+    writer.close()
+    val transformation = new Transformation()
+    val tile = transformation.transformCSVtoTimeRasterParametrised(settings, fileName, 0,1,2)
+
+//    For Debug
+//    for(i <- 0 to 23){
+//      println(tile.band(i).asciiDrawDouble())
+//    }
+    for(i <- 0 to 23){
+      if(!(tile.band(i).toArrayDouble().reduce(_+_)==6)){
+        println("Not working at index: "+i)
+      }
+      assert(tile.band(i).toArrayDouble().reduce(_+_)==6)
+    }
+
+  }
+
   test("Test 2 CSV Transformation"){
     val settings = new Settings()
     settings.latMin = 0

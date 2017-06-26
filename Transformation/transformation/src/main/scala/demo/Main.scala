@@ -15,7 +15,7 @@ object Main {
 //    setting.csvYear = 2015
 //    downloader.downloadNewYorkTaxiFiles(setting)
 
-    (new DifferentRasterSizes).runScenario()
+    (new DifferentFocal).runScenario()
 
 //    var scenario : GenericScenario = new DifferentRatio()
 //    scenario.runScenario()

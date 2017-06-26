@@ -28,18 +28,18 @@ class DifferentRasterSizes extends GenericScenario{
     var outPutResults = ListBuffer[SoHResult]()
     val runs = 5
 
-//        forGlobalG(globalSettings, outPutResults, runs)
-//        saveResult(globalSettings, outPutResults)
-    outPutResults = ListBuffer[SoHResult]()
-    forFocalG(globalSettings, outPutResults, runs)
+        forGlobalG(globalSettings, outPutResults, runs)
+        saveResult(globalSettings, outPutResults)
+//    outPutResults = ListBuffer[SoHResult]()
+//    forFocalG(globalSettings, outPutResults, runs)
 
     saveResult(globalSettings, outPutResults)
   }
 
   override def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
     for(k <- 0 to 9) {
-      globalSettings.zoomLevel = k
-      //globalSettings.weightRadius = 1+k*2
+      //globalSettings.zoomLevel = k
+      globalSettings.weightRadius = 1+k*2
       for (i <- 1 to 5) {
         var totalTime = System.currentTimeMillis()
         globalSettings.focal = false

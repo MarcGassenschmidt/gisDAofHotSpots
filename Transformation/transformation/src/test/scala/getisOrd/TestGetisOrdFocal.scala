@@ -121,19 +121,30 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
   }
 
 
-  ignore("SparkReadingWriting"){
+  test("SparkReadingWriting"){
     setting.focalRange = 5
     val rnd = new Random(1)
     val testTile : Array[Double]= Array.fill(1000000)(rnd.nextInt(100))
-    rasterTile = new DoubleRawArrayTile(testTile, 1000, 1000)
-    SinglebandGeoTiff.apply(rasterTile, new Extent(0, 0, rasterTile.cols, rasterTile.rows),
-      CRS.fromName("EPSG:3857")).write(setting.ouptDirectory+"geoTiff.tiff")
+    val rasterTile1 : Tile = new DoubleRawArrayTile(testTile, 1000, 1000)
+    val testTile2 : Array[Double]= Array.fill(1000000)(rnd.nextInt(100))
+    val rasterTile2 : Tile = new DoubleRawArrayTile(testTile2, 1000, 1000)
+    val bands = Array(rasterTile1,rasterTile2)
+    val multiBand : MultibandTile = new ArrayMultibandTile(bands)
+
+//    val tileLayerMetadata: TileLayerMetadata = source.collectMetadata[SpaceTimeKey](FloatingLayoutScheme(512))
+//    val tiledRdd: RDD[(SpaceTimeKey, MultibandTile)] = source.tileToLayout[SpaceTimeKey](tileLayerMetadata, Bilinear)
+
+    MultibandGeoTiff.apply(multiBand, new Extent(0, 0, rasterTile.cols, rasterTile.rows),CRS.fromName("EPSG:3857")).write(setting.ouptDirectory+"mulitbandGeottiff.tif")
+
+
+
+
     val sc = SparkContext.getOrCreate(setting.conf)
-    val inputRdd: RDD[(ProjectedExtent, Tile)] =
-      sc.hadoopGeoTiffRDD(setting.ouptDirectory+"geoTiff.tiff")
+    val inputRdd: RDD[(ProjectedExtent, MultibandTile)] =
+      sc.hadoopMultibandGeoTiffRDD(setting.ouptDirectory+"mulitbandGeottiff.tif")
     val (_, rasterMetaData) =
       TileLayerMetadata.fromRdd(inputRdd, FloatingLayoutScheme(512))
-    val tiled: RDD[(SpatialKey, Tile)] =
+    val tiled: RDD[(SpatialKey, MultibandTile)] =
       inputRdd
         .tileToLayout(rasterMetaData.cellType, rasterMetaData.layout, Bilinear)
         .repartition(100)
