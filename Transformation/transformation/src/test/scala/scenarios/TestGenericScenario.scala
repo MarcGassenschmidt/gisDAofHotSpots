@@ -11,7 +11,7 @@ import scala.util.Random
   */
 class TestGenericScenario extends FunSuite{
 
-  test("test aggregate zoom"){
+  ignore("test aggregate zoom"){
     val gs =new GenericScenario()
     val tile1 = getTile(8,8)
     var result = gs.aggregateToZoom(tile1,8)
@@ -23,7 +23,7 @@ class TestGenericScenario extends FunSuite{
   }
 
 
-  test("test aggregate"){
+  ignore("test aggregate"){
     val gs =new GenericScenario()
     val tile1 = getTile(2,2)
     val result = gs.aggregateTile(tile1)
