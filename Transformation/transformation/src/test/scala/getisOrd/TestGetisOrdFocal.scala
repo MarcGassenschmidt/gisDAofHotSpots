@@ -121,7 +121,7 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
   }
 
 
-  test("SparkReadingWriting"){
+  ignore("SparkReadingWriting"){
     setting.focalRange = 5
     val rnd = new Random(1)
     val testTile : Array[Double]= Array.fill(1000000)(rnd.nextInt(100))

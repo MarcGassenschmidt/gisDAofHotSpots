@@ -22,7 +22,7 @@ class TestSpark extends FunSuite with BeforeAndAfter {
   }
 
 
-  test("Test Spark Rastertransformation") {
+  ignore("Test Spark Rastertransformation") {
     val transform = new Transformation()
     val para = new Settings()
     para.sizeOfRasterLat = 4000

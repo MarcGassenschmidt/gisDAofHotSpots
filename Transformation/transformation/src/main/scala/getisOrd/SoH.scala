@@ -11,7 +11,17 @@ import parmeters.Settings
 class SoH {
   def getSoHDowAndUp(parent : Tile, child : Tile): (Double, Double) ={
      val sohAll = getSoHDowAndUp((parent,parent.toArray().distinct.length-1), (child,child.toArray().distinct.length-1))
-     (sohAll._1,sohAll._2)
+     var result = (sohAll._1,sohAll._2)
+    if(result._2==Double.NaN && result._1==Double.NaN){
+      return (0,0)
+    }
+    if(result._1==Double.NaN){
+      return (0,result._2)
+    }
+    if(result._2==Double.NaN){
+      return (result._1,0)
+    }
+    return result
   }
 
   private def getSoHDowAndUp(parent : (Tile,Int), child : (Tile,Int)): (Double, Double, Double, Double) ={

@@ -18,7 +18,7 @@ class DifferentRatio extends GenericScenario{
     globalSettings.fromFile = true
     globalSettings.weightMatrix = Weight.Square
     globalSettings.weightRadius = 2
-    globalSettings.scenario = "RatioZoom"
+    globalSettings.scenario = "RatioSizes"
     var outPutResults = ListBuffer[SoHResult]()
     val runs = 5
 
@@ -31,15 +31,15 @@ class DifferentRatio extends GenericScenario{
   }
 
   override def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for(k <- 0 to 9) {
-      //globalSettings.zoomLevel = k
-      globalSettings.weightRadius = 1+k*2
-      for (i <- 1 to 5) {
+    for(k <- 1 to 5) {
+      globalSettings.zoomLevel = k
+      //globalSettings.weightRadius = 1+k*2
+      for (i <- 0 to 9) {
         var totalTime = System.currentTimeMillis()
         globalSettings.focal = false
         globalSettings.focalRange = 0
         if (k == 0) {
-          globalSettings.fromFile = true
+          globalSettings.fromFile = false
         } else {
           globalSettings.fromFile = false
         }
@@ -53,25 +53,24 @@ class DifferentRatio extends GenericScenario{
   }
 
   override def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for(k <- 0 to 9){
-      //globalSettings.zoomLevel = k
-      globalSettings.weightRadius = 1+k*2
-      logger.info("k:"+k)
+    for(k <- 1 to 5){
+      globalSettings.zoomLevel = k
+      //globalSettings.weightRadius = 1+k*2
       for (j <- 0 to 9) {
-        logger.info("j:"+j)
         //globalSettings.weightRadius =3+j*2
         globalSettings.focalRange = 2+j*6
-        for (i <- 1 to 5) {
-          logger.info("i:"+i)
+        for (i <- 0 to 9) {
+          logger.info("k,j,i:"+k+","+j+","+i)
           val totalTime = System.currentTimeMillis()
           globalSettings.focal = true
           if (k == 0) {
-            globalSettings.fromFile = true
+            globalSettings.fromFile = false
           } else {
             globalSettings.fromFile = false
           }
-          val f = 2+(i+1)*6
-          if(globalSettings.weightRadius<globalSettings.focalRange){
+
+          val w = 1+(i+1)*2
+          if(globalSettings.weightRadius<globalSettings.focalRange && w<globalSettings.focalRange){
             //globalSettings.weightRadius = weightRatio(globalSettings, runs, j)
             val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double), lat: (Int, Int)) = oneCase(globalSettings, i, runs)
             saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, chs, sohVal, lat)
@@ -92,17 +91,17 @@ class DifferentRatio extends GenericScenario{
     globalSettings.sizeOfRasterLat = 100
     globalSettings.sizeOfRasterLon = 100
 
-    globalSettings.zoomLevel = i
+    //globalSettings.zoomLevel = i
     val raster : Tile = getRasterFromGeoTiff(globalSettings, 3, runs, 0, "raster", getRaster(globalSettings))
-    globalSettings.zoomLevel = i+1
+    //globalSettings.zoomLevel = i+1
     val rasterParent : Tile = getRasterFromGeoTiff(globalSettings, 3, runs, 0, "raster", getRaster(globalSettings))
-    globalSettings.zoomLevel = i
+    //globalSettings.zoomLevel = i
 
     //globalSettings.focalRange = 2+i*6
-    //globalSettings.weightRadius = 1+i*2
+    globalSettings.weightRadius = 1+i*2
     val gStarParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "gStar", gStar(raster, globalSettings, true))
     //globalSettings.focalRange = 2+(i+1)*6
-    //globalSettings.weightRadius = 1+(i+1)*2
+    globalSettings.weightRadius = 1+(i+1)*2
     val gStarChild = getRasterFromGeoTiff(globalSettings, i, runs, 1, "gStar", gStar(rasterParent, globalSettings, true))
 
     //globalSettings.weightRadius = 1+i*2
