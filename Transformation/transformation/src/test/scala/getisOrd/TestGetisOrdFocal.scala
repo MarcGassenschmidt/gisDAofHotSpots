@@ -134,14 +134,14 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
 //    val tileLayerMetadata: TileLayerMetadata = source.collectMetadata[SpaceTimeKey](FloatingLayoutScheme(512))
 //    val tiledRdd: RDD[(SpaceTimeKey, MultibandTile)] = source.tileToLayout[SpaceTimeKey](tileLayerMetadata, Bilinear)
 
-    MultibandGeoTiff.apply(multiBand, new Extent(0, 0, rasterTile.cols, rasterTile.rows),CRS.fromName("EPSG:3857")).write(setting.ouptDirectory+"mulitbandGeottiff.tif")
+    MultibandGeoTiff.apply(multiBand, new Extent(0, 0, rasterTile.cols, rasterTile.rows),CRS.fromName("EPSG:3857")).write("/tmp/mulitbandGeottiff.tif")
 
 
 
 
     val sc = SparkContext.getOrCreate(setting.conf)
     val inputRdd: RDD[(ProjectedExtent, MultibandTile)] =
-      sc.hadoopMultibandGeoTiffRDD(setting.ouptDirectory+"mulitbandGeottiff.tif")
+      sc.hadoopMultibandGeoTiffRDD("/tmp/mulitbandGeottiff.tif")
     val (_, rasterMetaData) =
       TileLayerMetadata.fromRdd(inputRdd, FloatingLayoutScheme(512))
     val tiled: RDD[(SpatialKey, MultibandTile)] =
