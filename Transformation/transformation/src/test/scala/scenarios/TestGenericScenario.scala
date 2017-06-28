@@ -37,7 +37,7 @@ class TestGenericScenario extends FunSuite{
     rasterTile
   }
 
-  test("Raster From Geo Tiff"){
+  ignore("Raster From Geo Tiff"){
     val gs = new GenericScenario()
     val settings = new Settings()
     settings.fromFile = true
@@ -45,7 +45,7 @@ class TestGenericScenario extends FunSuite{
     println(tile.asciiDrawDouble())
   }
 
-  test("Raster From MulitGeo Tiff"){
+  ignore("Raster From MulitGeo Tiff"){
     val gs = new GenericScenario()
     val settings = new Settings()
     settings.fromFile = true
