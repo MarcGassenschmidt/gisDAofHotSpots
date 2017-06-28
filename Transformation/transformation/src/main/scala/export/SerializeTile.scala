@@ -19,24 +19,6 @@ import geotrellis.spark.withTilerMethods
   */
 class SerializeTile(path : String) {
 
-  def writeGeoTiff(tile : Tile, setting : Settings) : Unit = {
-    SinglebandGeoTiff.apply(tile, new Extent(0, 0, tile.cols, tile.rows),
-      CRS.fromName("EPSG:3005")).write(setting.ouptDirectory+"geoTiff.tiff")
-  }
-
-  def readGeoTiff( setting : Settings): Tile ={
-    val sc = SparkContext.getOrCreate(setting.conf)
-    val inputRdd: RDD[(ProjectedExtent, Tile)] = sc.hadoopGeoTiffRDD(setting.ouptDirectory+"geoTiff.tiff")
-    val (_, rasterMetaData) =
-      TileLayerMetadata.fromRdd(inputRdd, FloatingLayoutScheme(512))
-    val tiled: RDD[(SpatialKey, Tile)] =
-      inputRdd
-        .tileToLayout(rasterMetaData.cellType, rasterMetaData.layout, Bilinear)
-        .repartition(100)
-    tiled.count()
-    return inputRdd.take(1)(0)._2
-  }
-
   def write(tile : Tile): Unit ={
     val oos = new ObjectOutputStream(new FileOutputStream(path))
     oos.writeObject(tile)

@@ -15,7 +15,7 @@ object ExportImagesForPresentation {
   def main(args: Array[String]): Unit = {
     val globalSettings = new Settings
     val geoTiff = new ImportGeoTiff()
-    globalSettings.scenario = "Presentation"
+    globalSettings.scenario = globalSettings.Scenario.Presentation
     globalSettings.sizeOfRasterLat = 100
     globalSettings.sizeOfRasterLon = 100
     globalSettings.fromFile =true

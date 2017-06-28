@@ -78,6 +78,9 @@ class Transformation {
     transformCSVtoRasterParametrised(settings,settings.inputDirectoryCSV+"in.csv",5,6,2)
   }
 
+  def transformCSVtoTimeRaster(settings : Settings): ArrayMultibandTile ={
+    transformCSVtoTimeRasterParametrised(settings,settings.inputDirectoryCSV+"in.csv",5,6,2)
+  }
 
   def transformCSVtoRasterParametrised(settings : Settings, fileName : String, indexLon : Int, indexLat : Int, indexDate : Int): IntArrayTile ={
     val bufferedSource = Source.fromFile(fileName)

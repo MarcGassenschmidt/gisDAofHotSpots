@@ -2,7 +2,7 @@ package demo
 
 import importExport.DownloadFilesFromWeb
 import parmeters.Settings
-import scenarios.{DifferentFocal, DifferentRasterSizes, DifferentRatio, GenericScenario}
+import scenarios._
 
 object Main {
   def helloSentence = "Start"
@@ -15,7 +15,7 @@ object Main {
 //    setting.csvYear = 2015
 //    downloader.downloadNewYorkTaxiFiles(setting)
 
-    (new DifferentFocal).runScenario()
+    (new SpaceTimeScenario).runScenario()
 
 //    var scenario : GenericScenario = new DifferentRatio()
 //    scenario.runScenario()

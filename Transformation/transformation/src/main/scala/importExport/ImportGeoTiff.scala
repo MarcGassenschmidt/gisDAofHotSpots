@@ -3,8 +3,8 @@ package importExport
 import java.io.File
 
 import geotrellis.proj4.CRS
-import geotrellis.raster.Tile
-import geotrellis.raster.io.geotiff.SinglebandGeoTiff
+import geotrellis.raster.{MultibandTile, Tile}
+import geotrellis.raster.io.geotiff.{MultibandGeoTiff, SinglebandGeoTiff}
 import geotrellis.raster.io.geotiff.reader.GeoTiffReader
 import geotrellis.vector.Extent
 import parmeters.Settings
@@ -18,9 +18,7 @@ class ImportGeoTiff {
   }
 
   def getFileName(globalSettings: Settings, i: Int, runs: Int, extra : String): String = {
-
-
-    ((new PathFormatter).getDirectory(globalSettings, extra) + "it_" + i + "runs_" + runs + ".tiff")
+    ((new PathFormatter).getDirectory(globalSettings, extra) + "it_" + i + "runs_" + runs +"w_"+globalSettings.weightRadius+"h_"+globalSettings.hour+".tif")
   }
 
   def geoTiffExists(file : String): Boolean ={
@@ -29,6 +27,14 @@ class ImportGeoTiff {
 
   def getGeoTiff(setting : Settings, i : Int, runs : Int, extra : String): Tile ={
     getGeoTiff(getFileName(setting,i,runs,extra),setting)
+  }
+
+  def getMulitGeoTiff(setting : Settings, i : Int, runs : Int, extra : String): MultibandTile ={
+    getMulitGeoTiff(getFileName(setting,i,runs,extra),setting)
+  }
+
+  def getMulitGeoTiff(file : String, setting : Settings): MultibandTile = {
+    GeoTiffReader.readMultiband(file)
   }
 
   def getGeoTiff(file : String, setting : Settings): Tile ={
@@ -54,8 +60,19 @@ class ImportGeoTiff {
     writeGeoTiff(tile, settings, name)
   }
 
+  def writeMulitGeoTiff(tile: MultibandTile, settings: Settings, i : Int, runs : Int, extra : String): Unit = {
+    val name = getFileName(settings, i, runs, extra)
+    //println(name)
+    writeMulitGeoTiff(tile, settings, name)
+  }
+
   def writeGeoTiff(tile: Tile, para: Settings, file : String): Unit = {
     SinglebandGeoTiff.apply(tile, new Extent(para.buttom._1,para.buttom._2,para.top._1,para.top._2),
+      CRS.fromName("EPSG:3857")).write(file)
+  }
+
+  def writeMulitGeoTiff(tile: MultibandTile, para: Settings, file : String): Unit = {
+    MultibandGeoTiff.apply(tile, new Extent(para.buttom._1,para.buttom._2,para.top._1,para.top._2),
       CRS.fromName("EPSG:3857")).write(file)
   }
 }

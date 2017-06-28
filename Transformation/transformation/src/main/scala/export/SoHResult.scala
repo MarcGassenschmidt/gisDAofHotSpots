@@ -17,6 +17,7 @@ class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, s
     set.weightMatrix = wParent.weightMatrix
     set.weightRadius = wParent.weightRadius
     set.zoomLevel = wParent.zoomLevel
+    set.hour = wParent.hour
     set
   }
 
@@ -26,18 +27,18 @@ class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, s
     if(shortFormat){
       return formatShort()
     }
-    val parentString  = lat+","+localSet.focal+","+localSet.focalRange+","+parent.cols+","+parent.rows+","+localSet.weightMatrix+","+localSet.weightRadius
+    val parentString  = lat+","+localSet.hour+","+localSet.focal+","+localSet.focalRange+","+parent.cols+","+parent.rows+","+localSet.weightMatrix+","+localSet.weightRadius
     //val childString = wChild.sizeOfRasterLat+","+wChild.focal+","+wChild.weightMatrix+","+wChild.weightRadius
     return parentString+","+time+","+sohValue._1+","+sohValue._2+","
 
   }
 
   def formatShort(): String = {
-    return getLat+","+sohValue._1+","+sohValue._2
+    return getLat+","+localSet.hour+","+sohValue._1+","+sohValue._2
   }
 
   def headerShort() : String = {
-    "rasterSize(meters),downward-"+localSet.focal+"-"+localSet.focalRange+",upward-"+localSet.focal+"-"+localSet.focalRange+",downwardInverse-"+localSet.focal+"-"+localSet.focalRange+",upwardInverse-"+localSet.focal+"-"+localSet.focalRange+","
+    "rasterSize(meters),time,downward-"+localSet.focal+"-"+localSet.focalRange+",upward-"+localSet.focal+"-"+localSet.focalRange+",downwardInverse-"+localSet.focal+"-"+localSet.focalRange+",upwardInverse-"+localSet.focal+"-"+localSet.focalRange+","
   }
 
   def getLat() : Int = {
@@ -48,7 +49,7 @@ class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, s
     if(shortFormat){
       return headerShort()
     }
-    "rasterSize(meters),parentFocal,focalRange,cols,rows,weighParent,weightParentRadius,duration(seconds),downward"+wParent.focal+"-"+wParent.focalRange+",upward"+wParent.focal+"-"+wParent.focalRange+","
+    "rasterSize(meters),time,parentFocal,focalRange,cols,rows,weighParent,weightParentRadius,duration(seconds),downward"+wParent.focal+"-"+wParent.focalRange+",upward"+wParent.focal+"-"+wParent.focalRange+","
   }
 
   def getSohUp(): Double = {

@@ -24,7 +24,7 @@ class DifferentRasterSizes extends GenericScenario{
     globalSettings.fromFile = true
     globalSettings.weightMatrix = Weight.Square
     globalSettings.weightRadius = 2
-    globalSettings.scenario = "RatioZoom"
+    globalSettings.scenario = globalSettings.Scenario.Aggregation
     var outPutResults = ListBuffer[SoHResult]()
     val runs = 5
 

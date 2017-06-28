@@ -1,7 +1,8 @@
 package scenarios
 
-import geotrellis.raster.{ArrayTile, IntRawArrayTile}
+import geotrellis.raster.{ArrayTile, IntRawArrayTile, MultibandTile}
 import org.scalatest.FunSuite
+import parmeters.Settings
 
 import scala.util.Random
 
@@ -34,6 +35,22 @@ class TestGenericScenario extends FunSuite{
     val testTile = Array.fill(rows*cols)(new Random().nextInt(100))
     val rasterTile = new IntRawArrayTile(testTile, cols, rows)
     rasterTile
+  }
+
+  test("Raster From Geo Tiff"){
+    val gs = new GenericScenario()
+    val settings = new Settings()
+    settings.fromFile = true
+    val tile = gs.getRasterFromGeoTiff(settings, 0, 0,0,"test/raster", getTile(100,100))
+    println(tile.asciiDrawDouble())
+  }
+
+  test("Raster From MulitGeo Tiff"){
+    val gs = new GenericScenario()
+    val settings = new Settings()
+    settings.fromFile = true
+    val tile = gs.getRasterFromMulitGeoTiff(settings, 0, 0,0,"test/raster", MultibandTile(Array(getTile(100,100),getTile(100,100))))
+    println(tile.band(0).asciiDrawDouble())
   }
 
 }

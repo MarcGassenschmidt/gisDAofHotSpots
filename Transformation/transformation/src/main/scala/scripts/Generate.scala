@@ -19,7 +19,7 @@ object Generate {
   def printRaster(): Unit = {
     val globalSettings = new Settings
     val geoTiff = new ImportGeoTiff()
-    globalSettings.scenario = "Script"
+    globalSettings.scenario = globalSettings.Scenario.Script
     globalSettings.sizeOfRasterLat = 100
     globalSettings.sizeOfRasterLon = 100
     globalSettings.fromFile =true

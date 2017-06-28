@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 import importExport.ImportGeoTiff
 import clustering.ClusterHotSpots
 import export.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
-import geotrellis.raster.Tile
+import geotrellis.raster.{MultibandTile, Tile}
 import getisOrd.{GetisOrd, GetisOrdFocal, SoH, Weight}
 import parmeters.Settings
 import rasterTransformation.Transformation
@@ -105,7 +105,6 @@ class GenericScenario extends LazyLogging {
     score
   }
 
-
   def getRaster(settings : Settings): Tile = {
     val serializer = new SerializeTile(settings.serilizeDirectory)
     var raster : Tile = null
@@ -127,6 +126,8 @@ class GenericScenario extends LazyLogging {
     result
   }
 
+
+
   def aggregateTile(tile : Tile): Tile ={
     val result : Tile = tile.downsample(tile.cols/2, tile.rows/2)(f =>
     {var sum = 0
@@ -145,6 +146,20 @@ class GenericScenario extends LazyLogging {
     println("Raster Size (cols,rows)=(" + arrayTile.cols + "," + arrayTile.rows + ")")
     arrayTile
   }
+
+  def creatMulitRaster(settings : Settings): MultibandTile = {
+    var startTime = System.currentTimeMillis()
+    val transform = new Transformation
+    val multibandTile = transform.transformCSVtoTimeRaster(settings)
+    //arrayTile.histogram.values().map(x => println(x))
+    println("Time for RasterTransformation =" + ((System.currentTimeMillis() - startTime) / 1000))
+    println("Raster Size (cols,rows)=(" + multibandTile.cols + "," + multibandTile.rows + ")")
+    for(tile <- multibandTile.bands){
+      aggregateToZoom(tile, settings.zoomLevel)
+    }
+    multibandTile
+  }
+
 
   def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
     for (i <- 5 to runs) {
@@ -213,13 +228,39 @@ class GenericScenario extends LazyLogging {
     (raster_plus1,(10.0 + 990.0 / runs.toDouble * i + next).ceil.toInt,(10.0 + 990.0 / runs.toDouble * i + next).ceil.toInt)
   }
 
+  def getMulitRasterWithCorrectResolution(globalSettings: Settings, i : Int, runs : Int, next : Int): (MultibandTile,Int,Int) = {
+    val actualLat = ((globalSettings.latMax - globalSettings.latMin) / (10.0 + 990.0 / runs.toDouble * i + next)).ceil.toInt
+    val actualLon = ((globalSettings.lonMax - globalSettings.lonMin) / (10.0 + 990.0 / runs.toDouble * i + next)).ceil.toInt
+    globalSettings.sizeOfRasterLat = actualLat
+    globalSettings.sizeOfRasterLon = actualLon
+    var mulitband = creatMulitRaster(globalSettings)
+    if (!globalSettings.fromFile) {
+        mulitband = mulitband.resample(actualLat, actualLon)
+        println("Raster Size (cols,rows)=(" + mulitband.cols + "," + mulitband.rows + ")")
+    }
+    (mulitband,(10.0 + 990.0 / runs.toDouble * i + next).ceil.toInt,(10.0 + 990.0 / runs.toDouble * i + next).ceil.toInt)
+  }
+
+
+
   def getRasterFromGeoTiff(globalSettings : Settings, i : Int, runs : Int, next : Int, extra : String, tileFunction :  => Tile): Tile = {
     val importer = new ImportGeoTiff()
-    if (false && globalSettings.fromFile && importer.geoTiffExists(globalSettings, i+next, runs, extra)) {
+    if (importer.geoTiffExists(globalSettings, i+next, runs, extra)) {
       return importer.getGeoTiff(globalSettings, i+next, runs, extra)
     } else {
       val tile = tileFunction
       importer.writeGeoTiff(tile, globalSettings, i+next, runs, extra)
+      return tile
+    }
+  }
+
+  def getRasterFromMulitGeoTiff(globalSettings : Settings, i : Int, runs : Int, next : Int, extra : String, tileFunction :  => MultibandTile): MultibandTile = {
+    val importer = new ImportGeoTiff()
+    if (globalSettings.fromFile && importer.geoTiffExists(globalSettings, i+next, runs, extra)) {
+      return importer.getMulitGeoTiff(globalSettings, i+next, runs, extra)
+    } else {
+      val tile = tileFunction
+      importer.writeMulitGeoTiff(tile, globalSettings, i+next, runs, extra)
 
       return tile
     }

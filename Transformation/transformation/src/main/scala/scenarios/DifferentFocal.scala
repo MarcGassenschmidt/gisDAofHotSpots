@@ -18,7 +18,7 @@ class DifferentFocal extends GenericScenario{
     globalSettings.fromFile = true
     globalSettings.weightMatrix = Weight.Square
     globalSettings.weightRadius = 2
-    globalSettings.scenario = "RatioFocal"
+    globalSettings.scenario = globalSettings.Scenario.Focal
     var outPutResults = ListBuffer[SoHResult]()
     val runs = 5
 
@@ -57,7 +57,7 @@ class DifferentFocal extends GenericScenario{
       globalSettings.zoomLevel = k
       //globalSettings.weightRadius = 1+k*2
       for (j <- 0 to 9) {
-        globalSettings.weightRadius =1+j*2
+        globalSettings.weightRadius =3+j*2
         //globalSettings.focalRange = 2+j*6
         for (i <- 0 to 9) {
           logger.info("k,j,i:"+k+","+j+","+i)

@@ -18,7 +18,7 @@ class DifferentRatio extends GenericScenario{
     globalSettings.fromFile = true
     globalSettings.weightMatrix = Weight.Square
     globalSettings.weightRadius = 2
-    globalSettings.scenario = "RatioSizes"
+    globalSettings.scenario = globalSettings.Scenario.Weight
     var outPutResults = ListBuffer[SoHResult]()
     val runs = 5
 

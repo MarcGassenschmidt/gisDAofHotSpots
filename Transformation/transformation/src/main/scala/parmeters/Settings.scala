@@ -9,7 +9,7 @@ import org.apache.spark.SparkConf
 class Settings extends Serializable with Cloneable{
   var zoomLevel = 1
 
-  var scenario = "NoScenarioSet"
+  var scenario = Scenario.NoScenario
   var multiToInt = 1000000
   //40.701915, -74.018704
   //40.763458, -73.967244
@@ -45,9 +45,13 @@ class Settings extends Serializable with Cloneable{
   var inputDirectoryCSV = "/home/media/Downloads/"
   var csvMonth = 5
   var csvYear = 2011
+  var hour = 0
+  var spaceTime = true
 
   val conf = new SparkConf().setAppName("Test")
   conf.setMaster("local[*]")
-
+  object Scenario extends Enumeration {
+    val NoScenario,Weight,Aggregation,Focal,Time,Presentation,Script = Value
+  }
 
 }
