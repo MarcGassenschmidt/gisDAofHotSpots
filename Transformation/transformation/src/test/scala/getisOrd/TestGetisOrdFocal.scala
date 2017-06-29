@@ -1,14 +1,15 @@
 package getisOrd
 
+import java.io.File
 import java.util.Random
 
 import geotrellis.proj4.{CRS, WebMercator}
 import geotrellis.raster.io.geotiff._
 import geotrellis.raster.mapalgebra.focal.Circle
-import geotrellis.raster.resample.Bilinear
+import geotrellis.raster.resample.{Bilinear, NearestNeighbor, ResampleMethod}
 import geotrellis.raster.{DoubleArrayTile, DoubleRawArrayTile, IntArrayTile, IntRawArrayTile, Tile, withTileMethods, _}
 import geotrellis.spark.io.file.{FileAttributeStore, FileLayerManager, FileLayerWriter}
-import geotrellis.spark.io.hadoop.HadoopSparkContextMethodsWrapper
+import geotrellis.spark.io.hadoop.{HadoopAttributeStore, HadoopLayerWriter, HadoopSparkContextMethodsWrapper}
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod.spatialKeyIndexMethod
 import geotrellis.spark.io.{SpatialKeyFormat, spatialKeyAvroFormat, tileLayerMetadataFormat, _}
@@ -20,6 +21,9 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.RDD
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import parmeters.Settings
+import org.apache.hadoop.fs.Path
+
+
 /**
   * Created by marc on 10.05.17.
   */
@@ -121,7 +125,7 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
   }
 
 
-  test("SparkReadingWriting"){
+  test("SparkWriting"){
     setting.focalRange = 5
     val rnd = new Random(1)
     val testTile : Array[Double]= Array.fill(1000000)(rnd.nextInt(100))
@@ -134,30 +138,45 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
 //    val tileLayerMetadata: TileLayerMetadata = source.collectMetadata[SpaceTimeKey](FloatingLayoutScheme(512))
 //    val tiledRdd: RDD[(SpaceTimeKey, MultibandTile)] = source.tileToLayout[SpaceTimeKey](tileLayerMetadata, Bilinear)
 
-    MultibandGeoTiff.apply(multiBand, new Extent(0, 0, rasterTile.cols, rasterTile.rows),CRS.fromName("EPSG:3857")).write("/tmp/mulitbandGeottiff.tif")
+
+    val extend = new Extent(0, 0, rasterTile1.cols, rasterTile1.rows)
+    val crs = CRS.fromName("EPSG:3857")
+    val filePath = "/tmp/mulitbandGeottiff.tif"
+    val layoutScheme = FloatingLayoutScheme(500)
+    MultibandGeoTiff.apply(multiBand, extend,crs).write(filePath)
 
 
 
+    implicit val sc  = SparkContext.getOrCreate(setting.conf)
 
-    val sc = SparkContext.getOrCreate(setting.conf)
     val inputRdd: RDD[(ProjectedExtent, MultibandTile)] =
-      sc.hadoopMultibandGeoTiffRDD("/tmp/mulitbandGeottiff.tif")
+      sc.hadoopMultibandGeoTiffRDD(filePath)
     val (_, rasterMetaData) =
-      TileLayerMetadata.fromRdd(inputRdd, FloatingLayoutScheme(512))
+      TileLayerMetadata.fromRdd(inputRdd, crs, layoutScheme)
     val tiled: RDD[(SpatialKey, MultibandTile)] =
       inputRdd
-        .tileToLayout(rasterMetaData.cellType, rasterMetaData.layout, Bilinear)
-        .repartition(100)
-    println(tiled.count())
-    println(tiled.first()._2.cols)
-    println(tiled.first()._1.toString)
-    for(t <- tiled){
-      println(t._2.cols)
-      println(t._1.toString)
+        .tileToLayout(rasterMetaData.cellType, rasterMetaData.layout, NearestNeighbor)
+        .repartition(16)
+
+    val (zoom, reprojected) =
+      MultibandTileLayerRDD(tiled, rasterMetaData).reproject(crs, layoutScheme, NearestNeighbor)
+    val catalogPathHdfs = new Path("/tmp/test/")
+    val attributeStore = HadoopAttributeStore(catalogPathHdfs)
+    val writer = HadoopLayerWriter(catalogPathHdfs, attributeStore)
+    val layerId = LayerId("Layername_test", zoom)
+    val exists = attributeStore.layerExists(layerId) || (new File("/tmp/test/Layername_test/")).exists
+    if (!exists) {
+      writer.write(layerId, reprojected, ZCurveKeyIndexMethod)
     }
+
+//    for(t <- tiled){
+//      println(t._1.toString)
+//    }
 
     //println(inputRdd.take(1)(0)._2.asciiDraw())
   }
+
+
 
   test("Test Focal G*"){
     setting.focalRange = 3
