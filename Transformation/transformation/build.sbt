@@ -5,7 +5,7 @@ version := "0.1.0"
 
 scalaVersion := "2.11.8"
 
-organization := "com.azavea"
+organization := "com.non"
 
 licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
@@ -36,9 +36,11 @@ libraryDependencies ++= Seq(
   "org.apache.spark" % "spark-sql_2.11" % "2.1.0",
   "net.sf.opencsv" % "opencsv" % "2.3",
   "de.lmu.ifi.dbs.elki" % "elki" % "0.7.1",
-  "com.typesafe.scala-logging" % "scala-logging-slf4j_2.11" % "2.1.2"
+  "com.typesafe.scala-logging" % "scala-logging_2.11" % "3.5.0"
 
 )
+
+
 
 // When creating fat jar, remote some files with
 // bad signatures and resolve conflicts by taking the first

@@ -9,7 +9,7 @@ import geotrellis.raster.mapalgebra.focal.Circle
 import geotrellis.raster.resample.{Bilinear, NearestNeighbor, ResampleMethod}
 import geotrellis.raster.{DoubleArrayTile, DoubleRawArrayTile, IntArrayTile, IntRawArrayTile, Tile, withTileMethods, _}
 import geotrellis.spark.io.file.{FileAttributeStore, FileLayerManager, FileLayerWriter}
-import geotrellis.spark.io.hadoop.{HadoopAttributeStore, HadoopLayerWriter, HadoopSparkContextMethodsWrapper}
+import geotrellis.spark.io.hadoop.{HadoopAttributeStore, HadoopLayerReader, HadoopLayerWriter, HadoopSparkContextMethodsWrapper}
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod.spatialKeyIndexMethod
 import geotrellis.spark.io.{SpatialKeyFormat, spatialKeyAvroFormat, tileLayerMetadataFormat, _}
@@ -17,6 +17,7 @@ import geotrellis.spark.pyramid.Pyramid
 import geotrellis.spark.tiling.{FloatingLayoutScheme, ZoomedLayoutScheme}
 import geotrellis.spark.{LayerId, SpatialKey, TileLayerMetadata, withProjectedExtentTilerKeyMethods, withTileRDDReprojectMethods, withTilerMethods, _}
 import geotrellis.vector.{ProjectedExtent, _}
+import org.apache.hadoop.conf.Configuration
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.RDD
 import org.scalatest.{BeforeAndAfter, FunSuite}
@@ -125,7 +126,7 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
   }
 
 
-  test("SparkWriting"){
+  test("SparkWritingReading"){
     setting.focalRange = 5
     val rnd = new Random(1)
     val testTile : Array[Double]= Array.fill(1000000)(rnd.nextInt(100))
@@ -147,6 +148,7 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
 
 
 
+
     implicit val sc  = SparkContext.getOrCreate(setting.conf)
 
     val inputRdd: RDD[(ProjectedExtent, MultibandTile)] =
@@ -157,17 +159,34 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
       inputRdd
         .tileToLayout(rasterMetaData.cellType, rasterMetaData.layout, NearestNeighbor)
         .repartition(16)
+    
 
     val (zoom, reprojected) =
       MultibandTileLayerRDD(tiled, rasterMetaData).reproject(crs, layoutScheme, NearestNeighbor)
+    (new File("/tmp/test/")).mkdirs()
     val catalogPathHdfs = new Path("/tmp/test/")
-    val attributeStore = HadoopAttributeStore(catalogPathHdfs)
+    val fs = catalogPathHdfs.getFileSystem(new Configuration)
+    val store = fs.getFileStatus(catalogPathHdfs).getPath
+    val attributeStore = HadoopAttributeStore(store)
+
     val writer = HadoopLayerWriter(catalogPathHdfs, attributeStore)
     val layerId = LayerId("Layername_test", zoom)
-    val exists = attributeStore.layerExists(layerId) || (new File("/tmp/test/Layername_test/")).exists
+    val exists = attributeStore.layerExists(layerId)
     if (!exists) {
       writer.write(layerId, reprojected, ZCurveKeyIndexMethod)
     }
+    val reader = HadoopLayerReader(attributeStore)
+    val zoomsOfLayer = attributeStore.layerIds filter (_.name == "Layername_test")
+    val id = zoomsOfLayer.filter(_.zoom == zoom).head
+    val header = reader.attributeStore.readHeader[LayerHeader](layerId)
+    println("Test")
+    val readRdd:RDD[(SpatialKey, MultibandTile)] with Metadata[TileLayerMetadata[SpatialKey]] =
+      reader.read[SpatialKey, MultibandTile, TileLayerMetadata[SpatialKey]](layerId)
+        for(t <- readRdd){
+          println(t._1.toString)
+        }
+    assert(readRdd.keys.count()==tiled.keys.count())
+
 
 //    for(t <- tiled){
 //      println(t._1.toString)

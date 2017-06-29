@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 
 import importExport.ImportGeoTiff
 import clustering.ClusterHotSpots
+import com.typesafe.scalalogging.LazyLogging
 import export.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
 import geotrellis.raster.{MultibandTile, Tile}
 import getisOrd.{GetisOrd, GetisOrdFocal, SoH, Weight}
@@ -12,7 +13,7 @@ import parmeters.Settings
 import rasterTransformation.Transformation
 
 import scala.collection.mutable.ListBuffer
-import com.typesafe.scalalogging.slf4j.LazyLogging
+
 
 /**
   * Created by marc on 24.05.17.
