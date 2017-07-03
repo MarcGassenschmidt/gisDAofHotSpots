@@ -188,11 +188,12 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     assert(readRdd.keys.count()==tiled.keys.count())
 
 
-//    for(t <- tiled){
-//      println(t._1.toString)
-//    }
-
-    //println(inputRdd.take(1)(0)._2.asciiDraw())
+    tiled.foreachPartition(iter => {
+      iter.map(x=>{
+        val re = (new GetisOrdFocal(x._2.band(0), setting).gStarComplete())
+        
+      })
+    })
   }
 
 

@@ -246,13 +246,11 @@ class GenericScenario extends LazyLogging {
 
   def getRasterFromGeoTiff(globalSettings : Settings, i : Int, runs : Int, next : Int, extra : String, tileFunction :  => Tile): Tile = {
     val importer = new ImportGeoTiff()
-    if (importer.geoTiffExists(globalSettings, i+next, runs, extra)) {
-      return importer.getGeoTiff(globalSettings, i+next, runs, extra)
-    } else {
+    if (!importer.geoTiffExists(globalSettings, i+next, runs, extra)) {
       val tile = tileFunction
       importer.writeGeoTiff(tile, globalSettings, i+next, runs, extra)
-      return tile
     }
+    return importer.getGeoTiff(globalSettings, i+next, runs, extra)
   }
 
   def getRasterFromMulitGeoTiff(globalSettings : Settings, i : Int, runs : Int, next : Int, extra : String, tileFunction :  => MultibandTile): MultibandTile = {

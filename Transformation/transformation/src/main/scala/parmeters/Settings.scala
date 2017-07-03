@@ -20,17 +20,19 @@ class Settings extends Serializable with Cloneable{
   var lonMin = buttom._2*multiToInt+shiftToPostive//Math.max(file.map(row => row.lon).min,-74.407877)
   var latMax = top._1*multiToInt//Math.min(file.map(row => row.lat).max,41.330106)
   var lonMax = top._2*multiToInt+shiftToPostive//Math.min(file.map(row => row.lon).max,-73.292793)
-  var sizeOfRasterLat = 10 //meters
-  var sizeOfRasterLon = 10 //meters
+  var sizeOfRasterLat = 400 //meters
+  var sizeOfRasterLon = 400 //meters
   var rasterLatLength = ((latMax-latMin)/sizeOfRasterLat).ceil.toInt
   var rasterLonLength = ((lonMax-lonMin)/sizeOfRasterLon).ceil.toInt
   var weightMatrix = Weight.Square
-  var weightRadius = 20
+  var weightRadius = 10
+  var weightRadiusTime = 3
   var fromFile = false
   var clusterRange = 1.0
   var critivalValue = 5
   var focal = false
-  var focalRange = 11
+  var focalRange = weightRadius+10
+  var focalRangeTime = weightRadiusTime+1
   var parent = true
   var inputDirectory = "/home/marc/Masterarbeit/outPut/raster"
 
