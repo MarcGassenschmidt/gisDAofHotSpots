@@ -4,7 +4,7 @@ import clustering.ClusterHotSpots
 import export.SoHResult
 import geotrellis.raster.Tile
 import getisOrd.{SoH, Weight}
-import parmeters.Settings
+import parmeters.{Scenario, Settings}
 
 import scala.collection.mutable.ListBuffer
 
@@ -18,7 +18,7 @@ class DifferentRatio extends GenericScenario{
     globalSettings.fromFile = true
     globalSettings.weightMatrix = Weight.Square
     globalSettings.weightRadius = 2
-    globalSettings.scenario = globalSettings.Scenario.Weight
+    globalSettings.scenario = Scenario.Weight.toString
     var outPutResults = ListBuffer[SoHResult]()
     val runs = 5
 

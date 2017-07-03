@@ -7,7 +7,7 @@ import parmeters.Settings
 /**
   * Created by marc on 22.05.17.
   */
-class GenericGetisOrd {
+class GenericGetisOrd extends Serializable{
 
   def genericGStar(lR : Tile, lW : Tile, lN: Tile, lM :Tile, lS : Tile) : Tile = {
     (lR.focalSum(Circle(lW.cols/2))-lM*lW)/(lS*((lN*getPowerOfTwoForElementsAsSum(lW)-getSummForTile(lW)*getSummForTile(lW))/(lN-1)).mapDouble(x => Math.sqrt(x)))

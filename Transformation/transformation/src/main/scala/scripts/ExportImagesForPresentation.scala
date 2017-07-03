@@ -4,7 +4,7 @@ import clustering.ClusterHotSpots
 import geotrellis.raster.Tile
 import getisOrd.{GetisOrd, GetisOrdFocal}
 import importExport.ImportGeoTiff
-import parmeters.Settings
+import parmeters.{Scenario, Settings}
 
 /**
   * Created by marc on 19.06.17.
@@ -15,7 +15,7 @@ object ExportImagesForPresentation {
   def main(args: Array[String]): Unit = {
     val globalSettings = new Settings
     val geoTiff = new ImportGeoTiff()
-    globalSettings.scenario = globalSettings.Scenario.Presentation
+    globalSettings.scenario = Scenario.Presentation.toString
     globalSettings.sizeOfRasterLat = 100
     globalSettings.sizeOfRasterLon = 100
     globalSettings.fromFile =true

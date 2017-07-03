@@ -127,7 +127,8 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
 
 
   test("SparkWritingReading"){
-    setting.focalRange = 5
+    val ownSettings = new Settings()
+    ownSettings.focalRange = 5
     val rnd = new Random(1)
     val testTile : Array[Double]= Array.fill(1000000)(rnd.nextInt(100))
     val rasterTile1 : Tile = new DoubleRawArrayTile(testTile, 1000, 1000)
@@ -149,7 +150,7 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
 
 
 
-    implicit val sc  = SparkContext.getOrCreate(setting.conf)
+    implicit val sc  = SparkContext.getOrCreate(ownSettings.conf)
 
     val inputRdd: RDD[(ProjectedExtent, MultibandTile)] =
       sc.hadoopMultibandGeoTiffRDD(filePath)
@@ -190,8 +191,7 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
 
     tiled.foreachPartition(iter => {
       iter.map(x=>{
-        val re = (new GetisOrdFocal(x._2.band(0), setting).gStarComplete())
-        
+        (new GetisOrdFocal(x._2.band(0), ownSettings).gStarComplete())
       })
     })
   }

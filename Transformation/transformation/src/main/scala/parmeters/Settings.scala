@@ -9,7 +9,7 @@ import org.apache.spark.SparkConf
 class Settings extends Serializable with Cloneable{
   var zoomLevel = 1
 
-  var scenario = Scenario.NoScenario
+  var scenario : String = Scenario.NoScenario.toString
   var multiToInt = 1000000
   //40.701915, -74.018704
   //40.763458, -73.967244
@@ -52,8 +52,6 @@ class Settings extends Serializable with Cloneable{
 
   val conf = new SparkConf().setAppName("Test")
   conf.setMaster("local[*]")
-  object Scenario extends Enumeration {
-    val NoScenario,Weight,Aggregation,Focal,Time,Presentation,Script = Value
-  }
+
 
 }

@@ -4,7 +4,7 @@ package scripts
 import export.SerializeTile
 import geotrellis.raster.Tile
 import importExport.ImportGeoTiff
-import parmeters.Settings
+import parmeters.{Scenario, Settings}
 import rasterTransformation.Transformation
 
 /**
@@ -19,7 +19,7 @@ object Generate {
   def printRaster(): Unit = {
     val globalSettings = new Settings
     val geoTiff = new ImportGeoTiff()
-    globalSettings.scenario = globalSettings.Scenario.Script
+    globalSettings.scenario = Scenario.Script.toString
     globalSettings.sizeOfRasterLat = 100
     globalSettings.sizeOfRasterLon = 100
     globalSettings.fromFile =true

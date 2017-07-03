@@ -4,7 +4,7 @@ import clustering.ClusterHotSpots
 import export.SoHResult
 import geotrellis.raster.Tile
 import getisOrd.{SoH, Weight}
-import parmeters.Settings
+import parmeters.{Scenario, Settings}
 
 import scala.collection.mutable.ListBuffer
 
@@ -19,7 +19,7 @@ class SpaceTimeScenario extends GenericScenario{
 
   override def runScenario(): Unit ={
     val globalSettings =new Settings()
-    globalSettings.scenario = globalSettings.Scenario.Time
+    globalSettings.scenario = Scenario.Time.toString
     globalSettings.fromFile = false
     globalSettings.weightMatrix = Weight.Square
     val outPutResults = ListBuffer[SoHResult]()

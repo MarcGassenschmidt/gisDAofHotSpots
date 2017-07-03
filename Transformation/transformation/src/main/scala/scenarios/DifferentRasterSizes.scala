@@ -7,7 +7,7 @@ import clustering.ClusterHotSpots
 import export.{SerializeTile, SoHResult, TileVisualizer}
 import geotrellis.raster.Tile
 import getisOrd._
-import parmeters.Settings
+import parmeters.{Scenario, Settings}
 import rasterTransformation.Transformation
 
 import scala.collection.mutable.ListBuffer
@@ -24,7 +24,7 @@ class DifferentRasterSizes extends GenericScenario{
     globalSettings.fromFile = true
     globalSettings.weightMatrix = Weight.Square
     globalSettings.weightRadius = 2
-    globalSettings.scenario = globalSettings.Scenario.Aggregation
+    globalSettings.scenario = Scenario.Aggregation.toString
     var outPutResults = ListBuffer[SoHResult]()
     val runs = 5
 
