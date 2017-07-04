@@ -28,9 +28,9 @@ case class Spheroid(a:Int,c:Int) extends TimeNeigborhood {
 
   def getSum(): Int ={
     var sum = 0
-    for(x <- 0 to a){
-      for(y <- 0 to b){
-        for(z <- 0 to c){
+    for(x <- -a to a){
+      for(y <- -b to b){
+        for(z <- -c to c){
           if(isInRange(x,y,z)){
             sum += 1
           }

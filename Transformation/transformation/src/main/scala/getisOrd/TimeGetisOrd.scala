@@ -28,8 +28,14 @@ object TimeGetisOrd {
       for (y <- -radius to radius) {
         for(z <- -radiusTime to radiusTime)
         if (spheroid.isInRange(x,y,z)) {
+          val cx = c+x
+          val ry = r+y
           if(isInTile(c+x,r+y, mbT)){
-            sum += mbT.band((b+z) % 24).getDouble(c+x,r+y)
+            var bz = (b+z) % 24
+            if(bz<0){
+              bz+=24
+            }
+            sum += mbT.band(bz).getDouble(cx,ry)
           } else {
             //TODO getData from NeigbourTile
           }
@@ -43,7 +49,7 @@ object TimeGetisOrd {
   def getSum(mbT: MultibandTile, spheroid : Spheroid): MultibandTile = {
     val multibandTile: MultibandTile = getEmptyMultibandArray(mbT)
 
-    for(b <- 0 to mbT.bandCount){
+    for(b <- 0 to mbT.bandCount-1){
       val singleBand = multibandTile.band(b).asInstanceOf[DoubleRawArrayTile]
       for(c <- 0 to multibandTile.cols-1){
         for(r <- 0 to multibandTile.rows-1){
@@ -59,7 +65,7 @@ object TimeGetisOrd {
     val bands = mbT.bandCount
     val size = mbT.size
     var bandArray = new Array[Tile](bands)
-    for (b <- 0 to bands) {
+    for (b <- 0 to bands-1) {
       bandArray(b) = new DoubleRawArrayTile(Array.fill(size)(0), mbT.rows, mbT.cols)
     }
     val multibandTile = MultibandTile.apply(bandArray)

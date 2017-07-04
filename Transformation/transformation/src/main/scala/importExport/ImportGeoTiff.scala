@@ -71,7 +71,7 @@ class ImportGeoTiff {
 
   def writeMulitGeoTiff(tile: MultibandTile, settings: Settings, i : Int, runs : Int, extra : String): Unit = {
     val name = getFileName(settings, i, runs, extra)
-    //println(name)
+    println("--------------------------------------------------------------------------------------------"+name)
     writeMulitGeoTiff(tile, settings, name)
   }
 
