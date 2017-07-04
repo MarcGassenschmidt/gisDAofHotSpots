@@ -20,7 +20,7 @@ import geotrellis.spark.{LayerId, SpatialKey, TileLayerMetadata, withProjectedEx
   */
 class ImportGeoTiff {
   val crs = CRS.fromName("EPSG:3857")
-  val layoutScheme = FloatingLayoutScheme(50)
+
   def geoTiffExists(globalSettings: Settings, i: Int, runs: Int, extra : String): Boolean = {
     geoTiffExists(getFileName(globalSettings,i,runs, extra))
 
@@ -47,9 +47,12 @@ class ImportGeoTiff {
   }
 
   def repartitionFiles(file: String, setting: Settings): RDD[(SpatialKey, MultibandTile)] ={
+    //val tmp = getMulitGeoTiff(file,setting)
     val sc = SparkContext.getOrCreate(setting.conf)
     val inputRdd: RDD[(ProjectedExtent, MultibandTile)] =
       sc.hadoopMultibandGeoTiffRDD(file)
+
+    val layoutScheme = FloatingLayoutScheme(setting.layoutTileSize)
     val (_, rasterMetaData) =
       TileLayerMetadata.fromRdd(inputRdd, crs, layoutScheme)
     val tiled: RDD[(SpatialKey, MultibandTile)] =
@@ -82,5 +85,9 @@ class ImportGeoTiff {
   def writeMulitGeoTiff(tile: MultibandTile, para: Settings, file : String): Unit = {
     MultibandGeoTiff.apply(tile, new Extent(para.buttom._1,para.buttom._2,para.top._1,para.top._2),
       crs).write(file)
+  }
+
+  def writeMulitGeoTiff(tile: MultibandTile, extent :Extent, file : String): Unit = {
+    MultibandGeoTiff.apply(tile, extent,crs).write(file)
   }
 }

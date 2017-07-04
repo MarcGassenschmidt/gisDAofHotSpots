@@ -11,6 +11,9 @@ import parmeters.Settings
 class PathFormatter {
 
   def getDirectory(settings : Settings, extra : String): String ={
+    if(settings.test){
+      settings.ouptDirectory = "/tmp/"
+    }
     var sub = "Time_"+LocalDateTime.now().formatted("dd_MM")+"/"
     if(extra.equals("raster")){
       //For alle settings equal

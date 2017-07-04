@@ -3,7 +3,8 @@ package getisOrd
 import geotrellis.Spheroid
 import geotrellis.raster.{DoubleRawArrayTile, MultibandTile, Tile}
 import geotrellis.spark.SpatialKey
-import importExport.ImportGeoTiff
+import geotrellis.vector.Extent
+import importExport.{ImportGeoTiff, PathFormatter}
 import org.apache.spark.rdd.RDD
 import parmeters.Settings
 
@@ -76,12 +77,14 @@ object TimeGetisOrd {
 //    //getSum(multibandTile, new Spheroid())
 //  }
 
-  def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings): MultibandTile = {
+  def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings, N : Int, M : Double, S: Double): MultibandTile = {
     val spheroid = Spheroid(setting.weightRadius, setting.weightRadiusTime)
     val RoW = getSum(multibandTile, spheroid)
-    val N = (multibandTile.bandCount*multibandTile.rows*multibandTile.cols)
-    val M = multibandTile.bands.map(x=>x.toArrayDouble().reduce(_+_)).reduce(_+_)/N
-    val S = multibandTile.bands.map(x=>x.toArrayDouble().map(x=>Math.pow(x-M,2)).reduce(_+_)).reduce(_+_)
+
+    assert(multibandTile.cols==setting.layoutTileSize)
+    assert(multibandTile.rows==setting.layoutTileSize)
+    val extent = new Extent(0,0,setting.layoutTileSize, setting.layoutTileSize)
+
     val MW = M*spheroid.getSum() //W entry is allways 1
     val NW2 = N*spheroid.getSum() //W entry is allways 1
     val W2 = Math.pow(spheroid.getSum(),2)
@@ -91,22 +94,53 @@ object TimeGetisOrd {
     RoW
   }
 
-  def getGetisOrd(rdd : RDD[(SpatialKey, MultibandTile)], setting : Settings): Unit ={
+  def filterNoData(f: Double): Boolean = {
+    val r = (f== -2147483648 ||f.isNaN || f.isNegInfinity || f.isInfinity)
+    !r
+  }
+
+  def getGetisOrd(rdd : RDD[(SpatialKey, MultibandTile)], setting : Settings, origin : MultibandTile): Unit ={
     val keys = rdd.keys.collect().max //TODO
     val keyCount = rdd.keys.count()
     val band = rdd.first()._2.band(0)
-    val x = band.getDouble(0,0)
-    rdd.foreach(f=>f)
-    rdd.foreachPartition(f=>f)
+    var gN = 0
+    var gM = 0.0
+    var gS = 0.0
+    var fN : MultibandTile = null
+    var fM : MultibandTile = null
+    var fS : MultibandTile = null
+    if(setting.focal){
+      fN = null
+      fM = null
+      fS = null
+    } else {
+      //TODO if needed parrelisse
+      gN = (origin.bandCount*origin.rows*origin.cols)
+
+      gM = origin.bands.map(x=>x.toArrayDouble().filter(x=>filterNoData(x)).reduce(_+_)).reduce(_+_)
+
+      val singelSDBand = origin.bands.map(x=>x.toArrayDouble().filter(x=>filterNoData(x)).map(x=>Math.pow(x-gM,2)).reduce(_+_))
+      gS = Math.sqrt(singelSDBand.reduce(_+_)*(1.0/(gN.toDouble-1.0)))
+    }
+
+
     rdd.foreachPartition(iter=>{
-      iter.map(x=>{
+      iter.foreach(x=>{
         var result : MultibandTile = null
+
         if(setting.focal){
           result = getMultibandFocalGetisOrd(x._2, setting)
         } else {
-          result = getMultibandGetisOrd(x._2, setting)
+          result = getMultibandGetisOrd(x._2, setting, gN, gM, gS)
         }
-        (new ImportGeoTiff().writeMulitGeoTiff(result,setting,0,0,x._1.toString))
+        val extentForPartition = new Extent(
+          setting.buttom._1+x._1._1*setting.layoutTileSize*setting.sizeOfRasterLon,
+          setting.buttom._2+x._1._2*setting.layoutTileSize*setting.sizeOfRasterLat,
+          setting.buttom._2+(x._1._1+1)*setting.layoutTileSize*setting.sizeOfRasterLat-1,
+          setting.buttom._2+(x._1._2+1)*setting.layoutTileSize*setting.sizeOfRasterLat-1)
+        val path = (new PathFormatter).getDirectory(setting, "partitions")
+        println(path+x._1.toString+".tif")
+        (new ImportGeoTiff().writeMulitGeoTiff(result,extentForPartition,path+x._1.toString+".tif"))
         result
       })
     })

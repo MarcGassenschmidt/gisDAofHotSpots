@@ -20,7 +20,8 @@ object TestT {
     //writeBand(settings, dir, importTer)
 
     val rdd = importTer.repartitionFiles(dir+"firstTimeBand.tif", settings)
-    TimeGetisOrd.getGetisOrd(rdd, settings)
+    val origin = importTer.getMulitGeoTiff(dir+"firstTimeBand.tif",settings)
+    TimeGetisOrd.getGetisOrd(rdd, settings, origin)
   }
 
   def writeBand(settings: Settings, dir: String, importTer: ImportGeoTiff): Unit = {

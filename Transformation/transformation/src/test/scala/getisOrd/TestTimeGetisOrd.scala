@@ -3,7 +3,8 @@ package getisOrd
 import java.util.Random
 
 import geotrellis.Spheroid
-import geotrellis.raster.{ArrayMultibandTile, DoubleRawArrayTile, MultibandTile, Tile}
+import geotrellis.raster.{ArrayMultibandTile, DoubleCellType, DoubleRawArrayTile, MultibandTile, Raster, Tile}
+import geotrellis.vector.{Extent, Line, Point, Polygon}
 import importExport.ImportGeoTiff
 import org.scalatest.FunSuite
 import parmeters.Settings
@@ -110,6 +111,7 @@ class TestTimeGetisOrd extends FunSuite {
     val importTer = new ImportGeoTiff()
     val setting = new Settings
     setting.focal = false
+    setting.test = true
     val rnd = new Random(1)
     val bands = new Array[Tile](24)
     for(i <- 0 to 23){
@@ -122,6 +124,31 @@ class TestTimeGetisOrd extends FunSuite {
     setting.focal = true
     result = TimeGetisOrd.getGetisOrd(rdd,setting)
     //TODO
+  }
+
+  test("Histogramm test"){
+    val bands = new Array[Tile](24)
+    val rnd = new Random(1)
+    for(i <- 0 to 23){
+      bands(i) = new DoubleRawArrayTile(Array.fill(10000)(rnd.nextInt(100)), 100, 100)
+    }
+    val multiBand : MultibandTile = new ArrayMultibandTile(bands)
+    multiBand.bands.map(x=>(x.polygonalSumDouble(new Extent(0,0,100,100), (new Extent(0,0,100,100)).toPolygon()),x.toArrayDouble().reduce(_+_))).foreach(x=>assert(x._1==x._2))
+  }
+
+  test("filterNoData"){
+    val bands = new Array[Tile](24)
+    val rnd = new Random(1)
+    for(i <- 0 to 23){
+      if(i%2==1){
+        bands(i) = new DoubleRawArrayTile(Array.fill(100)(if(rnd.nextInt(100)>50) 1 else Double.NegativeInfinity), 10, 10)
+      } else {
+        bands(i) = new DoubleRawArrayTile(Array.fill(100)(if(rnd.nextInt(100)>50) 1 else Double.NaN), 10, 10)
+      }
+
+    }
+    val multiBand : MultibandTile = new ArrayMultibandTile(bands)
+    multiBand.bands.map(x=>x.toArrayDouble().filter(f=>TimeGetisOrd.filterNoData(f))).foreach(x=>x.foreach(y=>assert(y>0)))
   }
 
 
