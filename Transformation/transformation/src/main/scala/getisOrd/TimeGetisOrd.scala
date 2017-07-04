@@ -8,6 +8,8 @@ import importExport.{ImportGeoTiff, PathFormatter}
 import org.apache.spark.rdd.RDD
 import parmeters.Settings
 
+import scalaz.Alpha.M
+
 /**
   * Created by marc on 03.07.17.
   */
@@ -77,7 +79,7 @@ object TimeGetisOrd {
 //    //getSum(multibandTile, new Spheroid())
 //  }
 
-  def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings, N : Int, M : Double, S: Double): MultibandTile = {
+  def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings, stats : StatsGlobal): MultibandTile = {
     val spheroid = Spheroid(setting.weightRadius, setting.weightRadiusTime)
     val RoW = getSum(multibandTile, spheroid)
 
@@ -85,10 +87,10 @@ object TimeGetisOrd {
     assert(multibandTile.rows==setting.layoutTileSize)
     val extent = new Extent(0,0,setting.layoutTileSize, setting.layoutTileSize)
 
-    val MW = M*spheroid.getSum() //W entry is allways 1
-    val NW2 = N*spheroid.getSum() //W entry is allways 1
+    val MW = stats.gM*spheroid.getSum() //W entry is allways 1
+    val NW2 = stats.gN*spheroid.getSum() //W entry is allways 1
     val W2 = Math.pow(spheroid.getSum(),2)
-    val denominator = S*Math.sqrt((NW2-W2)/(N-1))
+    val denominator = stats.gS*Math.sqrt((NW2-W2)/(stats.gN-1))
     assert(denominator>0)
     RoW.mapBands((band:Int,tile:Tile)=>tile.mapDouble(x=>(x-MW)/denominator))
     RoW
@@ -103,24 +105,18 @@ object TimeGetisOrd {
     val keys = rdd.keys.collect().max //TODO
     val keyCount = rdd.keys.count()
     val band = rdd.first()._2.band(0)
-    var gN = 0
-    var gM = 0.0
-    var gS = 0.0
+
     var fN : MultibandTile = null
     var fM : MultibandTile = null
     var fS : MultibandTile = null
+    var st : StatsGlobal= null
     if(setting.focal){
       fN = null
       fM = null
       fS = null
     } else {
       //TODO if needed parrelisse
-      gN = (origin.bandCount*origin.rows*origin.cols)
-
-      gM = origin.bands.map(x=>x.toArrayDouble().filter(x=>filterNoData(x)).reduce(_+_)).reduce(_+_)
-
-      val singelSDBand = origin.bands.map(x=>x.toArrayDouble().filter(x=>filterNoData(x)).map(x=>Math.pow(x-gM,2)).reduce(_+_))
-      gS = Math.sqrt(singelSDBand.reduce(_+_)*(1.0/(gN.toDouble-1.0)))
+      st = getSTGlobal(origin)
     }
 
 
@@ -131,7 +127,7 @@ object TimeGetisOrd {
         if(setting.focal){
           result = getMultibandFocalGetisOrd(x._2, setting)
         } else {
-          result = getMultibandGetisOrd(x._2, setting, gN, gM, gS)
+          result = getMultibandGetisOrd(x._2, setting, st)
         }
         val extentForPartition = new Extent(
           setting.buttom._1+x._1._1*setting.layoutTileSize*setting.sizeOfRasterLon,
@@ -145,5 +141,25 @@ object TimeGetisOrd {
       })
     })
   }
+
+  def getSTGlobal(origin : MultibandTile): StatsGlobal = {
+    val gN = (origin.bandCount * origin.rows * origin.cols)
+
+    val gM = origin.bands.map(x => x.toArrayDouble().filter(x => filterNoData(x)).reduce(_ + _)).reduce(_ + _)/gN
+
+    val singelSDBand = origin.bands.map(x => x.toArrayDouble().filter(x => filterNoData(x)).map(x => Math.pow(x - gM, 2)).reduce(_ + _))
+    val gS = Math.sqrt(singelSDBand.reduce(_ + _) * (1.0 / (gN.toDouble - 1.0)))
+    new StatsGlobal(gN,gM,gS)
+  }
+
+
+
+}
+
+class StatsFocal(val gN : MultibandTile, val gM : MultibandTile, val gS :MultibandTile){
+
+}
+
+class StatsGlobal(val gN : Int, val gM : Double, val gS :Double){
 
 }

@@ -38,7 +38,7 @@ class TestTimeGetisOrd extends FunSuite {
       bands(i) = new DoubleRawArrayTile(Array.fill(10000)(rnd.nextInt(100)), 100, 100)
     }
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
-    val result = TimeGetisOrd.getMultibandGetisOrd(multiBand,ownSettings)
+    val result = TimeGetisOrd.getMultibandGetisOrd(multiBand,ownSettings, TimeGetisOrd.getSTGlobal(multiBand))
     assert(result.bandCount==multiBand.bandCount)
     assert(result.rows==multiBand.rows)
     assert(result.band(0).getDouble(0,0)!=multiBand.band(0).getDouble(0,0))
@@ -120,13 +120,14 @@ class TestTimeGetisOrd extends FunSuite {
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
     importTer.writeMulitGeoTiff(multiBand, setting, "/tmp/firstTimeBand.tif")
     val rdd = importTer.repartitionFiles("/tmp/firstTimeBand.tif", setting)
-    var result = TimeGetisOrd.getGetisOrd(rdd,setting)
+    var result = TimeGetisOrd.getGetisOrd(rdd,setting, multiBand)
     setting.focal = true
-    result = TimeGetisOrd.getGetisOrd(rdd,setting)
+    result = TimeGetisOrd.getGetisOrd(rdd,setting, multiBand)
     //TODO
   }
 
-  test("Histogramm test"){
+  test("polygonalSumDouble test"){
+    //Histogramm is not working
     val bands = new Array[Tile](24)
     val rnd = new Random(1)
     for(i <- 0 to 23){
@@ -149,6 +150,19 @@ class TestTimeGetisOrd extends FunSuite {
     }
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
     multiBand.bands.map(x=>x.toArrayDouble().filter(f=>TimeGetisOrd.filterNoData(f))).foreach(x=>x.foreach(y=>assert(y>0)))
+  }
+
+  test("stats global"){
+    val rnd = new Random(1)
+    val bands = new Array[Tile](24)
+    for(i <- 0 to 23){
+      bands(i) = new DoubleRawArrayTile(Array.fill(10000)(rnd.nextInt(100)), 100, 100)
+    }
+    val multiBand : MultibandTile = new ArrayMultibandTile(bands)
+    val st = TimeGetisOrd.getSTGlobal(multiBand)
+    assert(st.gN == 24*100*100)
+    assert(st.gM == multiBand.bands.map(x=>x.toArrayDouble().reduce(_+_)).reduce(_+_)/st.gN)
+    assert(st.gS > 0)
   }
 
 
