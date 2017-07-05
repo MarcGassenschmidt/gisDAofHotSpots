@@ -88,6 +88,7 @@ class ImportGeoTiff {
   }
 
   def writeMulitGeoTiff(tile: MultibandTile, extent :Extent, file : String): Unit = {
+
     MultibandGeoTiff.apply(tile, extent,crs).write(file)
   }
 }

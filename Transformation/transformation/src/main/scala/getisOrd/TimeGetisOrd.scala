@@ -5,10 +5,13 @@ import geotrellis.raster.{DoubleRawArrayTile, MultibandTile, Tile}
 import geotrellis.spark.SpatialKey
 import geotrellis.vector.Extent
 import importExport.{ImportGeoTiff, PathFormatter}
+import org.apache.spark.SparkContext
+import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import parmeters.Settings
 
 import scala.collection.immutable.LinearSeq
+import scala.collection.mutable
 
 /**
   * Created by marc on 03.07.17.
@@ -23,7 +26,8 @@ object TimeGetisOrd {
     x>0 && y>0 && x<mbT.cols && y < mbT.rows
   }
 
-  def getSum(b: Int, c: Int, r: Int, mbT: MultibandTile, spheroid : Spheroid): Double = {
+  def getSum(b: Int, c: Int, r: Int, mbT: MultibandTile, spheroid : Spheroid, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): Double = {
+
     val radius = spheroid.a
     val radiusTime = spheroid.c
     var sum : Double = 0.0
@@ -40,7 +44,7 @@ object TimeGetisOrd {
             }
             sum += mbT.band(bz).getDouble(cx,ry)
           } else {
-            //TODO getData from NeigbourTile
+
           }
 
         }
@@ -49,14 +53,14 @@ object TimeGetisOrd {
     sum
   }
 
-  def getSum(mbT: MultibandTile, spheroid : Spheroid): MultibandTile = {
+  def getSum(mbT: MultibandTile, spheroid : Spheroid, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
     val multibandTile: MultibandTile = getEmptyMultibandArray(mbT)
 
     for(b <- 0 to mbT.bandCount-1){
       val singleBand = multibandTile.band(b).asInstanceOf[DoubleRawArrayTile]
       for(c <- 0 to multibandTile.cols-1){
         for(r <- 0 to multibandTile.rows-1){
-          singleBand.setDouble(c,r, getSum(b,c,r,mbT, spheroid))
+          singleBand.setDouble(c,r, getSum(b,c,r,mbT, spheroid, neigbours))
         }
       }
     }
@@ -79,9 +83,10 @@ object TimeGetisOrd {
 //    //getSum(multibandTile, new Spheroid())
 //  }
 
-  def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings, stats : StatsGlobal): MultibandTile = {
+  def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings, stats : StatsGlobal, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
     val spheroid = Spheroid(setting.weightRadius, setting.weightRadiusTime)
-    val RoW = getSum(multibandTile, spheroid)
+    val RoW = getSum(multibandTile, spheroid, neigbours)
+    println("End RoW")
 
     assert(multibandTile.cols==setting.layoutTileSize)
     assert(multibandTile.rows==setting.layoutTileSize)
@@ -92,6 +97,7 @@ object TimeGetisOrd {
     val W2 = Math.pow(spheroid.getSum(),2)
     val denominator = stats.gS*Math.sqrt((NW2-W2)/(stats.gN-1))
     assert(denominator>0)
+    println("End Denminator")
     RoW.mapBands((band:Int,tile:Tile)=>tile.mapDouble(x=>(x-MW)/denominator))
     RoW
   }
@@ -100,6 +106,8 @@ object TimeGetisOrd {
     val r = (f== -2147483648 ||f.isNaN || f.isNegInfinity || f.isInfinity)
     !r
   }
+
+
 
   def getGetisOrd(rdd : RDD[(SpatialKey, MultibandTile)], setting : Settings, origin : MultibandTile): Unit ={
     val keys = rdd.keys.collect().max //TODO
@@ -118,16 +126,19 @@ object TimeGetisOrd {
       //TODO if needed parrelisse
       st = getSTGlobal(origin)
     }
-
-
+    var counter = 0
+    val broadcast = SparkContext.getOrCreate(setting.conf).broadcast(rdd.collect())
     rdd.foreachPartition(iter=>{
       iter.foreach(x=>{
         var result : MultibandTile = null
-
+        counter += 1
+        println("Run for key:"+x._1.toString+" counter:"+counter)
         if(setting.focal){
           result = getMultibandFocalGetisOrd(x._2, setting)
+
         } else {
-          result = getMultibandGetisOrd(x._2, setting, st)
+          println("starated G*")
+          result = getMultibandGetisOrd(x._2, setting, st,getNeigbours(x._1,broadcast))
         }
         val extentForPartition = new Extent(
           setting.buttom._1+x._1._1*setting.layoutTileSize*setting.sizeOfRasterLon,
@@ -136,7 +147,12 @@ object TimeGetisOrd {
           setting.buttom._2+(x._1._2+1)*setting.layoutTileSize*setting.sizeOfRasterLat-1)
         val path = (new PathFormatter).getDirectory(setting, "partitions")
         println(path+x._1.toString+".tif")
-        (new ImportGeoTiff().writeMulitGeoTiff(result,extentForPartition,path+x._1.toString+".tif"))
+        if(result==null){
+          println("Result null, key:"+x._1.toString)
+        } else {
+          (new ImportGeoTiff().writeMulitGeoTiff(result,extentForPartition,path+x._1.toString+".tif"))
+        }
+
         result
       })
     })
@@ -157,29 +173,30 @@ object TimeGetisOrd {
     r
   }
 
-  def getNeigbours(key : SpatialKey, rdd : RDD[(SpatialKey, MultibandTile)]): scala.collection.immutable.List[(SpatialKey,MultibandTile)] ={
-
-    val max = rdd.keys.max
-    var seq  = scala.collection.immutable.List[(SpatialKey,MultibandTile)]()
+  def getNeigbours(key : SpatialKey, broadcast: Broadcast[Array[(SpatialKey, MultibandTile)]]): mutable.HashMap[SpatialKey,MultibandTile] ={
+    println("starated Neighbours*")
+    val max = broadcast.value.map(x=>x._1).max
+    var hashMap  = new mutable.HashMap[SpatialKey,MultibandTile]()
     for(i <- -1 to 1) {
       for (j <- -1 to 1) {
         val newKey = new SpatialKey(key._1 + i, key._2 + j)
         if(isInRange(newKey, max) && Math.abs(i)+Math.abs(j)!=0){
-          val lookUp = rdd.lookup(newKey)
-          seq = seq ++ lookUp.map(x=>(newKey,x))
+          val lookUp = broadcast.value.filter(y=>y._1==newKey)
+          lookUp.map(x=>hashMap.put(x._1,x._2))
         }
 
       }
     }
-    return seq
+    println("End Neighbours*")
+    return hashMap
   }
 
 }
 
-class StatsFocal(val gN : MultibandTile, val gM : MultibandTile, val gS :MultibandTile){
+class StatsFocal(val gN : MultibandTile, val gM : MultibandTile, val gS :MultibandTile) extends Serializable{
 
 }
 
-class StatsGlobal(val gN : Int, val gM : Double, val gS :Double){
+class StatsGlobal(val gN : Int, val gM : Double, val gS :Double) extends Serializable{
 
 }

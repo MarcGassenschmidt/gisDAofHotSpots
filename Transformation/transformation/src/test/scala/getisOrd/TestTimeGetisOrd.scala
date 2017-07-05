@@ -7,8 +7,11 @@ import geotrellis.raster.{ArrayMultibandTile, DoubleCellType, DoubleRawArrayTile
 import geotrellis.spark.SpatialKey
 import geotrellis.vector.{Extent, Line, Point, Polygon}
 import importExport.ImportGeoTiff
+import org.apache.spark.SparkContext
 import org.scalatest.FunSuite
 import parmeters.Settings
+
+import scala.collection.mutable
 
 /**
   * Created by marc on 03.07.17.
@@ -33,13 +36,15 @@ class TestTimeGetisOrd extends FunSuite {
   test("getMultibandGetisOrd") {
     val ownSettings = new Settings()
     ownSettings.focalRange = 5
+    ownSettings.layoutTileSize = 100
     val rnd = new Random(1)
     val bands = new Array[Tile](24)
     for(i <- 0 to 23){
       bands(i) = new DoubleRawArrayTile(Array.fill(10000)(rnd.nextInt(100)), 100, 100)
     }
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
-    val result = TimeGetisOrd.getMultibandGetisOrd(multiBand,ownSettings, TimeGetisOrd.getSTGlobal(multiBand))
+    var hashMap  = new mutable.HashMap[SpatialKey,MultibandTile]()
+    val result = TimeGetisOrd.getMultibandGetisOrd(multiBand,ownSettings, TimeGetisOrd.getSTGlobal(multiBand), hashMap)
     assert(result.bandCount==multiBand.bandCount)
     assert(result.rows==multiBand.rows)
     assert(result.band(0).getDouble(0,0)!=multiBand.band(0).getDouble(0,0))
@@ -68,12 +73,13 @@ class TestTimeGetisOrd extends FunSuite {
   test("getSum") {
     val spheroid = new Spheroid(2,1)
     val bands = new Array[Tile](24)
+
     for(i <- 0 to 23){
       bands(i) = new DoubleRawArrayTile(Array.fill(10000)(1.0), 100, 100)
     }
-
+    var hashMap  = new mutable.HashMap[SpatialKey,MultibandTile]()
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
-    val result = TimeGetisOrd.getSum(multiBand,spheroid)
+    val result = TimeGetisOrd.getSum(multiBand,spheroid, hashMap)
 
     val corner = 5
     val normal = spheroid.getSum()
@@ -97,15 +103,15 @@ class TestTimeGetisOrd extends FunSuite {
     val spheroid = new Spheroid(2,1)
     val corner = 5
     val normal = spheroid.getSum()
+    var hashMap  = new mutable.HashMap[SpatialKey,MultibandTile]()
+    assert(TimeGetisOrd.getSum(0,50,50,multiBand,spheroid, hashMap)==normal)
+    assert(TimeGetisOrd.getSum(0,0,0,multiBand,spheroid, hashMap)==corner)
 
-    assert(TimeGetisOrd.getSum(0,50,50,multiBand,spheroid)==normal)
-    assert(TimeGetisOrd.getSum(0,0,0,multiBand,spheroid)==corner)
+    assert(TimeGetisOrd.getSum(1,50,50,multiBand,spheroid, hashMap)==normal)
+    assert(TimeGetisOrd.getSum(1,0,0,multiBand,spheroid, hashMap)==corner)
 
-    assert(TimeGetisOrd.getSum(1,50,50,multiBand,spheroid)==normal)
-    assert(TimeGetisOrd.getSum(1,0,0,multiBand,spheroid)==corner)
-
-    assert(TimeGetisOrd.getSum(3,50,50,multiBand,spheroid)==normal)
-    assert(TimeGetisOrd.getSum(3,0,0,multiBand,spheroid)==corner)
+    assert(TimeGetisOrd.getSum(3,50,50,multiBand,spheroid, hashMap)==normal)
+    assert(TimeGetisOrd.getSum(3,0,0,multiBand,spheroid, hashMap)==corner)
   }
 
   test("getGetisOrd") {
@@ -113,6 +119,7 @@ class TestTimeGetisOrd extends FunSuite {
     val setting = new Settings
     setting.focal = false
     setting.test = true
+    setting.layoutTileSize = 50
     val rnd = new Random(1)
     val bands = new Array[Tile](24)
     for(i <- 0 to 23){
@@ -180,13 +187,14 @@ class TestTimeGetisOrd extends FunSuite {
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
     importTer.writeMulitGeoTiff(multiBand, setting, "/tmp/firstTimeBand.tif")
     val rdd = importTer.repartitionFiles("/tmp/firstTimeBand.tif", setting)
-    var r = TimeGetisOrd.getNeigbours(new SpatialKey(0,0), rdd)
+    val broadcast = SparkContext.getOrCreate(setting.conf).broadcast(rdd.collect())
+    var r = TimeGetisOrd.getNeigbours(new SpatialKey(0,0), broadcast)
     assert(r.size==3)
-    assert(r.map(x=>x._1).contains(new SpatialKey(1,0)))
-    assert(r.map(x=>x._1).contains(new SpatialKey(0,1)))
-    assert(r.map(x=>x._1).contains(new SpatialKey(1,1)))
-    
-    r = TimeGetisOrd.getNeigbours(new SpatialKey(1,1), rdd)
+    assert(r.contains(new SpatialKey(1,0)))
+    assert(r.contains(new SpatialKey(0,1)))
+    assert(r.contains(new SpatialKey(1,1)))
+
+    r = TimeGetisOrd.getNeigbours(new SpatialKey(1,1), broadcast)
     assert(r.size==8)
   }
 
