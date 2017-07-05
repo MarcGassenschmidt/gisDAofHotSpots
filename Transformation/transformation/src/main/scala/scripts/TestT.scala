@@ -18,7 +18,7 @@ object TestT {
     val importTer = new ImportGeoTiff()
 
     //writeBand(settings, dir, importTer)
-
+    settings.layoutTileSize = 348
     val rdd = importTer.repartitionFiles(dir+"firstTimeBand.tif", settings)
     val origin = importTer.getMulitGeoTiff(dir+"firstTimeBand.tif",settings)
     TimeGetisOrd.getGetisOrd(rdd, settings, origin)

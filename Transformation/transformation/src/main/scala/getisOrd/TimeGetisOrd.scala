@@ -23,48 +23,63 @@ object TimeGetisOrd {
   }
 
   def isInTile(x: Int, y: Int, mbT: MultibandTile): Boolean = {
-    x>0 && y>0 && x<mbT.cols && y < mbT.rows
+    x>=0 && y>=0 && x<mbT.cols && y < mbT.rows
   }
 
-  def getSum(b: Int, c: Int, r: Int, mbT: MultibandTile, spheroid : Spheroid, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): Double = {
+  def getSum(b: Int, c: Int, r: Int, mbT: MultibandTile, spheroid : Spheroid, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): Double = {
 
     val radius = spheroid.a
     val radiusTime = spheroid.c
     var sum : Double = 0.0
     for (x <- -radius to radius) {
       for (y <- -radius to radius) {
-        for(z <- -radiusTime to radiusTime)
+        for(z <- -radiusTime to radiusTime){
         if (spheroid.isInRange(x,y,z)) {
-          val cx = c+x
-          val ry = r+y
-          if(isInTile(c+x,r+y, mbT)){
-            var bz = (b+z) % 24
-            if(bz<0){
-              bz+=24
-            }
-            sum += mbT.band(bz).getDouble(cx,ry)
+          var cx = c + x
+          var ry = r + y
+          var bz = (b + z) % 24
+          if (bz < 0) {
+            bz += 24
+          }
+          if (isInTile(c + x, r + y, mbT)) {
+            sum += mbT.band(bz).getDouble(cx, ry)
           } else {
 
-          }
 
+            val xShift = if (mbT.cols - 1 < cx) 1 else if (cx < 0) -1 else 0
+            val yShift = if (mbT.rows - 1 < ry) 1 else if (ry < 0) -1 else 0
+            if (neigbours.contains((position._1 + xShift, position._2 + yShift))) {
+              cx = cx % (mbT.cols - 1)
+              if (cx < 0) {
+                cx += mbT.cols
+              }
+              ry = ry % (mbT.rows - 1)
+              if (ry < 0) {
+                ry += mbT.rows
+              }
+              sum += neigbours.get((position._1 + xShift, position._2 + yShift)).get.band(bz).getDouble(cx, ry)
+            }
+          }
+        }
         }
       }
     }
     sum
   }
 
-  def getSum(mbT: MultibandTile, spheroid : Spheroid, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
+  def getSum(mbT: MultibandTile, spheroid : Spheroid, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
     val multibandTile: MultibandTile = getEmptyMultibandArray(mbT)
 
     for(b <- 0 to mbT.bandCount-1){
       val singleBand = multibandTile.band(b).asInstanceOf[DoubleRawArrayTile]
       for(c <- 0 to multibandTile.cols-1){
         for(r <- 0 to multibandTile.rows-1){
-          singleBand.setDouble(c,r, getSum(b,c,r,mbT, spheroid, neigbours))
+          singleBand.setDouble(c,r, getSum(b,c,r,mbT, spheroid, position, neigbours))
         }
       }
     }
     multibandTile
+
 
   }
 
@@ -83,9 +98,9 @@ object TimeGetisOrd {
 //    //getSum(multibandTile, new Spheroid())
 //  }
 
-  def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings, stats : StatsGlobal, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
+  def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings, stats : StatsGlobal,position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
     val spheroid = Spheroid(setting.weightRadius, setting.weightRadiusTime)
-    val RoW = getSum(multibandTile, spheroid, neigbours)
+    val RoW = getSum(multibandTile, spheroid, position,neigbours)
     println("End RoW")
 
     assert(multibandTile.cols==setting.layoutTileSize)
@@ -138,7 +153,7 @@ object TimeGetisOrd {
 
         } else {
           println("starated G*")
-          result = getMultibandGetisOrd(x._2, setting, st,getNeigbours(x._1,broadcast))
+          result = getMultibandGetisOrd(x._2, setting, st,x._1,getNeigbours(x._1,broadcast))
         }
         val extentForPartition = new Extent(
           setting.buttom._1+x._1._1*setting.layoutTileSize*setting.sizeOfRasterLon,
