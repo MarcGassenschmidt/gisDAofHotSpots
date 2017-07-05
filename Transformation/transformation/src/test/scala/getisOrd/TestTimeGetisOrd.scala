@@ -3,7 +3,7 @@ package getisOrd
 import java.util.Random
 
 import geotrellis.Spheroid
-import geotrellis.raster.{ArrayMultibandTile, DoubleCellType, DoubleRawArrayTile, MultibandTile, Raster, Tile}
+import geotrellis.raster.{ArrayMultibandTile, ArrayTile, DoubleCellType, DoubleRawArrayTile, MultibandTile, Raster, Tile}
 import geotrellis.spark.SpatialKey
 import geotrellis.vector.{Extent, Line, Point, Polygon}
 import importExport.ImportGeoTiff
@@ -27,7 +27,9 @@ class TestTimeGetisOrd extends FunSuite {
       bands(i) = new DoubleRawArrayTile(Array.fill(10000)(rnd.nextInt(100)), 100, 100)
     }
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
-    val result = TimeGetisOrd.getMultibandFocalGetisOrd(multiBand,ownSettings)
+    var hashMap  = new mutable.HashMap[SpatialKey,MultibandTile]()
+    var myKey = new SpatialKey(0,0)
+    val result = TimeGetisOrd.getMultibandFocalGetisOrd(multiBand,ownSettings, myKey,hashMap)
     assert(result.bandCount==multiBand.bandCount)
     assert(result.rows==multiBand.rows)
     assert(result.band(0).getDouble(0,0)!=multiBand.band(0).getDouble(0,0))
@@ -166,7 +168,7 @@ class TestTimeGetisOrd extends FunSuite {
     var result = TimeGetisOrd.getGetisOrd(rdd,setting, multiBand)
     setting.focal = true
     result = TimeGetisOrd.getGetisOrd(rdd,setting, multiBand)
-    //TODO
+
   }
 
   test("polygonalSumDouble test"){
@@ -232,6 +234,7 @@ class TestTimeGetisOrd extends FunSuite {
     r = TimeGetisOrd.getNeigbours(new SpatialKey(1,1), broadcast)
     assert(r.size==8)
   }
+
 
 
 }

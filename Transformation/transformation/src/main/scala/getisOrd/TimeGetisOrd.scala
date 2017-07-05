@@ -18,7 +18,7 @@ import scala.collection.mutable
   */
 object TimeGetisOrd {
 
-  def getMultibandFocalGetisOrd(multibandTile: MultibandTile, setting: Settings): MultibandTile = {
+  def getMultibandFocalGetisOrd(multibandTile: MultibandTile, setting: Settings, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
     null
   }
 
@@ -111,7 +111,12 @@ object TimeGetisOrd {
     val NW2 = stats.gN*spheroid.getSum() //W entry is allways 1
     val W2 = Math.pow(spheroid.getSum(),2)
     val denominator = stats.gS*Math.sqrt((NW2-W2)/(stats.gN-1))
-    assert(denominator>0)
+    //TODO
+    //assert(denominator>0)
+    if(denominator>0){
+      println(denominator+","+position.toString+","+stats.toString)
+
+    }
     println("End Denminator")
     RoW.mapBands((band:Int,tile:Tile)=>tile.mapDouble(x=>(x-MW)/denominator))
     RoW
@@ -142,14 +147,16 @@ object TimeGetisOrd {
       st = getSTGlobal(origin)
     }
     var counter = 0
+    println("calcualted stats")
     val broadcast = SparkContext.getOrCreate(setting.conf).broadcast(rdd.collect())
+    println("broadcast ended")
     rdd.foreachPartition(iter=>{
       iter.foreach(x=>{
         var result : MultibandTile = null
         counter += 1
         println("Run for key:"+x._1.toString+" counter:"+counter)
         if(setting.focal){
-          result = getMultibandFocalGetisOrd(x._2, setting)
+          result = getMultibandFocalGetisOrd(x._2, setting,x._1,getNeigbours(x._1,broadcast))
 
         } else {
           println("starated G*")
@@ -164,8 +171,11 @@ object TimeGetisOrd {
         println(path+x._1.toString+".tif")
         if(result==null){
           println("Result null, key:"+x._1.toString)
+        } else if(setting.test) {
+          println("Test no need to write, if needed change to no test?")
         } else {
-          (new ImportGeoTiff().writeMulitGeoTiff(result,extentForPartition,path+x._1.toString+".tif"))
+            //(new ImportGeoTiff().writeMulitGeoTiff(result,extentForPartition,path+x._1.toString+".tif"))
+            (new ImportGeoTiff().writeMulitTimeGeoTiffToSingle(result,extentForPartition,path+x._1.toString))
         }
 
         result
@@ -213,5 +223,5 @@ class StatsFocal(val gN : MultibandTile, val gM : MultibandTile, val gS :Multiba
 }
 
 class StatsGlobal(val gN : Int, val gM : Double, val gS :Double) extends Serializable{
-
+  override def toString: String = "stats(N,M,S):("+gN+","+gM+","+gS+")"
 }

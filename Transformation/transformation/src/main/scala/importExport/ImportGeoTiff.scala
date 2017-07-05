@@ -88,7 +88,12 @@ class ImportGeoTiff {
   }
 
   def writeMulitGeoTiff(tile: MultibandTile, extent :Extent, file : String): Unit = {
-
     MultibandGeoTiff.apply(tile, extent,crs).write(file)
+  }
+
+  def writeMulitTimeGeoTiffToSingle(tile: MultibandTile, extent :Extent, file : String): Unit = {
+    for(i <- 0 to tile.bandCount-1){
+      SinglebandGeoTiff.apply(tile.band(i), extent, crs).write(file+"_hour_"+i.formatted("%02d")+".tif")
+    }
   }
 }
