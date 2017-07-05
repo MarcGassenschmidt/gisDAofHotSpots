@@ -4,6 +4,7 @@ import java.util.Random
 
 import geotrellis.Spheroid
 import geotrellis.raster.{ArrayMultibandTile, DoubleCellType, DoubleRawArrayTile, MultibandTile, Raster, Tile}
+import geotrellis.spark.SpatialKey
 import geotrellis.vector.{Extent, Line, Point, Polygon}
 import importExport.ImportGeoTiff
 import org.scalatest.FunSuite
@@ -163,6 +164,30 @@ class TestTimeGetisOrd extends FunSuite {
     assert(st.gN == 24*100*100)
     assert(st.gM == multiBand.bands.map(x=>x.toArrayDouble().reduce(_+_)).reduce(_+_)/st.gN)
     assert(st.gS > 0)
+  }
+
+  test("lookup"){
+    val importTer = new ImportGeoTiff()
+    val setting = new Settings
+    setting.focal = false
+    setting.test = true
+    val rnd = new Random(1)
+    val bands = new Array[Tile](24)
+    for(i <- 0 to 23){
+      bands(i) = new DoubleRawArrayTile(Array.fill(10000)(rnd.nextInt(100)), 100, 100)
+    }
+    setting.layoutTileSize = 10
+    val multiBand : MultibandTile = new ArrayMultibandTile(bands)
+    importTer.writeMulitGeoTiff(multiBand, setting, "/tmp/firstTimeBand.tif")
+    val rdd = importTer.repartitionFiles("/tmp/firstTimeBand.tif", setting)
+    var r = TimeGetisOrd.getNeigbours(new SpatialKey(0,0), rdd)
+    assert(r.size==3)
+    assert(r.map(x=>x._1).contains(new SpatialKey(1,0)))
+    assert(r.map(x=>x._1).contains(new SpatialKey(0,1)))
+    assert(r.map(x=>x._1).contains(new SpatialKey(1,1)))
+    
+    r = TimeGetisOrd.getNeigbours(new SpatialKey(1,1), rdd)
+    assert(r.size==8)
   }
 
 

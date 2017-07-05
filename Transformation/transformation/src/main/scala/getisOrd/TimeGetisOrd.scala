@@ -8,7 +8,7 @@ import importExport.{ImportGeoTiff, PathFormatter}
 import org.apache.spark.rdd.RDD
 import parmeters.Settings
 
-import scalaz.Alpha.M
+import scala.collection.immutable.LinearSeq
 
 /**
   * Created by marc on 03.07.17.
@@ -152,7 +152,27 @@ object TimeGetisOrd {
     new StatsGlobal(gN,gM,gS)
   }
 
+  def isInRange(newKey: SpatialKey, max : SpatialKey): Boolean = {
+    val r = newKey._2>=0 && newKey._1>=0 && newKey._1<=max._1 && newKey._2<=max._2
+    r
+  }
 
+  def getNeigbours(key : SpatialKey, rdd : RDD[(SpatialKey, MultibandTile)]): scala.collection.immutable.List[(SpatialKey,MultibandTile)] ={
+
+    val max = rdd.keys.max
+    var seq  = scala.collection.immutable.List[(SpatialKey,MultibandTile)]()
+    for(i <- -1 to 1) {
+      for (j <- -1 to 1) {
+        val newKey = new SpatialKey(key._1 + i, key._2 + j)
+        if(isInRange(newKey, max) && Math.abs(i)+Math.abs(j)!=0){
+          val lookUp = rdd.lookup(newKey)
+          seq = seq ++ lookUp.map(x=>(newKey,x))
+        }
+
+      }
+    }
+    return seq
+  }
 
 }
 
