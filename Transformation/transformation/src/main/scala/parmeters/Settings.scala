@@ -28,13 +28,13 @@ class Settings extends Serializable with Cloneable{
   var rasterLatLength = ((latMax-latMin)/sizeOfRasterLat).ceil.toInt
   var rasterLonLength = ((lonMax-lonMin)/sizeOfRasterLon).ceil.toInt
   var weightMatrix = Weight.Square
-  var weightRadius = 30
-  var weightRadiusTime = 3
+  var weightRadius = 20
+  var weightRadiusTime = 2
   var fromFile = false
   var clusterRange = 1.0
   var critivalValue = 5
   var focal = false
-  var focalRange = weightRadius+60
+  var focalRange = weightRadius+20
   var focalRangeTime = weightRadiusTime+1
   var parent = true
   var inputDirectory = "/home/marc/Masterarbeit/outPut/raster"

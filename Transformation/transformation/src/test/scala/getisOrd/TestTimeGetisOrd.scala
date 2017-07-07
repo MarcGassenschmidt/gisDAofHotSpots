@@ -18,7 +18,7 @@ import scala.collection.mutable
   */
 class TestTimeGetisOrd extends FunSuite {
 
-  ignore("getMultibandFocalGetisOrd") {
+  test("getMultibandFocalGetisOrd") {
     val ownSettings = new Settings()
     ownSettings.focalRange = 5
     val rnd = new Random(1)
@@ -33,6 +33,61 @@ class TestTimeGetisOrd extends FunSuite {
     assert(result.bandCount==multiBand.bandCount)
     assert(result.rows==multiBand.rows)
     assert(result.band(0).getDouble(0,0)!=multiBand.band(0).getDouble(0,0))
+  }
+
+  test("test getSd"){
+    val getSetupResult: (Spheroid, MultibandTile, mutable.HashMap[SpatialKey, MultibandTile], SpatialKey) = getSetup
+    val spheroid: Spheroid = getSetupResult._1
+    val multiBand: MultibandTile = getSetupResult._2
+    var hashMap: mutable.HashMap[SpatialKey, MultibandTile] = getSetupResult._3
+    var myKey: SpatialKey = getSetupResult._4
+
+    var mean = 1
+    val r = TimeGetisOrd.getSD(0,10,10, multiBand, spheroid, myKey, hashMap, 1)
+
+
+    assert(r == Math.sqrt((1.0/(spheroid.getSum().toDouble-1.0))*spheroid.getSum().toDouble))
+  }
+
+  def getSetup: (Spheroid, MultibandTile, mutable.HashMap[SpatialKey, MultibandTile], SpatialKey) = {
+    val ownSettings = new Settings()
+    ownSettings.focalRange = 5
+    val rnd = new Random(1)
+    val bands = new Array[Tile](24)
+    val spheroid = new Spheroid(2, 1)
+    for (i <- 0 to 23) {
+      bands(i) = new DoubleRawArrayTile(Array.fill(10000)(2), 100, 100)
+    }
+    val multiBand: MultibandTile = new ArrayMultibandTile(bands)
+    var hashMap = new mutable.HashMap[SpatialKey, MultibandTile]()
+    var myKey = new SpatialKey(0, 0)
+    (spheroid, multiBand, hashMap, myKey)
+  }
+
+  test("test getNM"){
+    val getSetupResult: (Spheroid, MultibandTile, mutable.HashMap[SpatialKey, MultibandTile], SpatialKey) = getSetup
+    val spheroid: Spheroid = getSetupResult._1
+    val multiBand: MultibandTile = getSetupResult._2
+    var hashMap: mutable.HashMap[SpatialKey, MultibandTile] = getSetupResult._3
+    var myKey: SpatialKey = getSetupResult._4
+
+    val r = TimeGetisOrd.getNM(0,10,10, multiBand, spheroid, myKey, hashMap)
+    assert(r._1==spheroid.getSum())
+    assert(r._2==2)
+  }
+
+  test("getStatsFocal"){
+    val getSetupResult: (Spheroid, MultibandTile, mutable.HashMap[SpatialKey, MultibandTile], SpatialKey) = getSetup
+    val spheroidWeight: Spheroid = getSetupResult._1
+//    val spheroidFocal: Spheroid = new Spheroid(spheroidWeight.a+2,spheroidWeight.c+1)
+    val multiBand: MultibandTile = getSetupResult._2
+    var hashMap: mutable.HashMap[SpatialKey, MultibandTile] = getSetupResult._3
+    var myKey: SpatialKey = getSetupResult._4
+
+    val corner = TimeGetisOrd.getRMWNW2(0,0,0,multiBand, spheroidWeight,myKey, hashMap, (10,1))
+    val normal = TimeGetisOrd.getRMWNW2(0,10,10,multiBand, spheroidWeight,myKey, hashMap, (10,1))
+    assert(corner.equals(new StatsRNMW(2*16,10,1,16,16*10,16*16)))
+    assert(normal.equals(new StatsRNMW(spheroidWeight.getSum()*2,10,1,spheroidWeight.getSum(),10*spheroidWeight.getSum(),Math.pow(spheroidWeight.getSum(),2))))
   }
 
   test("getMultibandGetisOrd") {
