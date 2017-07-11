@@ -93,7 +93,7 @@ class TestTimeGetisOrd extends FunSuite {
   test("getMultibandGetisOrd") {
     val ownSettings = new Settings()
     ownSettings.focalRange = 5
-    ownSettings.layoutTileSize = 100
+    ownSettings.layoutTileSize = (50,50)
     val rnd = new Random(1)
     val bands = new Array[Tile](24)
     for(i <- 0 to 23){
@@ -211,17 +211,25 @@ class TestTimeGetisOrd extends FunSuite {
     val setting = new Settings
     setting.focal = false
     setting.test = true
-    setting.layoutTileSize = 50
+    setting.layoutTileSize = (50,30)
     val rnd = new Random(1)
     val bands = new Array[Tile](24)
     for(i <- 0 to 23){
-      bands(i) = new DoubleRawArrayTile(Array.fill(10000)(rnd.nextInt(100)), 100, 100)
+      bands(i) = new DoubleRawArrayTile(Array.fill(90*100)(rnd.nextInt(100)), 100, 90)
     }
-    val multiBand : MultibandTile = new ArrayMultibandTile(bands)
-    importTer.writeMulitGeoTiff(multiBand, setting, "/tmp/firstTimeBand.tif")
-    val rdd = importTer.repartitionFiles("/tmp/firstTimeBand.tif", setting)
+
+    var multiBand : MultibandTile = new ArrayMultibandTile(bands)
+    importTer.writeMultiGeoTiff(multiBand, setting, "/tmp/firstTimeBand.tif")
+    var rdd = importTer.repartitionFiles("/tmp/firstTimeBand.tif", setting)
     var result = TimeGetisOrd.getGetisOrd(rdd,setting, multiBand)
     setting.focal = true
+    setting.layoutTileSize = (6,5)
+    for(i <- 0 to 23){
+      bands(i) = new DoubleRawArrayTile(Array.fill(10*12)(rnd.nextInt(100)), 10, 12)
+    }
+    multiBand = new ArrayMultibandTile(bands)
+    importTer.writeMultiGeoTiff(multiBand, setting, "/tmp/firstTimeBand.tif")
+    rdd = importTer.repartitionFiles("/tmp/firstTimeBand.tif", setting)
     result = TimeGetisOrd.getGetisOrd(rdd,setting, multiBand)
 
   }
@@ -249,7 +257,7 @@ class TestTimeGetisOrd extends FunSuite {
 
     }
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
-    multiBand.bands.map(x=>x.toArrayDouble().filter(f=>TimeGetisOrd.filterNoData(f))).foreach(x=>x.foreach(y=>assert(y>0)))
+    multiBand.bands.map(x=>x.toArrayDouble().filter(f=>TimeGetisOrd.isNotNaN(f))).foreach(x=>x.foreach(y=>assert(y>0)))
   }
 
   test("stats global"){
@@ -275,9 +283,9 @@ class TestTimeGetisOrd extends FunSuite {
     for(i <- 0 to 23){
       bands(i) = new DoubleRawArrayTile(Array.fill(10000)(rnd.nextInt(100)), 100, 100)
     }
-    setting.layoutTileSize = 10
+    setting.layoutTileSize = (10,10)
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
-    importTer.writeMulitGeoTiff(multiBand, setting, "/tmp/firstTimeBand.tif")
+    importTer.writeMultiGeoTiff(multiBand, setting, "/tmp/firstTimeBand.tif")
     val rdd = importTer.repartitionFiles("/tmp/firstTimeBand.tif", setting)
     val broadcast = SparkContext.getOrCreate(setting.conf).broadcast(rdd.collect())
     var r = TimeGetisOrd.getNeigbours(new SpatialKey(0,0), broadcast)

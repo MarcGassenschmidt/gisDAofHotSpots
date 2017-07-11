@@ -9,7 +9,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import parmeters.Settings
-
+import timeUtils.MultibandUtils
 
 import scala.collection.mutable
 
@@ -25,11 +25,12 @@ object TimeGetisOrd {
     val radiusTime = spheroidFocal.c
     val FocalGStar: MultibandTile = getEmptyMultibandArray(mbT)
     for (r <- 0 to mbT.rows - 1) {
+      print("Next r:"+r)
       for (c <- 0 to mbT.cols - 1) {
         for (b <- 0 to mbT.bandCount - 1) {
           val RMWNW2 = getRMWNW2(b, c, r, mbT, spheroidWeight, position, neigbours, getNM(b, c, r, mbT, spheroidFocal, position, neigbours))
           val sd = getSD(b, c, r, mbT, spheroidFocal, position, neigbours, RMWNW2.M)
-          FocalGStar.band(b).asInstanceOf[DoubleRawArrayTile].setDouble(r,c,RMWNW2.getGStar(sd))
+          FocalGStar.band(b).asInstanceOf[DoubleRawArrayTile].setDouble(c,r,RMWNW2.getGStar(sd))
         }
       }
     }
@@ -37,9 +38,7 @@ object TimeGetisOrd {
   }
 
 
-  def isInTile(x: Int, y: Int, mbT: MultibandTile): Boolean = {
-    x>=0 && y>=0 && x<mbT.cols && y < mbT.rows
-  }
+
 
   def getSD(b: Int, c: Int, r: Int, mbT: MultibandTile, spheroid : Spheroid, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile], mean : Double): Double = {
     val radius = spheroid.a
@@ -56,7 +55,7 @@ object TimeGetisOrd {
             if (bz < 0) {
               bz += 24
             }
-            if (isInTile(c + x, r + y, mbT)) {
+            if (MultibandUtils.isInTile(c + x, r + y, mbT)) {
               sd += Math.pow(mbT.band(bz).getDouble(cx, ry)-mean,2)
               n += 1
             } else {
@@ -97,7 +96,7 @@ object TimeGetisOrd {
             if (bz < 0) {
               bz += 24
             }
-            if (isInTile(c + x, r + y, mbT)) {
+            if (MultibandUtils.isInTile(c + x, r + y, mbT)) {
               row += mbT.band(bz).getDouble(cx, ry)
               wSum += 1
             } else {
@@ -142,7 +141,7 @@ object TimeGetisOrd {
             if (bz < 0) {
               bz += 24
             }
-            if (isInTile(c + x, r + y, mbT)) {
+            if (MultibandUtils.isInTile(c + x, r + y, mbT)) {
               sum += mbT.band(bz).getDouble(cx, ry)
               count += 1
             } else {
@@ -182,7 +181,7 @@ object TimeGetisOrd {
           if (bz < 0) {
             bz += 24
           }
-          if (isInTile(c + x, r + y, mbT)) {
+          if (MultibandUtils.isInTile(c + x, r + y, mbT)) {
             sum += mbT.band(bz).getDouble(cx, ry)
           } else {
 
@@ -229,20 +228,20 @@ object TimeGetisOrd {
     val size = mbT.size
     var bandArray = new Array[Tile](bands)
     for (b <- 0 to bands-1) {
-      bandArray(b) = new DoubleRawArrayTile(Array.fill(size)(0), mbT.rows, mbT.cols)
+      bandArray(b) = new DoubleRawArrayTile(Array.fill(size)(0), mbT.cols, mbT.rows)
     }
     val multibandTile = MultibandTile.apply(bandArray)
     multibandTile
   }
 
-  def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings, stats : StatsGlobal,position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
+  def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings, stats : StatsGlobal, position : SpatialKey, neighbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
     val spheroid = Spheroid(setting.weightRadius, setting.weightRadiusTime)
-    val RoW = getSum(multibandTile, spheroid, position,neigbours)
+    val RoW = getSum(multibandTile, spheroid, position,neighbours)
     println("End RoW")
 
-    assert(multibandTile.cols==setting.layoutTileSize)
-    assert(multibandTile.rows==setting.layoutTileSize)
-    val extent = new Extent(0,0,setting.layoutTileSize, setting.layoutTileSize)
+    assert(multibandTile.cols==setting.layoutTileSize._1)
+    assert(multibandTile.rows==setting.layoutTileSize._2)
+    val extent = new Extent(0,0,setting.layoutTileSize._1, setting.layoutTileSize._2)
 
     val MW = stats.gM*spheroid.getSum() //W entry is allways 1
     val NW2 = stats.gN*spheroid.getSum() //W entry is allways 1
@@ -258,14 +257,14 @@ object TimeGetisOrd {
     RoW.mapBands((band:Int,tile:Tile)=>tile.mapDouble(x=>(x-MW)/denominator))
   }
 
-  def filterNoData(f: Double): Boolean = {
+  def isNotNaN(f: Double): Boolean = {
     val r = (f== -2147483648 ||f.isNaN || f.isNegInfinity || f.isInfinity)
     !r
   }
 
 
 
-  def getGetisOrd(rdd : RDD[(SpatialKey, MultibandTile)], setting : Settings, origin : MultibandTile): Unit ={
+  def getGetisOrd(rdd : RDD[(SpatialKey, MultibandTile)], setting : Settings, origin : MultibandTile): MultibandTile ={
     val keys = rdd.keys.collect().max
     val keyCount = rdd.keys.count()
     val band = rdd.first()._2.band(0)
@@ -307,18 +306,25 @@ object TimeGetisOrd {
 //        }
         println("Finsished:"+x._1.toString+" counter:"+counter)
         (x._1,result)
-    }).stitch()
+    })
+    val n = tiles.count()
+    print("Counter:"+n)
+    tiles.collect().map(x=>println("c,r"+x._2.cols+","+x._2.rows))
+    val raster = tiles.stitch()
+    println("Raster,c,r"+raster.cols+","+raster.rows)
     val path = (new PathFormatter).getDirectory(setting, "partitions")
-    (new ImportGeoTiff().writeMulitGeoTiff(tiles,setting,path+"all.tif"))
+    //(new ImportGeoTiff().writeMulitGeoTiff(tiles,setting,path+"all.tif"))
+    (new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(raster,setting,path+"all.tif"))
+    raster
   }
 
   def getSTGlobal(origin : MultibandTile): StatsGlobal = {
     val gN = (origin.bandCount * origin.rows * origin.cols)
 
-    val gM = origin.bands.map(x => x.toArrayDouble().filter(x => filterNoData(x)).reduce(_ + _)).reduce(_ + _)/gN
+    val gM = origin.bands.map(x => x.toArrayDouble().filter(x => isNotNaN(x)).reduce(_ + _)).reduce(_ + _)/gN
 
-    val singelSDBand = origin.bands.map(x => x.toArrayDouble().filter(x => filterNoData(x)).map(x => Math.pow(x - gM, 2)).reduce(_ + _))
-    val gS = Math.sqrt(singelSDBand.reduce(_ + _) * (1.0 / (gN.toDouble - 1.0)))
+    val singelSDBand = origin.bands.map(x => x.toArrayDouble().filter(x => isNotNaN(x)).map(x => Math.pow(x - gM, 2)).reduce(_ + _))
+    val gS = Math.sqrt((singelSDBand.reduce(_ + _)) * (1.0 / (gN.toDouble - 1.0)))
     new StatsGlobal(gN,gM,gS)
   }
 
@@ -357,7 +363,15 @@ class StatsRNMW(val RoW : Double, val N : Double, val M : Double, val MW : Doubl
   }
 
   def getGStar(sd : Double) : Double = {
-    getNominator()/getDenominator(sd)
+    if(sd==0){
+      return 0
+    }
+    val r = getNominator()/getDenominator(sd)
+    if(TimeGetisOrd.isNotNaN(r)){
+      return r
+    } else {
+      return 1
+    }
   }
 
   override def equals(obj: scala.Any): Boolean = {

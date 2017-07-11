@@ -2,13 +2,17 @@ package getisOrd
 
 import clustering.ClusterRelations
 import export.TileVisualizer
-import geotrellis.raster.Tile
+import geotrellis.{Spheroid, SpheroidHelper}
+import geotrellis.raster.{MultibandTile, Tile}
 import parmeters.Settings
+import timeUtils.MultibandUtils
+
+import scala.collection.mutable
 
 /**
   * Created by marc on 09.05.17.
   */
-class SoH {
+object SoH {
   def getSoHDowAndUp(parent : Tile, child : Tile): (Double, Double) ={
      val sohAll = getSoHDowAndUp((parent,parent.toArray().distinct.length-1), (child,child.toArray().distinct.length-1))
      var result = (sohAll._1,sohAll._2)
@@ -22,6 +26,40 @@ class SoH {
       return (result._1,0)
     }
     return result
+  }
+
+  def getJaccardIndex(parent : MultibandTile, child :MultibandTile): Double ={
+    val intersect = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(parent,child)._1
+    var histogrammParent = MultibandUtils.getHistogramInt(parent)
+    var histogrammChild = MultibandUtils.getHistogramInt(child)
+    val union = histogrammChild.merge(histogrammParent).totalCount()
+    intersect/union.toDouble
+  }
+
+  def measureStructure(tile : MultibandTile): Double ={
+    val values = tile.bands.map(t => t.toArray()).flatten.map(i => i)
+    val occurences = values.groupBy(k => k)
+    val mean = occurences.map(x=> x._2.size).reduce(_+_)/occurences.size
+    val map = new mutable.HashMap[Int,Double]()
+    val spheroidArray = new Array[Spheroid](24)
+    for(i <- 0 to spheroidArray.length-1){
+      spheroidArray(i) = SpheroidHelper.getSpheroidWithSum(mean,i)
+    }
+    for(b <- 0 to tile.bandCount-1){
+      for(r <- 0 to tile.rows-1){
+        for(c <- 0 to tile.cols-1){
+          val value = tile.band(b).get(c,r)
+          if(value != 0 && !map.contains(value)){
+            var maxPercent = 0.0
+            for(i <- 0 to spheroidArray.length-1){
+                maxPercent = Math.max(spheroidArray(i).clusterPercent(value,tile,b,r,c),maxPercent)
+            }
+            map.put(value,maxPercent)
+          }
+        }
+      }
+    }
+    map.map(x=>x._2).reduce(_+_)/map.size
   }
 
   private def getSoHDowAndUp(parent : (Tile,Int), child : (Tile,Int)): (Double, Double, Double, Double) ={

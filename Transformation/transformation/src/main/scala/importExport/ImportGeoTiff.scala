@@ -52,13 +52,13 @@ class ImportGeoTiff {
     val inputRdd: RDD[(ProjectedExtent, MultibandTile)] =
       sc.hadoopMultibandGeoTiffRDD(file)
 
-    val layoutScheme = FloatingLayoutScheme(setting.layoutTileSize)
+    val layoutScheme = FloatingLayoutScheme(setting.layoutTileSize._1,setting.layoutTileSize._2)
     val (_, rasterMetaData) =
       TileLayerMetadata.fromRdd(inputRdd, crs, layoutScheme)
     val tiled: RDD[(SpatialKey, MultibandTile)] =
       inputRdd
         .tileToLayout(rasterMetaData.cellType, rasterMetaData.layout, NearestNeighbor)
-        .repartition(16)
+        .repartition(4)
     tiled
   }
 
@@ -72,28 +72,28 @@ class ImportGeoTiff {
     writeGeoTiff(tile, settings, name)
   }
 
-  def writeMulitGeoTiff(tile: MultibandTile, settings: Settings, i : Int, runs : Int, extra : String): Unit = {
+  def writeMultiGeoTiff(tile: MultibandTile, settings: Settings, i : Int, runs : Int, extra : String): Unit = {
     val name = getFileName(settings, i, runs, extra)
     println("--------------------------------------------------------------------------------------------"+name)
-    writeMulitGeoTiff(tile, settings, name)
+    writeMultiGeoTiff(tile, settings, name)
   }
 
   def writeGeoTiff(tile: Tile, para: Settings, file : String): Unit = {
-    writeMulitGeoTiff(MultibandTile(Array(tile)),para,file)
+    writeMultiGeoTiff(MultibandTile(Array(tile)),para,file)
   }
 
-  def writeMulitGeoTiff(tile: MultibandTile, para: Settings, file : String): Unit = {
-    MultibandGeoTiff.apply(tile, new Extent(para.buttom._1,para.buttom._2,para.top._1,para.top._2),
-      crs).write(file)
+  def writeMultiGeoTiff(tile: MultibandTile, para: Settings, file : String): Unit = {
+    val extent = new Extent(para.buttom._1,para.buttom._2,para.top._1,para.top._2)
+    writeMultiGeoTiff(tile,extent, file)
   }
 
-  def writeMulitGeoTiff(tile: MultibandTile, extent :Extent, file : String): Unit = {
+  def writeMultiGeoTiff(tile: MultibandTile, extent :Extent, file : String): Unit = {
     MultibandGeoTiff.apply(tile, extent,crs).write(file)
   }
 
-  def writeMulitTimeGeoTiffToSingle(tile: MultibandTile, extent :Extent, file : String): Unit = {
+  def writeMultiTimeGeoTiffToSingle(tile: MultibandTile, para: Settings, file : String): Unit = {
     for(i <- 0 to tile.bandCount-1){
-      SinglebandGeoTiff.apply(tile.band(i), extent, crs).write(file+"_hour_"+i.formatted("%02d")+".tif")
+      SinglebandGeoTiff.apply(tile.band(i), new Extent(para.buttom._1,para.buttom._2,para.top._1,para.top._2), crs).write(file+"hour_"+i.formatted("%02d")+".tif")
     }
   }
 }

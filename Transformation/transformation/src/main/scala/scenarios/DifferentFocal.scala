@@ -125,8 +125,8 @@ class DifferentFocal extends GenericScenario{
     println("End Visual Cluster")
 
 
-    val soh = new SoH()
-    val sohVal :(Double,Double) = soh.getSoHDowAndUp((clusterParent),(clusterChild))
+
+    val sohVal :(Double,Double) = SoH.getSoHDowAndUp((clusterParent),(clusterChild))
     (globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), sohVal,
       (3+i*6, //Just lat for export
         3+(i+1)*6)) //Just lat for export

@@ -1,5 +1,6 @@
 package scripts
 
+import clustering.ClusterHotSpotsTime
 import getisOrd.TimeGetisOrd
 import importExport.{ImportGeoTiff, PathFormatter}
 import parmeters.Settings
@@ -18,15 +19,24 @@ object TestT {
     val importTer = new ImportGeoTiff()
 
     //writeBand(settings, dir, importTer)
-    settings.layoutTileSize = 348
-    val rdd = importTer.repartitionFiles(dir+"firstTimeBand.tif", settings)
     val origin = importTer.getMulitGeoTiff(dir+"firstTimeBand.tif",settings)
-    TimeGetisOrd.getGetisOrd(rdd, settings, origin)
+
+    settings.layoutTileSize = (origin.cols/4,origin.rows/4)
+    val rdd = importTer.repartitionFiles(dir+"firstTimeBand.tif", settings)
+
+    (new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(origin,settings,path+"raster.tif"))
+    //TimeGetisOrd.getGetisOrd(rdd, settings, origin)
+    settings.focal = true
+    var r = TimeGetisOrd.getGetisOrd(rdd, settings, origin)
+    var clusterHotSpotsTime = new ClusterHotSpotsTime(r)
+    println("Clustering")
+    val hotSpots = clusterHotSpotsTime.findClusters(1.9,5)
+    (new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(origin,settings,path+"hotspots.tif"))
   }
 
   def writeBand(settings: Settings, dir: String, importTer: ImportGeoTiff): Unit = {
     val transform = new Transformation()
     val mulitBand = transform.transformCSVtoTimeRaster(settings)
-    importTer.writeMulitGeoTiff(mulitBand, settings, dir + "firstTimeBand.tif")
+    importTer.writeMultiGeoTiff(mulitBand, settings, dir + "firstTimeBand.tif")
   }
 }

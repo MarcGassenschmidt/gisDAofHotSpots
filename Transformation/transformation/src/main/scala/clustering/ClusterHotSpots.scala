@@ -130,25 +130,9 @@ class ClusterHotSpots(tile : Tile) {
     (clusterTile,counterCluster)
   }
 
-  //maybe better with dbscan or optics from elki package
-  //http://stackoverflow.com/questions/15326505/running-clustering-algorithms-in-elki
-  def getClusters(range : Double, critical : Double) : (Tile,Int) = {
-    var counterCluster = 0
 
-    var tempCluster = 0;
-    var clusterTile = IntArrayTile.fill(0,tile.cols,tile.rows)
-    for(i <- 0 to tile.cols-1){
-      for(j <- 0 to tile.rows-1){
-        if(Math.abs(tile.getDouble(i,j))>critical){
-          if(clusterTile.get(i,j)==0){
-            counterCluster += 1
-            findRelated(clusterTile, i, j, range, critical, counterCluster)
-          }
-        }
-      }
-    }
-    (clusterTile,counterCluster)
-  }
+
+
 
 
 

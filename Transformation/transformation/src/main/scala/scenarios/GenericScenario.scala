@@ -209,8 +209,8 @@ class GenericScenario extends LazyLogging {
     println("End Cluster")
     visulizeCluster(globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), i==0)
     println("End Visual Cluster")
-    val soh = new SoH()
-    val sohVal :(Double,Double) = soh.getSoHDowAndUp(clusterParent,clusterChild)
+
+    val sohVal :(Double,Double) = SoH.getSoHDowAndUp(clusterParent,clusterChild)
     (globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), sohVal,
       ((10.0 + 990.0 / runs.toDouble * i).ceil.toInt, //Just lat for export
         (10.0 + 990.0 / runs.toDouble * i +1).ceil.toInt)) //Just lat for export
@@ -259,7 +259,7 @@ class GenericScenario extends LazyLogging {
       return importer.getMulitGeoTiff(globalSettings, i+next, runs, extra)
     } else {
       val tile = tileFunction
-      importer.writeMulitGeoTiff(tile, globalSettings, i+next, runs, extra)
+      importer.writeMultiGeoTiff(tile, globalSettings, i+next, runs, extra)
 
       return tile
     }

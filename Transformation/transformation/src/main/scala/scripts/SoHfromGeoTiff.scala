@@ -39,8 +39,8 @@ object SoHfromGeoTiff {
       vis.visualTileNew(clusterChild._1, globalSettings, "cluster")
       globalSettings.parent = true
       vis.visualTileNew(clusterParent._1, globalSettings, "cluster")
-      val soh = new SoH()
-      val sohVal :(Double,Double) = soh.getSoHDowAndUp(clusterParent._1,clusterChild._1)
+
+      val sohVal :(Double,Double) = SoH.getSoHDowAndUp(clusterParent._1,clusterChild._1)
       pw.println((7+(i+1)*2).formatted("%02d")+","+sohVal._1+","+sohVal._2)
     }
 
@@ -59,8 +59,8 @@ object SoHfromGeoTiff {
       vis.visualTileNew(clusterChild._1, globalSettings, "cluster")
       globalSettings.parent = true
       vis.visualTileNew(clusterParent._1, globalSettings, "cluster")
-      val soh = new SoH()
-      val sohVal :(Double,Double) = soh.getSoHDowAndUp(clusterParent._1,clusterChild._1)
+
+      val sohVal :(Double,Double) = SoH.getSoHDowAndUp(clusterParent._1,clusterChild._1)
       pw.println((7+(i+1)*2).formatted("%02d")+","+sohVal._1+","+sohVal._2)
     }
 
@@ -80,8 +80,8 @@ object SoHfromGeoTiff {
       val clusterParent = (new ClusterHotSpots(child)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
       val clusterChild = (new ClusterHotSpots(parent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
 
-      val soh = new SoH()
-      val sohVal :(Double,Double) = soh.getSoHDowAndUp(clusterParent._1,clusterChild._1)
+
+      val sohVal :(Double,Double) = SoH.getSoHDowAndUp(clusterParent._1,clusterChild._1)
       pw.println((i+1).formatted("%02d")+","+sohVal._1+","+sohVal._2)
     }
 
@@ -96,8 +96,8 @@ object SoHfromGeoTiff {
       val clusterParent = (new ClusterHotSpots(child)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
       val clusterChild = (new ClusterHotSpots(parent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
 
-      val soh = new SoH()
-      val sohVal :(Double,Double) = soh.getSoHDowAndUp(clusterParent._1,clusterChild._1)
+
+      val sohVal :(Double,Double) = SoH.getSoHDowAndUp(clusterParent._1,clusterChild._1)
       pw.println((i+1).formatted("%02d")+","+sohVal._1+","+sohVal._2)
     }
     pw.flush()

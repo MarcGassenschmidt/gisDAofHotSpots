@@ -1,6 +1,8 @@
 package clustering
 
-import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntRawArrayTile}
+import java.util.Random
+
+import geotrellis.raster.{ArrayMultibandTile, ArrayTile, DoubleRawArrayTile, IntRawArrayTile, MultibandTile, Tile}
 import org.scalatest.FunSuite
 
 
@@ -8,6 +10,65 @@ import org.scalatest.FunSuite
   * Created by marc on 12.05.17.
   */
 class TestClusterRelations extends FunSuite{
+  test("Test ClusterRelations::rescaleBiggerTile(MultiTile)"){
+    val cr = new ClusterRelations()
+    var tile1 = getMultiTile(4,5)
+    var tile2 = getMultiTile(4,5)
+    cr.rescaleBiggerTile(tile1,tile2)
+    assert(tile1.cols==tile2.cols)
+    assert(tile1.rows==tile2.rows)
+    tile1 = getMultiTile(2,2)
+    tile2 = getMultiTile(4,5)
+
+    var result = cr.rescaleBiggerTile(tile1,tile2)
+
+    tile1 = getMultiTile(2,7)
+    tile2 = getMultiTile(7,5)
+    result = cr.rescaleBiggerTile(tile1,tile2)
+    assert(result._1.cols==7)
+    assert(7==result._2.cols)
+    assert(result._1.rows==7)
+    assert(7==result._2.rows)
+    tile1 = getMultiTile(7,7)
+    tile2 = getMultiTile(8,8)
+    result = cr.rescaleBiggerTile(tile1,tile2)
+    assert(result._1.cols==8)
+    assert(8==result._2.cols)
+    assert(result._1.rows==8)
+    assert(8==result._2.rows)
+    tile1 = getMultiTile(7,7)
+    tile2 = getMultiTile(4,8)
+    result = cr.rescaleBiggerTile(tile1,tile2)
+    assert(result._1.cols==7)
+    assert(7==result._2.cols)
+    assert(result._1.rows==8)
+    assert(8==result._2.rows)
+    tile1 = getMultiTile(7,7)
+    tile2 = getMultiTile(9,5)
+    result = cr.rescaleBiggerTile(tile1,tile2)
+    assert(result._1.cols==9)
+    assert(9==result._2.cols)
+    assert(result._1.rows==7)
+    assert(7==result._2.rows)
+    tile1 = getMultiTile(7,4)
+    tile2 = getMultiTile(4,5)
+    result = cr.rescaleBiggerTile(tile1,tile2)
+    assert(result._1.cols==7)
+    assert(7==result._2.cols)
+    assert(result._1.rows==5)
+    assert(5==result._2.rows)
+
+  }
+
+  def getMultiTile(cols : Int, rows : Int): MultibandTile ={
+    val rnd = new Random(1)
+    val bands = new Array[Tile](24)
+    for(i <- 0 to 23){
+      bands(i) = new DoubleRawArrayTile(Array.fill(rows*cols)(rnd.nextInt(100)), cols, rows)
+    }
+    new ArrayMultibandTile(bands)
+  }
+
   test("Test ClusterRelations::rescaleBiggerTile"){
     val cr = new ClusterRelations()
     var tile1 = getTile(4,5)
@@ -71,10 +132,33 @@ class TestClusterRelations extends FunSuite{
     rasterTile
   }
 
+  test("Test ClusterRelations::getNumberChildrenAndParentsWhichIntersect(Multiband)"){
+    val cr = new ClusterRelations()
+    assert(cr.getNumberChildrenAndParentsWhichIntersect(getTestClusterParentMulti(),getTestClusterChildMulti())==(3,7))
+  }
+
   test("Test ClusterRelations::getNumberChildrenAndParentsWhichIntersect"){
     val cr = new ClusterRelations()
     assert((getTestClusterChild()-getTestClusterParent()).toArrayDouble().filter(x => x>0).distinct.length==3)
     assert(cr.getNumberChildrenAndParentsWhichIntersect(getTestClusterParent(),getTestClusterChild())==(3,7))
+  }
+
+  def getTestClusterChildMulti(): MultibandTile ={
+    val rnd = new Random(1)
+    val bands = new Array[Tile](3)
+    bands(0) = getTestClusterChild()
+    bands(1) = getTestClusterChild()
+    bands(2) = getTestClusterChild().map(x=>if(x==0) 0 else if(x==1) 1 else x+10) // Double the cluster - 1 overlapping
+    new ArrayMultibandTile(bands)
+  }
+
+  def getTestClusterParentMulti(): MultibandTile ={
+    val rnd = new Random(1)
+    val bands = new Array[Tile](3)
+    bands(0) = getTestClusterChild()
+    bands(1) = getTestClusterChild()
+    bands(2) = getTestClusterChild().map(x=>if(x==0) 0 else if(x==1) 1 else x+10) // Double the cluster - 1 overlapping
+    new ArrayMultibandTile(bands)
   }
 
   def getTestClusterChild(): ArrayTile ={

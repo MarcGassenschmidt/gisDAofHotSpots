@@ -9,22 +9,22 @@ import org.scalatest.FunSuite
 class TestSoH extends FunSuite{
 
   test("Test validation of SoH"){
-    val soh = new SoH()
-    var sohValuesGood = soh.getSoHDowAndUp(getTestClusterParent(),getTestClusterChild1())
+
+    var sohValuesGood = SoH.getSoHDowAndUp(getTestClusterParent(),getTestClusterChild1())
     println(sohValuesGood)
-    var sohValuesBad = soh.getSoHDowAndUp(getTestClusterParent(),getTestClusterChild2())
+    var sohValuesBad = SoH.getSoHDowAndUp(getTestClusterParent(),getTestClusterChild2())
     println(sohValuesBad)
     assert(sohValuesGood._1>sohValuesBad._1 && sohValuesGood._2>sohValuesBad._2)
-    var sohValues = soh.getSoHDowAndUp(getSmallParent(),getSmallChild1())
+    var sohValues = SoH.getSoHDowAndUp(getSmallParent(),getSmallChild1())
     println(sohValues)
-    sohValues = soh.getSoHDowAndUp(getSmallParent(),getSmallChild2())
+    sohValues = SoH.getSoHDowAndUp(getSmallParent(),getSmallChild2())
     println(sohValues)
-    assert(soh.getSoHDowAndUp(getParent1(),getChild1)==(1,1))
-    assert(soh.getSoHDowAndUp(getParent1(),getChild2)==(1,0))
-    assert(soh.getSoHDowAndUp(getParent1(),getChild3)==(1,1))
-    assert(soh.getSoHDowAndUp(getParent2(),getChild4)==(1,0))
-    assert(soh.getSoHDowAndUp(getParent2(),getChild1)==(0,0))
-    assert(soh.getSoHDowAndUp(getParent2(),getChild5)==(0.5,1))
+    assert(SoH.getSoHDowAndUp(getParent1(),getChild1)==(1,1))
+    assert(SoH.getSoHDowAndUp(getParent1(),getChild2)==(1,0))
+    assert(SoH.getSoHDowAndUp(getParent1(),getChild3)==(1,1))
+    assert(SoH.getSoHDowAndUp(getParent2(),getChild4)==(1,0))
+    assert(SoH.getSoHDowAndUp(getParent2(),getChild1)==(0,0))
+    assert(SoH.getSoHDowAndUp(getParent2(),getChild5)==(0.5,1))
 
 
   }

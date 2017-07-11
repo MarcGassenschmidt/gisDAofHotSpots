@@ -56,13 +56,14 @@ class TestImportGeoTiff extends FunSuite {
     val im = new ImportGeoTiff()
     val crs = CRS.fromName("EPSG:3857")
     val par = new Settings()
+    par.test = true
     var fileName = im.getFileName(par, 0,20, "Test")
     println(fileName)
     val setting = new Settings
     val rnd = new Random(1)
 
 
-    setting.layoutTileSize = 2
+    setting.layoutTileSize = (2,2)
     im.writeGeoTiff(getTestTilePartition(), par, fileName)
     val tiled = im.repartitionFiles(fileName, setting)
     assert(tiled.keys.count()==4)

@@ -53,7 +53,7 @@ class Settings extends Serializable with Cloneable{
   var hour = 0
   var spaceTime = true
 
-  var layoutTileSize: Int = 300
+  var layoutTileSize: (Int,Int) = (300,300)
   val conf = new SparkConf().setAppName("Test")
   conf.setMaster("local[*]")
 

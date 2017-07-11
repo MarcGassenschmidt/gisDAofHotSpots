@@ -66,8 +66,8 @@ class SpaceTimeScenario extends GenericScenario{
     println("End Cluster")
     visulizeCluster(globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), i==0)
     println("End Visual Cluster")
-    val soh = new SoH()
-    val sohVal :(Double,Double) = soh.getSoHDowAndUp(clusterParent,clusterChild)
+
+    val sohVal :(Double,Double) = SoH.getSoHDowAndUp(clusterParent,clusterChild)
     (globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), sohVal,
       ((10.0 + 990.0 / runs.toDouble * i).ceil.toInt, //Just lat for export
         (10.0 + 990.0 / runs.toDouble * i +1).ceil.toInt)) //Just lat for export
