@@ -34,6 +34,7 @@ class ClusterRelations {
       //childSet += child
       parentSet += parent
     }
+    //Child ohne Parent //Schnittmenge
     (childSet.size, parentSet.size)
   }
 
@@ -64,7 +65,7 @@ class ClusterRelations {
       //childSet += child
       parentSet += parent
     }
-    //Schnittmenge - Intersect //Anzahl der Parent in der Schnittmenge
+    //Child ohne Parent //Schnittmenge
     (childSet.size, parentSet.size)
   }
 

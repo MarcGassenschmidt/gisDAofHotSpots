@@ -10,6 +10,7 @@ import importExport.ImportGeoTiff
 import org.apache.spark.SparkContext
 import org.scalatest.FunSuite
 import parmeters.Settings
+import timeUtils.MultibandUtils
 
 import scala.collection.mutable
 
@@ -108,25 +109,7 @@ class TestTimeGetisOrd extends FunSuite {
     assert(result.band(0).getDouble(0,0)!=multiBand.band(0).getDouble(0,0))
   }
 
-  test("isInTile") {
-    val rnd = new Random(1)
-    val testTile : Array[Double]= Array.fill(10000)(rnd.nextInt(100))
-    val rasterTile1 : Tile = new DoubleRawArrayTile(testTile, 100, 100)
-    val testTile2 : Array[Double]= Array.fill(10000)(rnd.nextInt(100))
-    val rasterTile2 : Tile = new DoubleRawArrayTile(testTile2, 100, 100)
-    val bands = Array(rasterTile1,rasterTile2)
-    val multiBand : MultibandTile = new ArrayMultibandTile(bands)
-    assert(TimeGetisOrd.isInTile(101,100, multiBand)==false)
-    assert(TimeGetisOrd.isInTile(100,100, multiBand)==false)
-    assert(TimeGetisOrd.isInTile(100,100, multiBand)==false)
-    assert(TimeGetisOrd.isInTile(-101,-100, multiBand)==false)
-    assert(TimeGetisOrd.isInTile(101,-100, multiBand)==false)
-    assert(TimeGetisOrd.isInTile(100,50, multiBand)==false)
-    assert(TimeGetisOrd.isInTile(50,100, multiBand)==false)
 
-    assert(TimeGetisOrd.isInTile(50,50, multiBand)==true)
-    assert(TimeGetisOrd.isInTile(99,99, multiBand)==true)
-  }
 
   test("getSum") {
     val spheroid = new Spheroid(2,1)

@@ -10,13 +10,12 @@ import timeUtils.MultibandUtils
   */
 trait TimeNeighbourhood {
   val a : Int
-  val b : Int
   val c : Int
 }
 
 case class Spheroid(a:Int,c:Int) extends TimeNeighbourhood {
   //https://en.wikipedia.org/wiki/Spheroid
-  val b = a
+
 
   def isInRange(x:Double,y:Double,z:Double): Boolean = {
     val tmp1 = (x*x+y*y)/(a*a)
@@ -35,7 +34,7 @@ case class Spheroid(a:Int,c:Int) extends TimeNeighbourhood {
   def getSum(): Int ={
     var sum = 0
     for(x <- -a to a){
-      for(y <- -b to b){
+      for(y <- -a to a){
         for(z <- -c to c){
           if(isInRange(x,y,z)){
             //println(x+","+y+","+z)
@@ -51,24 +50,25 @@ case class Spheroid(a:Int,c:Int) extends TimeNeighbourhood {
   def countInRange(clusterId: Int, mbT: MultibandTile, startBand: Int, startRows: Int, startCols: Int): (Int,Int,Int,Int) = {
     var sum = 0
     for(x <- -a to a){
-      for(y <- -b to b){
+      for(y <- -a to a){
         for(z <- -c to c){
-          var b = z % 24
-          if(z<0){
-            z+24
+          var b = (startBand+z) % 24
+          if(b<0){
+            b+=24
           }
           if(isInRange(x,y,z)
             && MultibandUtils.isInTile(startRows+x,startCols+y,mbT)
-            && mbT.band(z).get(startRows+x,startCols+y)==clusterId){
+            && mbT.band(b).get(startRows+x,startCols+y)==clusterId){
             sum += 1
           }
         }
       }
     }
-    (sum,startBand,startRows,startCols)
+
+    (sum,(startBand+24)%24,startRows,startCols)
   }
 
-  def clusterPercent(clusterId : Int, mbT : MultibandTile, startBand : Int, startRows : Int, startCols : Int): Double ={
+  def clusterPercent(clusterId : Int, mbT : MultibandTile, startBand : Int, startRows : Int, startCols : Int, max : Int): Double ={
     var array = new Array[(Int,Int,Int,Int)](27)
     var counter = 0
     for(i <- -1 to 1){
@@ -81,10 +81,10 @@ case class Spheroid(a:Int,c:Int) extends TimeNeighbourhood {
     }
     val max = array.map(x=>x._1).max
     val maxKey = array.filter(x=>x._1==max).head
-    if(maxKey._2==startBand && maxKey._3==startRows && maxKey._4==startCols){
+    if(maxKey._2==startBand && maxKey._3==startRows && maxKey._4==startCols || max==maxKey._1){
       return maxKey._1/SpheroidHelper.getVolume(this)
     }
-    clusterPercent(clusterId,mbT,maxKey._2,maxKey._3,maxKey._4)
+    clusterPercent(clusterId,mbT,maxKey._2,maxKey._3,maxKey._4, maxKey._1)
   }
 
 

@@ -7,12 +7,28 @@ import geotrellis.raster.{MultibandTile, Tile}
 import parmeters.Settings
 import timeUtils.MultibandUtils
 
+
 import scala.collection.mutable
 
 /**
   * Created by marc on 09.05.17.
   */
 object SoH {
+
+  def getNumberCluster(tile: MultibandTile) : Int = {
+    MultibandUtils.getHistogramInt(tile).values().size-1
+  }
+
+  def getSoHDowAndUp(parent : MultibandTile, child : MultibandTile): (Double, Double) ={
+    val childParent = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(parent,child)
+    val childParentInverse = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(child,parent)
+    val numberClusterParent = getNumberCluster(parent)
+    val numberClusterChild = getNumberCluster(child)
+    var down = childParent._2.toDouble/numberClusterParent.toDouble
+    var up = 1-childParent._1.toDouble/numberClusterChild.toDouble
+    (down,up)
+
+  }
   def getSoHDowAndUp(parent : Tile, child : Tile): (Double, Double) ={
      val sohAll = getSoHDowAndUp((parent,parent.toArray().distinct.length-1), (child,child.toArray().distinct.length-1))
      var result = (sohAll._1,sohAll._2)
@@ -28,22 +44,46 @@ object SoH {
     return result
   }
 
+  def getVariance(mbT : MultibandTile): Unit ={
+    var histogramm = MultibandUtils.getHistogramInt(mbT)
+    Math.pow(histogramm.statistics().get.stddev,2)
+  }
+
   def getJaccardIndex(parent : MultibandTile, child :MultibandTile): Double ={
-    val intersect = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(parent,child)._1
+    val intersect = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(parent,child)._2
     var histogrammParent = MultibandUtils.getHistogramInt(parent)
     var histogrammChild = MultibandUtils.getHistogramInt(child)
-    val union = histogrammChild.merge(histogrammParent).totalCount()
+    val union = histogrammChild.merge(histogrammParent).values().length-1
     intersect/union.toDouble
+  }
+
+  def getSDForPercentualTiles(mbT : MultibandTile, settings: Settings): Double ={
+    val spheroid = new Spheroid(settings.focalRange,settings.focalRangeTime)
+    val spheroidSize : Double = spheroid.getSum() //1000 for bigger subsets
+    val size : Double= mbT.bandCount*mbT.cols*mbT.rows
+    val percent : Double = Math.max(spheroidSize/size,0.01)
+    //assert(percent<24/100) or nearly smaller
+    val rcSplit = mbT.split(Math.max((mbT.cols/(100*percent)).toInt,1),Math.max((mbT.rows/(100*percent)).toInt,1))
+    val brcSplit = rcSplit.map(x=>x.bands).flatten
+    val tmp = brcSplit.map(x => x.histogramDouble().values().filter(x=>x!=0))
+    val numberClusterInEachSplit = tmp.map(x=>x.size)
+    val n : Double = (numberClusterInEachSplit.size-1)
+    val mean : Double= numberClusterInEachSplit.reduce(_+_)/n
+    val s : Double = Math.sqrt((1/n)*numberClusterInEachSplit.map(x=>Math.pow(x-mean,2)).reduce(_+_))
+    s
   }
 
   def measureStructure(tile : MultibandTile): Double ={
     val values = tile.bands.map(t => t.toArray()).flatten.map(i => i)
     val occurences = values.groupBy(k => k)
-    val mean = occurences.map(x=> x._2.size).reduce(_+_)/occurences.size
+    var mean = occurences.map(x=> x._2.size).reduce(_+_)/occurences.size
     val map = new mutable.HashMap[Int,Double]()
-    val spheroidArray = new Array[Spheroid](24)
-    for(i <- 0 to spheroidArray.length-1){
-      spheroidArray(i) = SpheroidHelper.getSpheroidWithSum(mean,i)
+    val spheroidArray = new Array[Spheroid](23)
+    for(i <- 1 to spheroidArray.length){
+      if(mean>1000){
+        mean = 1000/(i)
+      }
+      spheroidArray(i-1) = SpheroidHelper.getSpheroidWithSum(mean,i)
     }
     for(b <- 0 to tile.bandCount-1){
       for(r <- 0 to tile.rows-1){
@@ -52,7 +92,8 @@ object SoH {
           if(value != 0 && !map.contains(value)){
             var maxPercent = 0.0
             for(i <- 0 to spheroidArray.length-1){
-                maxPercent = Math.max(spheroidArray(i).clusterPercent(value,tile,b,r,c),maxPercent)
+                val tmp= spheroidArray(i).clusterPercent(value,tile,b,r,c,0)
+                maxPercent = Math.max(tmp,maxPercent)
             }
             map.put(value,maxPercent)
           }
