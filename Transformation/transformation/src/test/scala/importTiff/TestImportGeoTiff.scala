@@ -52,7 +52,7 @@ class TestImportGeoTiff extends FunSuite {
     weightTile
   }
 
-  test("test Partitioning"){
+  ignore("test Partitioning"){
     val im = new ImportGeoTiff()
     val crs = CRS.fromName("EPSG:3857")
     val par = new Settings()
