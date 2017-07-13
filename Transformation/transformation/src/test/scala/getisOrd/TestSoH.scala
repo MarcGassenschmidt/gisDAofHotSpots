@@ -22,6 +22,44 @@ class TestSoH extends FunSuite{
     assert(goodExample<badExample) //Small value is better
   }
 
+  test("KL"){
+    val random = SoH.getKL(TestMultibandUtils.getMultibandTileRandom(),TestMultibandUtils.getMultibandTileRandomWithoutReset())
+    assert(random<1)
+    val randomSame = SoH.getKL(TestMultibandUtils.getMultibandTileRandom(),TestMultibandUtils.getMultibandTileRandom())
+    assert(randomSame==0)
+    val one = SoH.getKL(TestMultibandUtils.getMultibandTile1(),TestMultibandUtils.getMultibandTile1())
+    assert(one==0)
+  }
+
+  test("Test SoH neighbours"){
+    val focal = SoH.getSoHNeighbours(TestMultibandUtils.getMultibandTileRandom(),
+      TestMultibandUtils.getMultibandTupleTileRandomWithoutReset(),
+      TestMultibandUtils.getMultibandTupleTileRandomWithoutReset(),
+      TestMultibandUtils.getMultibandTupleTileRandomWithoutReset()
+    )
+    assert(focal==(1,0))
+    val global = SoH.getSoHNeighbours(TestMultibandUtils.getMultibandTileRandom(),
+      TestMultibandUtils.getMultibandTupleTileRandomWithoutReset(),
+      TestMultibandUtils.getMultibandTupleTileRandomWithoutReset()
+    )
+    assert(global==(1,0))
+  }
+
+  test("Test isStable"){
+    //For true,false look at SoH Test
+    assert(SoH.isStable(TestMultibandUtils.getMultiband(getParent1()),TestMultibandUtils.getMultiband(getChild1),SoH.Neighbours.Aggregation)==true)
+    assert(SoH.isStable(TestMultibandUtils.getMultiband(getParent1()),TestMultibandUtils.getMultiband(getChild2),SoH.Neighbours.Aggregation)==false)
+    assert(SoH.isStable(TestMultibandUtils.getMultiband(getParent1()),TestMultibandUtils.getMultiband(getChild3),SoH.Neighbours.Aggregation)==true)
+    assert(SoH.isStable(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild4),SoH.Neighbours.Aggregation)==false)
+    assert(SoH.isStable(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild1),SoH.Neighbours.Aggregation)==false)
+    assert(SoH.isStable(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild5),SoH.Neighbours.Aggregation)==true)
+  }
+
+  test("compare with Tile"){
+    val testWihtTile = SoH.compareWithTile(TestMultibandUtils.getMultibandTileRandom(),TestMultibandUtils.newArrayTile(100,100,TestMultibandUtils.nextInt))
+    assert(testWihtTile==(1.0,0.37878787878787884))
+  }
+
   ignore("Test cdf"){
     var histogramm = MultibandUtils.getHistogramInt(TestMultibandUtils.getMultibandTileRandom())
     //histogramm.cdf().map(x=>println(x._1+","+x._2))

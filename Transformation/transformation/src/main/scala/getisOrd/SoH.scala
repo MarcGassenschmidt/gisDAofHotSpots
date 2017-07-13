@@ -7,13 +7,33 @@ import geotrellis.raster.{MultibandTile, Tile}
 import parmeters.Settings
 import timeUtils.MultibandUtils
 
-
 import scala.collection.mutable
+import scalaz.std.java.enum
 
 /**
   * Created by marc on 09.05.17.
   */
 object SoH {
+
+  
+
+  def getMetrikResults(mbT : MultibandTile,
+                       mbTWeight : MultibandTile,
+                       mbTCluster : MultibandTile,
+                       zoomPNCluster : (MultibandTile,MultibandTile),
+                       weightPNCluster : (MultibandTile,MultibandTile),
+                       focalPNCluster : (MultibandTile,MultibandTile),
+                       month : Tile,
+                       settings: Settings): SoHResults ={
+    val downUp = getSoHDowAndUp(mbTCluster,weightPNCluster._2)
+    val variance = getVariance(mbTCluster)
+    val jaccard = getJaccardIndex(mbTCluster,weightPNCluster._2)
+    val percentual = getSDForPercentualTiles(mbTCluster, settings)
+    val time = compareWithTile(mbTCluster,month)
+    val kl = getKL(mbT,mbTWeight)
+    val sturcture = measureStructure(mbT)
+    new SoHResults(downUp,variance,jaccard,percentual,time,kl,sturcture)
+  }
 
   def getNumberCluster(tile: MultibandTile) : Int = {
     MultibandUtils.getHistogramInt(tile).values().size-1
@@ -73,6 +93,34 @@ object SoH {
     s
   }
 
+  def compareWithTile(mbT : MultibandTile, tile : Tile) : (Double,Double) = {
+    val sohs = mbT.bands.map(x=>getSoHDowAndUp(x,tile))
+    (sohs.map(x=>x._1).reduce(_+_)/sohs.size,sohs.map(x=>x._2).reduce(_+_)/sohs.size)
+  }
+
+  def getKL(parent : MultibandTile, child :MultibandTile): Double ={
+    val max = MultibandUtils.getHistogramInt(parent).merge(MultibandUtils.getHistogramInt(child)).maxValue().get.toDouble
+    parent.mapBands((f : Int, tile : Tile) => {
+      tile.mapDouble((c : Int,r : Int,v : Double)=>{
+        if(child.band(f).getDouble(c,r)==0 || v==0) 0.0 else (v/max)*Math.log((v/max)/(child.band(f).getDouble(c,r)/max))
+      })
+    }).bands.map(x=>x.toArrayDouble().reduce(_+_)).reduce(_+_)/(parent.bandCount*parent.cols*parent.rows)
+  }
+
+  def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile), focalPN : (MultibandTile,MultibandTile)): (Double,Double) ={
+      val  downUp = getSoHDowAndUp(mbT,zoomPN._2) + getSoHDowAndUp(zoomPN._1,mbT) +
+        getSoHDowAndUp(mbT,focalPN._2) + getSoHDowAndUp(focalPN._1,mbT) +
+        getSoHDowAndUp(mbT,weightPN._2) + getSoHDowAndUp(weightPN._1,mbT)
+    val tmp = (downUp) / (6.0,6.0)
+    return tmp
+
+  }
+  def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile)): (Double,Double) ={
+    val  downUp = getSoHDowAndUp(mbT,zoomPN._2) + getSoHDowAndUp(zoomPN._1,mbT) + getSoHDowAndUp(mbT,weightPN._2) + getSoHDowAndUp(weightPN._1,mbT)
+    val tmp = (downUp) / (4.0,4.0)
+    return tmp
+  }
+
   def measureStructure(tile : MultibandTile): Double ={
     val values = tile.bands.map(t => t.toArray()).flatten.map(i => i)
     val occurences = values.groupBy(k => k)
@@ -100,7 +148,19 @@ object SoH {
         }
       }
     }
+
     map.map(x=>x._2).reduce(_+_)/map.size
+  }
+
+  def isStable(child : MultibandTile, parent : MultibandTile, neighbours: Neighbours.Value): Boolean ={
+    if(neighbours==Neighbours.Aggregation){
+      return getSoHDowAndUp(child,parent)>(0.1,0.1)
+    } else if(neighbours==Neighbours.Weight){
+      return getSoHDowAndUp(child,parent)>(0.5,0.5)
+    } else if(neighbours==Neighbours.Focal){
+      return getSoHDowAndUp(child,parent)>(0.6,0.4)
+    }
+    return false
   }
 
   private def getSoHDowAndUp(parent : (Tile,Int), child : (Tile,Int)): (Double, Double, Double, Double) ={
@@ -145,4 +205,18 @@ object SoH {
     }
     (down, up, downInv, upInv)
   }
+
+  implicit class TuppleAdd(t: (Double, Double)) {
+    def +(p: (Double, Double)) = (p._1 + t._1, p._2 + t._2)
+    def /(p: (Double, Double)) = (t._1/p._1 ,  t._2/p._2)
+    def >(p: (Double, Double)) = (t._1>p._1 &&  t._2>p._2)
+  }
+
+  object Neighbours extends Enumeration {
+    val Aggregation,Weight,Focal = Value
+  }
+
+  class SoHResults(downUp: (Double, Double), variance: Unit, jaccard: Double, percentual: Double, time: (Double, Double), kl: Double, sturcture: Double)
+
 }
+

@@ -26,7 +26,7 @@ object TestT {
 
     (new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(origin,settings,path+"raster.tif"))
     //TimeGetisOrd.getGetisOrd(rdd, settings, origin)
-    settings.focal = true
+    settings.focal = false
     var r = TimeGetisOrd.getGetisOrd(rdd, settings, origin)
     var clusterHotSpotsTime = new ClusterHotSpotsTime(r)
     println("Clustering")

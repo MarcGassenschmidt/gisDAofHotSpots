@@ -25,10 +25,15 @@ object TestMultibandUtils extends FunSuite{
     getMultiband(f,24)
   }
 
+  def getMultibandTupleTileRandomWithoutReset(): (MultibandTile,MultibandTile) ={
+    (getMultibandTileGeneric(24,100,100,nextInt),getMultibandTileGeneric(24,100,100,nextInt))
+  }
 
+  def getMultibandTileRandomWithoutReset(): MultibandTile ={
+    getMultibandTileGeneric(24,100,100,nextInt)
+  }
 
   def getMultibandTileRandom(): MultibandTile ={
-    rnd = new Random(1)
     getMultibandTileGenericRandom(100,100)
   }
 
