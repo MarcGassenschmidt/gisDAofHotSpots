@@ -134,7 +134,7 @@ class TestClusterRelations extends FunSuite{
 
   test("Test ClusterRelations::getNumberChildrenAndParentsWhichIntersect(Multiband)"){
     val cr = new ClusterRelations()
-    assert(cr.getNumberChildrenAndParentsWhichIntersect(getTestClusterParentMulti(),getTestClusterChildMulti())==(3,7))
+    assert(cr.getNumberChildrenAndParentsWhichIntersect(getTestClusterParentMulti(),getTestClusterChildMulti())==(0,15))
   }
 
   test("Test ClusterRelations::getNumberChildrenAndParentsWhichIntersect"){

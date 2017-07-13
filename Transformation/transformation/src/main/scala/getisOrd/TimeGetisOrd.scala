@@ -254,7 +254,13 @@ object TimeGetisOrd {
 
     }
     println("End Denminator")
-    RoW.mapBands((band:Int,tile:Tile)=>tile.mapDouble(x=>(x-MW)/denominator))
+    RoW.mapBands((band:Int,tile:Tile)=>tile.mapDouble(x=>{
+      var result =((x-MW)/denominator)
+      if(!isNotNaN(result)){
+        result = 0
+      }
+      result
+    }))
   }
 
   def isNotNaN(f: Double): Boolean = {
