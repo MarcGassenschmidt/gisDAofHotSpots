@@ -319,11 +319,16 @@ object TimeGetisOrd {
 
     var st : StatsGlobal= null
     if(!setting.focal){
+      val startStats = System.currentTimeMillis()
       st = getSTGlobal(origin)
+      timeMeasuresGlobal.setStats(System.currentTimeMillis()-startStats)
     }
     var counter = 0
     println("calcualted stats")
+    val startBroadcast = System.currentTimeMillis()
     val broadcast = SparkContext.getOrCreate(setting.conf).broadcast(rdd.collect())
+    timeMeasuresFocal.setBroadCast(System.currentTimeMillis()-startBroadcast)
+    timeMeasuresGlobal.setBroadCast(System.currentTimeMillis()-startBroadcast)
     println("broadcast ended")
 
     val tiles = rdd.map(x=>{
@@ -357,6 +362,7 @@ object TimeGetisOrd {
     })
     val n = tiles.count()
     print("Counter:"+n)
+
     tiles.collect().map(x=>println("c,r"+x._2.cols+","+x._2.rows))
 
     var raster = tiles.stitch()
@@ -366,6 +372,7 @@ object TimeGetisOrd {
     assert(split.dimensions==origin.dimensions)
     //(new ImportGeoTiff().writeMulitGeoTiff(tiles,setting,path+"all.tif"))
     val startWriting = System.currentTimeMillis()
+
     (new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(split,setting,path+"all.tif"))
     println("-----------------------------------------------------------------Start------------" +
       "---------------------------------------------------------------------------------------------------------")
@@ -425,7 +432,20 @@ object TimeGetisOrd {
     var W2 = 0.0
     var denominator = 0.0
     var devision = 0.0
-    val writing = 0.0
+    var writing = 0.0
+    var broadCast = 0.0
+    var collect = 0.0
+    var stitch = 0.0
+
+    def setcollect(time : Long): Unit ={
+      collect = time
+    }
+
+    def setStitch(time : Long): Unit ={
+      stitch = time
+    }
+
+
 
     def setWriting(time : Long): Unit ={
       writing = time
@@ -455,6 +475,10 @@ object TimeGetisOrd {
       W2 = time
     }
 
+    def setBroadCast(time : Long): Unit ={
+      broadCast = time
+    }
+
     def setDenominator(time : Long): Unit ={
       denominator = time
     }
@@ -471,10 +495,16 @@ object TimeGetisOrd {
         "\n time for NW2:"+NW2+
         "\n time for W2:"+W2+
         "\n time for Denominator:"+denominator+
-        "\n time for Devision:"+devision
+        "\n time for Devision:"+devision+
+        "\n time for Writing:"+writing+
+      "\n time for Broadcast:"+broadCast+
+        "\n time for collect:"+collect+
+        "\n time for stitch:"+stitch
       out
     }
   }
+
+
 
   class MeasuersFocal(){
     var neighbour = 0.0
@@ -487,6 +517,17 @@ object TimeGetisOrd {
     var band = 0.0
     var bandCount = 0
     var writing = 0.0
+    var broadCast = 0.0
+    var collect = 0.0
+    var stitch = 0.0
+
+    def setcollect(time : Long): Unit ={
+      collect = time
+    }
+
+    def setStitch(time : Long): Unit ={
+      stitch = time
+    }
     def addRow(time : Double): Unit ={
       row += time
       rowCount += 1
@@ -515,12 +556,20 @@ object TimeGetisOrd {
       this.writing = time
     }
 
+    def setBroadCast(time : Long): Unit ={
+      broadCast = time
+    }
+
     def getPerformanceMetrik(): String ={
       val out = "Time for focal G* was:"+all+
         "\n time for neigbour:"+neighbour/neighbourCount.toDouble+
         "\n time for NoNeigbour:"+noNeighbour/noNeighbourCount.toDouble
         "\n time for Band:"+band/bandCount.toDouble+
-        "\n time for Row:"+row/rowCount.toDouble
+        "\n time for Row:"+row/rowCount.toDouble+
+          "\n time for Writing:"+writing+
+          "\n time for Broadcast:"+broadCast+
+          "\n time for collect:"+collect+
+          "\n time for stitch:"+stitch
       out
     }
   }
