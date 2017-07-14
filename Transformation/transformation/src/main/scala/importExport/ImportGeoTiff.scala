@@ -3,7 +3,7 @@ package importExport
 import java.io.File
 
 import geotrellis.proj4.CRS
-import geotrellis.raster.{MultibandTile, Tile}
+import geotrellis.raster.{MultibandTile, Tile, TileLayout}
 import geotrellis.raster.io.geotiff.{MultibandGeoTiff, SinglebandGeoTiff}
 import geotrellis.raster.io.geotiff.reader.GeoTiffReader
 import geotrellis.raster.resample.NearestNeighbor
@@ -94,6 +94,15 @@ class ImportGeoTiff {
   def writeMultiTimeGeoTiffToSingle(tile: MultibandTile, para: Settings, file : String): Unit = {
     for(i <- 0 to tile.bandCount-1){
       SinglebandGeoTiff.apply(tile.band(i), new Extent(para.buttom._1,para.buttom._2,para.top._1,para.top._2), crs).write(file+"hour_"+i.formatted("%02d")+".tif")
+    }
+  }
+
+  def writeMultiTimeGeoTiffToSingle(tile: MultibandTile, para: Settings, file : String, origin : Tile): Unit = {
+    val layout : TileLayout= new TileLayout(origin.cols,origin.rows,origin.cols,origin.rows)
+    for(i <- 0 to tile.bandCount-1){
+      val bandTile = tile.band(i) //.split(layout)(0)
+      assert(bandTile.dimensions==origin.dimensions)
+      SinglebandGeoTiff.apply(bandTile, new Extent(para.buttom._1,para.buttom._2,para.top._1,para.top._2), crs).write(file+"hour_"+i.formatted("%02d")+".tif")
     }
   }
 }

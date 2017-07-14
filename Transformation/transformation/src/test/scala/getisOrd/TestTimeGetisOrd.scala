@@ -6,7 +6,7 @@ import geotrellis.Spheroid
 import geotrellis.raster.{ArrayMultibandTile, ArrayTile, DoubleCellType, DoubleRawArrayTile, MultibandTile, Raster, Tile}
 import geotrellis.spark.SpatialKey
 import geotrellis.vector.{Extent, Line, Point, Polygon}
-import importExport.ImportGeoTiff
+import importExport.{ImportGeoTiff, PathFormatter}
 import org.apache.spark.SparkContext
 import org.scalatest.FunSuite
 import parmeters.Settings
@@ -109,8 +109,6 @@ class TestTimeGetisOrd extends FunSuite {
     assert(result.band(0).getDouble(0,0)!=multiBand.band(0).getDouble(0,0))
   }
 
-
-
   test("getSum") {
     val spheroid = new Spheroid(2,1)
     val bands = new Array[Tile](24)
@@ -194,7 +192,7 @@ class TestTimeGetisOrd extends FunSuite {
     val setting = new Settings
     setting.focal = false
     setting.test = true
-    setting.layoutTileSize = (50,30)
+    setting.layoutTileSize = (51,31)
     val rnd = new Random(1)
     val bands = new Array[Tile](24)
     for(i <- 0 to 23){
@@ -206,7 +204,7 @@ class TestTimeGetisOrd extends FunSuite {
     var rdd = importTer.repartitionFiles("/tmp/firstTimeBand.tif", setting)
     var result = TimeGetisOrd.getGetisOrd(rdd,setting, multiBand)
     setting.focal = true
-    setting.layoutTileSize = (6,5)
+    setting.layoutTileSize = (6,7)
     for(i <- 0 to 23){
       bands(i) = new DoubleRawArrayTile(Array.fill(10*12)(rnd.nextInt(100)), 10, 12)
     }
@@ -216,6 +214,8 @@ class TestTimeGetisOrd extends FunSuite {
     result = TimeGetisOrd.getGetisOrd(rdd,setting, multiBand)
 
   }
+
+
 
   test("polygonalSumDouble test"){
     //Histogramm is not working
