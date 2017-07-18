@@ -22,6 +22,15 @@ class TestSoH extends FunSuite{
     assert(goodExample<badExample) //Small value is better
   }
 
+  test("Distance"){
+    val distance = SoH.getDistance(TestMultibandUtils.getMultiband(TestMultibandUtils.getTestTileCluster(),24),TestMultibandUtils.getMultiband(TestMultibandUtils.getTestTileCluster2(),24))
+    assert(distance>0.9 && distance<1)
+  }
+
+
+
+
+
   test("KL"){
     val random = SoH.getKL(TestMultibandUtils.getMultibandTileRandom(),TestMultibandUtils.getMultibandTileRandomWithoutReset())
     assert(random<1)
@@ -37,12 +46,12 @@ class TestSoH extends FunSuite{
       TestMultibandUtils.getMultibandTupleTileRandomWithoutReset(),
       TestMultibandUtils.getMultibandTupleTileRandomWithoutReset()
     )
-    assert(focal==(1,0))
+    assert(focal==false)
     val global = SoH.getSoHNeighbours(TestMultibandUtils.getMultibandTileRandom(),
       TestMultibandUtils.getMultibandTupleTileRandomWithoutReset(),
       TestMultibandUtils.getMultibandTupleTileRandomWithoutReset()
     )
-    assert(global==(1,0))
+    assert(global==false)
   }
 
   test("Test isStable"){

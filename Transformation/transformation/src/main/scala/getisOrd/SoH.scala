@@ -3,7 +3,7 @@ package getisOrd
 import clustering.ClusterRelations
 import export.TileVisualizer
 import geotrellis.{Spheroid, SpheroidHelper}
-import geotrellis.raster.{MultibandTile, Tile}
+import geotrellis.raster.{IntRawArrayTile, MultibandTile, Tile}
 import parmeters.Settings
 import timeUtils.MultibandUtils
 
@@ -15,7 +15,62 @@ import scalaz.std.java.enum
   */
 object SoH {
 
-  
+  implicit class TripleAdd(t: (Double, Double, Double)) {
+    def +(p: (Double, Double, Double)) = (p._1 + t._1, p._2 + t._2, p._3 + t._3)
+  }
+
+
+  def findNext(b: Int, c: Int, r: Int, child: MultibandTile, actual : (Double,Double,Double), visit : MultibandTile) : Double = {
+    val distanceCluster = child.band(b).get(c,r)
+    if(distanceCluster>0){
+      return Math.sqrt(actual._1*actual._1+actual._2*actual._2+actual._3*actual._3)
+    } else {
+      if (visit.band(b).get(c, r) == -1) {
+        return -1
+      } else {
+        visit.band(b).asInstanceOf[IntRawArrayTile].set(c, r, -1)
+        for (i <- -1 to 1) {
+          for (j <- -1 to 1) {
+            for (k <- -1 to 1) {
+              if (MultibandUtils.isInTile(b + i, c + j, r + k, child)) {
+                val res = findNext(b + i, c + j, r + k, child, actual + (i, j, k), visit)
+                if (res != -1) {
+                  return res
+                }
+              }
+
+            }
+          }
+        }
+      }
+    }
+    return -1
+
+  }
+
+  def getDistance(parent: MultibandTile, child: MultibandTile) : Double = {
+    var res = 0
+    var map = new mutable.HashMap[Int,Double]()
+    for(b <- 0 to parent.bandCount-1) {
+      for (r <- 0 to parent.rows - 1) {
+        for (c <- 0 to parent.cols - 1) {
+          if(parent.band(b).get(c,r)!=0){
+            val nextDistance = findNext(b,c,r,child,(0,0,0), MultibandUtils.getEmptyIntMultibandArray(child))
+            assert(nextDistance!= -1)
+            val key = parent.band(b).get(c,r)
+            if(map.contains(key)){
+              map.put(key,Math.min(map.get(key).get,nextDistance))
+            } else {
+              map.put(key,nextDistance)
+            }
+
+          }
+
+        }
+      }
+    }
+    1-map.map(x=>x._2).reduce(_+_)/(2*child.size)
+  }
 
   def getMetrikResults(mbT : MultibandTile,
                        mbTWeight : MultibandTile,
@@ -24,15 +79,23 @@ object SoH {
                        weightPNCluster : (MultibandTile,MultibandTile),
                        focalPNCluster : (MultibandTile,MultibandTile),
                        month : Tile,
-                       settings: Settings): SoHResults ={
+                       settings: Settings
+                       ): SoHResults ={
     val downUp = getSoHDowAndUp(mbTCluster,weightPNCluster._2)
-    val variance = getVariance(mbTCluster)
-    val jaccard = getJaccardIndex(mbTCluster,weightPNCluster._2)
-    val percentual = getSDForPercentualTiles(mbTCluster, settings)
-    val time = compareWithTile(mbTCluster,month)
-    val kl = getKL(mbT,mbTWeight)
-    val sturcture = measureStructure(mbT)
-    new SoHResults(downUp,variance,jaccard,percentual,time,kl,sturcture)
+    //val variance = getVariance(mbTCluster)
+    var neighbours = false
+    if(focalPNCluster._1==null){
+      neighbours =  getSoHNeighbours(mbT,zoomPNCluster,weightPNCluster)
+    } else {
+      neighbours =  getSoHNeighbours(mbT,zoomPNCluster,weightPNCluster,focalPNCluster)
+    }
+    val jaccard = getJaccardIndex(mbTCluster,weightPNCluster._2) //Eine Kennzahl
+    val percentual = getSDForPercentualTiles(mbTCluster, settings) //Verteilung
+    val time = compareWithTile(mbTCluster,month) //Referenzbild
+    val kl = getKL(mbT,mbTWeight) //KL
+    val sturcture = measureStructure(mbT) //Struktur
+    var distnace = getDistance(weightPNCluster._1,mbTCluster)
+    new SoHResults(downUp,neighbours,jaccard,percentual,time,kl,sturcture,distnace)
   }
 
   def getNumberCluster(tile: MultibandTile) : Int = {
@@ -107,18 +170,67 @@ object SoH {
     }).bands.map(x=>x.toArrayDouble().reduce(_+_)).reduce(_+_)/(parent.bandCount*parent.cols*parent.rows)
   }
 
-  def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile), focalPN : (MultibandTile,MultibandTile)): (Double,Double) ={
-      val  downUp = getSoHDowAndUp(mbT,zoomPN._2) + getSoHDowAndUp(zoomPN._1,mbT) +
-        getSoHDowAndUp(mbT,focalPN._2) + getSoHDowAndUp(focalPN._1,mbT) +
-        getSoHDowAndUp(mbT,weightPN._2) + getSoHDowAndUp(weightPN._1,mbT)
-    val tmp = (downUp) / (6.0,6.0)
-    return tmp
+  def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile), focalPN : (MultibandTile,MultibandTile)): Boolean ={
+    val  downUp = isStable(mbT,zoomPN._2, Neighbours.Aggregation) && isStable(zoomPN._1,mbT, Neighbours.Aggregation) &&
+      isStable(mbT,focalPN._2, Neighbours.Focal) && isStable(focalPN._1,mbT, Neighbours.Focal)
+      isStable(mbT,weightPN._2, Neighbours.Weight) && isStable(weightPN._1,mbT, Neighbours.Weight)
+    return downUp
+
 
   }
-  def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile)): (Double,Double) ={
-    val  downUp = getSoHDowAndUp(mbT,zoomPN._2) + getSoHDowAndUp(zoomPN._1,mbT) + getSoHDowAndUp(mbT,weightPN._2) + getSoHDowAndUp(weightPN._1,mbT)
-    val tmp = (downUp) / (4.0,4.0)
-    return tmp
+
+
+//To complex
+//  val instableIndex = (isStable(mbT,zoomPN._2, Neighbours.Aggregation),isStable(zoomPN._1,mbT, Neighbours.Aggregation),
+//    isStable(mbT,focalPN._2, Neighbours.Focal),isStable(focalPN._1,mbT, Neighbours.Focal),
+//    isStable(mbT,weightPN._2, Neighbours.Weight),isStable(weightPN._1,mbT, Neighbours.Weight))
+//  if(instableIndex==0){
+//    return true
+//  } else if(instableIndex==-1){
+//    return false
+//  } else {
+//    //One Neigbour is instable
+//    return false
+//  }
+
+
+  //  def getInstable(boolean1: Boolean,boolean2: Boolean,boolean3: Boolean,boolean4: Boolean,boolean5: Boolean,boolean6: Boolean,
+//                  zoomPN : (MultibandTile,MultibandTile),
+//                  weightPN : (MultibandTile,MultibandTile),
+//                  focalPN : (MultibandTile,MultibandTile),
+//                  getNeighbours :  (Neighbours.Value,MultibandTile) => ((MultibandTile,MultibandTile,Neighbours.Value),(MultibandTile,MultibandTile,Neighbours.Value))): Int ={
+//    if(!boolean1 && boolean2 && boolean3 && boolean4 && boolean5 && boolean6){
+//      val nb = getNeighbours(Neighbours.Aggregation,zoomPN._1)
+//      if(isStable(nb._1._1,zoomPN._1,nb._1._3) && isStable(nb._1._2,zoomPN._1,nb._1._3) &&
+//        isStable(nb._2._1,zoomPN._1,nb._2._3) && isStable(nb._2._2,zoomPN._1,nb._2._3)){
+//        return 0
+//      }
+//      return 1
+//    } else if(boolean1 && !boolean2 && boolean3 && boolean4 && boolean5 && boolean6){
+//      val nb = getNeighbours(Neighbours.Aggregation)
+//      if(isStable(nb._1._1,zoomPN._1,nb._1._3) && isStable(nb._1._2,zoomPN._1,nb._1._3) &&
+//        isStable(nb._2._1,zoomPN._1,nb._2._3) && isStable(nb._2._2,zoomPN._1,nb._2._3)){
+//        return 0
+//      }
+//      return 2
+//    } else if(boolean1 && boolean2 && !boolean3 && boolean4 && boolean5 && boolean6){
+//      return 3
+//    } else if(boolean1 && boolean2 && boolean3 && !boolean4 && boolean5 && boolean6){
+//      return 4
+//    } else if(boolean1 && boolean2 && boolean3 && boolean4 && !boolean5 && boolean6){
+//      return 5
+//    } else if(boolean1 && boolean2 && boolean3 && boolean4 && boolean5 && !boolean6){
+//      return 6
+//    } else if(boolean1 && boolean2 && boolean3 && boolean4 && boolean5 && boolean6){
+//      return 0
+//    }
+//
+//    return -1
+//  }
+  def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile)): Boolean ={
+    val  downUp = isStable(mbT,zoomPN._2, Neighbours.Aggregation) && isStable(zoomPN._1,mbT, Neighbours.Aggregation) &&
+      isStable(mbT,weightPN._2, Neighbours.Weight) && isStable(weightPN._1,mbT, Neighbours.Weight)
+    return downUp
   }
 
   def measureStructure(tile : MultibandTile): Double ={
@@ -216,7 +328,7 @@ object SoH {
     val Aggregation,Weight,Focal = Value
   }
 
-  class SoHResults(downUp: (Double, Double), variance: Unit, jaccard: Double, percentual: Double, time: (Double, Double), kl: Double, sturcture: Double)
+  class SoHResults(downUp: (Double, Double), neighbours: Boolean, jaccard: Double, percentual: Double, time: (Double, Double), kl: Double, sturcture: Double, distance : Double)
 
 }
 

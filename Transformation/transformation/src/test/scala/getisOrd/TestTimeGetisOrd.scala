@@ -192,7 +192,7 @@ class TestTimeGetisOrd extends FunSuite {
     val setting = new Settings
     setting.focal = false
     setting.test = true
-    setting.layoutTileSize = (51,31)
+    setting.layoutTileSize = (50,30)
     val rnd = new Random(1)
     val bands = new Array[Tile](24)
     for(i <- 0 to 23){
@@ -204,7 +204,7 @@ class TestTimeGetisOrd extends FunSuite {
     var rdd = importTer.repartitionFiles("/tmp/firstTimeBand.tif", setting)
     var result = TimeGetisOrd.getGetisOrd(rdd,setting, multiBand)
     setting.focal = true
-    setting.layoutTileSize = (6,7)
+    setting.layoutTileSize = (5,6)
     for(i <- 0 to 23){
       bands(i) = new DoubleRawArrayTile(Array.fill(10*12)(rnd.nextInt(100)), 10, 12)
     }

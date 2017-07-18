@@ -26,22 +26,24 @@ object TimeGetisOrd {
     val spheroidWeight = new Spheroid(setting.weightRadius, setting.weightRadiusTime)
     val radius = spheroidFocal.a
     val radiusTime = spheroidFocal.c
-    val FocalGStar: MultibandTile = getEmptyMultibandArray(mbT)
+    val FocalGStar: MultibandTile = MultibandUtils.getEmptyMultibandArray(mbT)
 
     for (r <- 0 to mbT.rows - 1) {
-      print("Next r:"+r)
+      println("Next r:"+r)
       var start = System.currentTimeMillis()
       for (c <- 0 to mbT.cols - 1) {
         for (b <- 0 to mbT.bandCount - 1) {
-          var startBand = System.currentTimeMillis()
+          //var startBand = System.currentTimeMillis()
           val RMWNW2 = getRMWNW2(b, c, r, mbT, spheroidWeight, position, neigbours, getNM(b, c, r, mbT, spheroidFocal, position, neigbours))
           val sd = getSD(b, c, r, mbT, spheroidFocal, position, neigbours, RMWNW2.M)
           FocalGStar.band(b).asInstanceOf[DoubleRawArrayTile].setDouble(c,r,RMWNW2.getGStar(sd))
-          timeMeasuresFocal.addBand(System.currentTimeMillis()-start)
+          //timeMeasuresFocal.addBand(System.currentTimeMillis()-startBand)
         }
 
       }
-      timeMeasuresFocal.addRow(System.currentTimeMillis()-start)
+      if(position._1==0 && position._2==0)
+        timeMeasuresFocal.addRow(System.currentTimeMillis()-start)
+
     }
     FocalGStar
   }
@@ -136,11 +138,11 @@ object TimeGetisOrd {
     val nw2 = wSum*nm._1
     val w2 =Math.pow(wSum,2)
 
-    if(neighbour){
-      timeMeasuresFocal.addNeighbour(System.currentTimeMillis()-start)
-    } else {
-      timeMeasuresFocal.addNoNeighbour(System.currentTimeMillis()-start)
-    }
+//    if(neighbour){
+//      timeMeasuresFocal.addNeighbour(System.currentTimeMillis()-start)
+//    } else {
+//      timeMeasuresFocal.addNoNeighbour(System.currentTimeMillis()-start)
+//    }
 
     new StatsRNMW(row,nm._1,nm._2,mw,nw2,w2)
   }
@@ -227,7 +229,7 @@ object TimeGetisOrd {
   }
 
   def getSum(mbT: MultibandTile, spheroid : Spheroid, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
-    val multibandTile: MultibandTile = getEmptyMultibandArray(mbT)
+    val multibandTile: MultibandTile = MultibandUtils.getEmptyMultibandArray(mbT)
 
     for(b <- 0 to mbT.bandCount-1){
       val singleBand = multibandTile.band(b).asInstanceOf[DoubleRawArrayTile]
@@ -242,23 +244,17 @@ object TimeGetisOrd {
 
   }
 
-  def getEmptyMultibandArray(mbT: MultibandTile): MultibandTile = {
-    val bands = mbT.bandCount
-    val size = mbT.size
-    var bandArray = new Array[Tile](bands)
-    for (b <- 0 to bands-1) {
-      bandArray(b) = new DoubleRawArrayTile(Array.fill(size)(0), mbT.cols, mbT.rows)
-    }
-    val multibandTile = MultibandTile.apply(bandArray)
-    multibandTile
-  }
+
 
   def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings, stats : StatsGlobal, position : SpatialKey, neighbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
     val spheroid = Spheroid(setting.weightRadius, setting.weightRadiusTime)
 
     var start = System.currentTimeMillis()
     val RoW = getSum(multibandTile, spheroid, position,neighbours)
-    timeMeasuresGlobal.setRoW(System.currentTimeMillis()-start)
+    if(position._1==0 && position._2==0)
+      timeMeasuresGlobal.setRoW(System.currentTimeMillis()-start)
+
+
     println("End RoW")
 
     assert(multibandTile.cols==setting.layoutTileSize._1)
@@ -267,22 +263,26 @@ object TimeGetisOrd {
 
     start = System.currentTimeMillis()
     val MW = stats.gM*spheroid.getSum() //W entry is allways 1
-    timeMeasuresGlobal.setMW(System.currentTimeMillis()-start)
+    if(position._1==0 && position._2==0)
+      timeMeasuresGlobal.setMW(System.currentTimeMillis()-start)
 
     start = System.currentTimeMillis()
     val NW2 = stats.gN.toLong*spheroid.getSum().toLong //W entry is allways 1
-    timeMeasuresGlobal.setNW2(System.currentTimeMillis()-start)
+    if(position._1==0 && position._2==0)
+      timeMeasuresGlobal.setNW2(System.currentTimeMillis()-start)
 
     start = System.currentTimeMillis()
     val W2 = Math.pow(spheroid.getSum(),2)
-    timeMeasuresGlobal.setW2(System.currentTimeMillis()-start)
+    if(position._1==0 && position._2==0)
+      timeMeasuresGlobal.setW2(System.currentTimeMillis()-start)
 
     start = System.currentTimeMillis()
     val denominator = stats.gS*Math.sqrt((NW2-W2)/(stats.gN-1))
-    timeMeasuresGlobal.setDenominator(System.currentTimeMillis()-start)
+    if(position._1==0 && position._2==0)
+      timeMeasuresGlobal.setDenominator(System.currentTimeMillis()-start)
 
     //TODO
-    //assert(denominator>0)
+    assert(denominator>0)
     if(denominator>0){
       println(denominator+","+position.toString+","+stats.toString)
 
@@ -297,7 +297,8 @@ object TimeGetisOrd {
       }
       result
     }))
-    timeMeasuresGlobal.setDevision(System.currentTimeMillis()-start)
+    if(position._1==0 && position._2==0)
+      timeMeasuresGlobal.setDevision(System.currentTimeMillis()-start)
 
     res
   }
@@ -366,14 +367,18 @@ object TimeGetisOrd {
     tiles.collect().map(x=>println("c,r"+x._2.cols+","+x._2.rows))
 
     var raster = tiles.stitch()
-    val split = raster.split(new TileLayout(origin.cols,origin.rows,origin.cols,origin.rows))(0)
-    println("Raster,c,r"+split.cols+","+split.rows)
+//    val test = MultibandUtils.getEmptyMultibandArray(origin)
+//    var start1 = System.currentTimeMillis()
+//    test.mapBands((f : Int, t : Tile) =>t.mapDouble((x:Int,y:Int,v:Double)=>raster.band(f).getDouble(x,y)))
+//    println("Time for own split"+System.currentTimeMillis()-start1)
+//    val split = raster.split(new TileLayout(origin.cols,origin.rows,origin.cols,origin.rows))(0)
+    println("Raster,c,r"+raster.cols+","+raster.rows)
     val path = (new PathFormatter).getDirectory(setting, "partitions")
-    assert(split.dimensions==origin.dimensions)
+    assert(raster.dimensions==origin.dimensions)
     //(new ImportGeoTiff().writeMulitGeoTiff(tiles,setting,path+"all.tif"))
     val startWriting = System.currentTimeMillis()
 
-    (new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(split,setting,path+"all.tif"))
+    (new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(raster,setting,path+"all.tif"))
     println("-----------------------------------------------------------------Start------------" +
       "---------------------------------------------------------------------------------------------------------")
     if(setting.focal){
@@ -387,7 +392,8 @@ object TimeGetisOrd {
     }
     println("------------------------------------------------------------------End----------" +
       "----------------------------------------------------------------------------------------------------------")
-    split
+
+    raster
   }
 
   def getSTGlobal(origin : MultibandTile): StatsGlobal = {
@@ -563,7 +569,7 @@ object TimeGetisOrd {
     def getPerformanceMetrik(): String ={
       val out = "Time for focal G* was:"+all+
         "\n time for neigbour:"+neighbour/neighbourCount.toDouble+
-        "\n time for NoNeigbour:"+noNeighbour/noNeighbourCount.toDouble
+        "\n time for NoNeigbour:"+noNeighbour/noNeighbourCount.toDouble+
         "\n time for Band:"+band/bandCount.toDouble+
         "\n time for Row:"+row/rowCount.toDouble+
           "\n time for Writing:"+writing+

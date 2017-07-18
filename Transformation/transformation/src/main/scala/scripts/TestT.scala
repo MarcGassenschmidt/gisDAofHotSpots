@@ -20,19 +20,19 @@ object TestT {
 
     //writeBand(settings, dir, importTer)
     val origin = importTer.getMulitGeoTiff(dir+"firstTimeBand.tif",settings)
-
+    assert(origin.cols % 4==0 && origin.rows % 4==0)
     settings.layoutTileSize = ((origin.cols/4.0).floor.toInt,(origin.rows/4.0).floor.toInt)
     val rdd = importTer.repartitionFiles(dir+"firstTimeBand.tif", settings)
 
-    (new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(origin,settings,dir+"raster.tif"))
+    //(new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(origin,settings,dir+"raster.tif"))
     //TimeGetisOrd.getGetisOrd(rdd, settings, origin)
-    settings.focal = false
+    settings.focal = true
     var r = TimeGetisOrd.getGetisOrd(rdd, settings, origin)
-    var clusterHotSpotsTime = new ClusterHotSpotsTime(r)
-    println("Clustering")
-    val hotSpots = clusterHotSpotsTime.findClusters(1.9,5)
-    println(path+"hotspots.tif")
-    (new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(origin,settings,dir+"hotspots.tif"))
+//    var clusterHotSpotsTime = new ClusterHotSpotsTime(r)
+//    println("Clustering")
+//    val hotSpots = clusterHotSpotsTime.findClusters(1.9,5)
+//    println(dir+"hotspots.tif")
+//    (new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(origin,settings,dir+"hotspots.tif"))
   }
 
   def writeBand(settings: Settings, dir: String, importTer: ImportGeoTiff): Unit = {

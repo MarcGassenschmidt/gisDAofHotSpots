@@ -1,6 +1,6 @@
 package timeUtils
 
-import geotrellis.raster.MultibandTile
+import geotrellis.raster.{DoubleRawArrayTile, IntRawArrayTile, MultibandTile, Tile}
 import geotrellis.raster.histogram.Histogram
 
 /**
@@ -26,6 +26,32 @@ object MultibandUtils {
 
   def isInTile(x: Int, y: Int, mbT: MultibandTile): Boolean = {
     x>=0 && y>=0 && x<mbT.cols && y < mbT.rows
+  }
+
+  def isInTile(b : Int, x: Int, y: Int, mbT: MultibandTile): Boolean = {
+    x>=0 && y>=0 && x<mbT.cols && y < mbT.rows && b>0 && b<24
+  }
+
+  def getEmptyMultibandArray(mbT: MultibandTile): MultibandTile = {
+    val bands = mbT.bandCount
+    val size = mbT.size
+    var bandArray = new Array[Tile](bands)
+    for (b <- 0 to bands-1) {
+      bandArray(b) = new DoubleRawArrayTile(Array.fill(size)(0), mbT.cols, mbT.rows)
+    }
+    val multibandTile = MultibandTile.apply(bandArray)
+    multibandTile
+  }
+
+  def getEmptyIntMultibandArray(mbT: MultibandTile): MultibandTile = {
+    val bands = mbT.bandCount
+    val size = mbT.size
+    var bandArray = new Array[Tile](bands)
+    for (b <- 0 to bands-1) {
+      bandArray(b) = new IntRawArrayTile(Array.fill(size)(0), mbT.cols, mbT.rows)
+    }
+    val multibandTile = MultibandTile.apply(bandArray)
+    multibandTile
   }
 
 }

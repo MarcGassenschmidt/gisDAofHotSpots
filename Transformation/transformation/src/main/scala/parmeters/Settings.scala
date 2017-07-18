@@ -17,19 +17,19 @@ class Settings extends Serializable with Cloneable{
   //40.701915, -74.018704
   //40.763458, -73.967244
   val buttom = (40.699607, -74.020265)
-  val top = (40.769239, -73.948286)
+  val top = (40.769239+0.010368, -73.948286+0.008021)
   var shiftToPostive = -1*buttom._2*multiToInt
   var latMin = buttom._1*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
   var lonMin = buttom._2*multiToInt+shiftToPostive//Math.max(file.map(row => row.lon).min,-74.407877)
   var latMax = top._1*multiToInt//Math.min(file.map(row => row.lat).max,41.330106)
   var lonMax = top._2*multiToInt+shiftToPostive//Math.min(file.map(row => row.lon).max,-73.292793)
-  var sizeOfRasterLat = 100 //meters
-  var sizeOfRasterLon = 100 //meters
+  var sizeOfRasterLat = 400 //meters
+  var sizeOfRasterLon = 400 //meters
   var rasterLatLength = ((latMax-latMin)/sizeOfRasterLat).ceil.toInt
   var rasterLonLength = ((lonMax-lonMin)/sizeOfRasterLon).ceil.toInt
   var weightMatrix = Weight.Square
-  var weightRadius = 20
-  var weightRadiusTime = 2
+  var weightRadius = 10
+  var weightRadiusTime = 1
   var fromFile = false
   var clusterRange = 1.0
   var critivalValue = 5
