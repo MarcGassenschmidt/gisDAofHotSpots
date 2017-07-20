@@ -18,7 +18,7 @@ object TestT {
     println(dir)
     val importTer = new ImportGeoTiff()
 
-    //writeBand(settings, dir, importTer)
+    writeBand(settings, dir, importTer)
     val origin = importTer.getMulitGeoTiff(dir+"firstTimeBand.tif",settings)
     assert(origin.cols % 4==0 && origin.rows % 4==0)
     settings.layoutTileSize = ((origin.cols/4.0).floor.toInt,(origin.rows/4.0).floor.toInt)

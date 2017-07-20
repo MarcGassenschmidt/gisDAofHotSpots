@@ -45,7 +45,7 @@ object SoH {
       for (r <- 0 to parent.rows - 1) {
         for (c <- 0 to parent.cols - 1) {
           if(parent.band(b).get(c,r)!=0){
-            val nextDistance = findNext(b,c,r,child, parent.size)
+            val nextDistance = findNext(b,c,r,child, 100)
             assert(nextDistance!= -1)
             val key = parent.band(b).get(c,r)
             if(map.contains(key)){
@@ -73,18 +73,26 @@ object SoH {
                        ): SoHResults ={
     val downUp = getSoHDowAndUp(mbTCluster,weightPNCluster._2)
     //val variance = getVariance(mbTCluster)
+    println("deb.1")
     var neighbours = false
     if(focalPNCluster._1==null){
       neighbours =  getSoHNeighbours(mbT,zoomPNCluster,weightPNCluster)
     } else {
       neighbours =  getSoHNeighbours(mbT,zoomPNCluster,weightPNCluster,focalPNCluster)
     }
+    println("deb.2")
     val jaccard = getJaccardIndex(mbTCluster,weightPNCluster._2) //Eine Kennzahl
+    println("deb.3")
     val percentual = getSDForPercentualTiles(mbTCluster, settings) //Verteilung
+    println("deb.4")
     val time = compareWithTile(mbTCluster,month) //Referenzbild
+    println("deb.5")
     val kl = getKL(mbT,mbTWeight) //KL
+    println("deb.6")
     val sturcture = measureStructure(mbT) //Struktur
+    println("deb.7")
     var distnace = getDistance(weightPNCluster._1,mbTCluster)
+    println("deb.8")
     new SoHResults(downUp,neighbours,jaccard,percentual,time,kl,sturcture,distnace)
   }
 

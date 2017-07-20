@@ -4,7 +4,7 @@ import clustering.ClusterHotSpotsTime
 import geotrellis.raster.{MultibandTile, Tile}
 import geotrellis.spark.SpatialKey
 import getisOrd.SoH.SoHResults
-import getisOrd.{GetisOrd, SoH, TimeGetisOrd}
+import getisOrd.{GetisOrd, SoH, TimeGetisOrd, Weight}
 import importExport.{ImportGeoTiff, PathFormatter}
 import org.apache.spark.rdd.RDD
 import parmeters.{Scenario, Settings}
@@ -34,6 +34,11 @@ object MetrikValidation {
     settings.rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax-settings.lonMin)/settings.sizeOfRasterLon).ceil.toInt
 
+    settings.weightRadius = 10
+    settings.weightRadiusTime = 1
+
+    settings.focal = false
+    settings.focalRange = settings.weightRadius+20
 
     val path = new PathFormatter()
     val dir = path.getDirectory(settings, "MetrikValidations")
@@ -50,13 +55,17 @@ object MetrikValidation {
 
 
     //----------------------------------GStar----------------------------------
-    settings.focal = false
-    getGstar(settings, dir, importTer, origin, rdd)
+    //settings.focal = false
+    //getGstar(settings, dir, importTer, origin, rdd)
     //----------------------------------GStar-End---------------------------------
+
+    //println("deb1")
 
     //---------------------------------Calculate Metrik----------------------------------
     println(writeExtraMetrikRasters(settings,dir,importTer,origin,rdd).toString)
     //---------------------------------Calculate Metrik-End---------------------------------
+
+    println("deb2")
 
     //---------------------------------Cluster-GStar----------------------------------
     //clusterHotspots(settings, dir, importTer)
@@ -64,11 +73,13 @@ object MetrikValidation {
 
     //---------------------------------Focal-GStar----------------------------------
     settings.focal = true
-    getGstar(settings, dir, importTer, origin, rdd)
+    //getGstar(settings, dir, importTer, origin, rdd)
     //---------------------------------Focal-GStar-End---------------------------------
-    println(writeExtraMetrikRasters(settings,dir,importTer,origin,rdd).toString)
-    //---------------------------------Calculate Metrik----------------------------------
 
+    println("deb3")
+
+    //---------------------------------Calculate Metrik----------------------------------
+    println(writeExtraMetrikRasters(settings,dir,importTer,origin,rdd).toString)
     //---------------------------------Calculate Metrik-End---------------------------------
 
     //---------------------------------Cluster-Focal-GStar----------------------------------
@@ -84,22 +95,23 @@ object MetrikValidation {
                     importTer: ImportGeoTiff,
                     origin: MultibandTile,
                     rdd: RDD[(SpatialKey, MultibandTile)]): ((MultibandTile,MultibandTile),(MultibandTile,MultibandTile),(MultibandTile,MultibandTile)) = {
+    println("deb.01")
     settings.focalRange += 1
     val focalP = TimeGetisOrd.getGetisOrd(rdd,settings,origin)
     var clusterHotSpotsTime = new ClusterHotSpotsTime(focalP)
     var hotSpots = clusterHotSpotsTime.findClusters(1.9, 5)
-
+    println("deb.02")
     settings.focalRange -= 2
     val focalN = TimeGetisOrd.getGetisOrd(rdd,settings,origin)
     clusterHotSpotsTime = new ClusterHotSpotsTime(focalN)
     hotSpots = clusterHotSpotsTime.findClusters(1.9, 5)
     settings.focalRange +=1
-
+    println("deb.03")
     settings.weightRadius += 1
     val weightP = TimeGetisOrd.getGetisOrd(rdd,settings,origin)
     clusterHotSpotsTime = new ClusterHotSpotsTime(focalP)
     hotSpots = clusterHotSpotsTime.findClusters(1.9, 5)
-
+    println("deb.04")
     settings.weightRadius -= 2
     val weightN = TimeGetisOrd.getGetisOrd(rdd,settings,origin)
     clusterHotSpotsTime = new ClusterHotSpotsTime(weightP)
@@ -108,13 +120,13 @@ object MetrikValidation {
 
     val path = new PathFormatter()
     val dir = path.getDirectory(settings, "MetrikValidations")
-
+    println("deb.05")
     val a1 = MultibandUtils.aggregateToZoom(origin,settings.zoomLevel+1)
     importTer.writeMultiGeoTiff(a1, settings, dir + "firstTimeBandP.tif")
     val rdd1 = importTer.repartitionFiles(dir+"firstTimeBandP.tif", settings)
     val aggregateP = TimeGetisOrd.getGetisOrd(rdd1,settings,a1)
 
-
+    println("deb.06")
     settings.sizeOfRasterLat = settings.sizeOfRasterLat/2 //meters
     settings.sizeOfRasterLon = settings.sizeOfRasterLon/2 //meters
     settings.rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).ceil.toInt
@@ -123,7 +135,7 @@ object MetrikValidation {
     val a2 = importTer.getMulitGeoTiff(dir+"firstTimeBand.tif",settings)
     val rdd2 = importTer.repartitionFiles(dir+"firstTimeBand.tif", settings)
     val aggregateN = TimeGetisOrd.getGetisOrd(rdd2,settings,a2)
-
+    println("deb.07")
 
     settings.sizeOfRasterLat = settings.sizeOfRasterLat*2 //meters
     settings.sizeOfRasterLon = settings.sizeOfRasterLon*2 //meters

@@ -14,8 +14,9 @@ object ClusterMBTResults {
   def main(args: Array[String]): Unit = {
     val settings = new Settings()
     settings.focal = false
+
     val path = new PathFormatter()
-    val dir = path.getDirectory(settings, "test")
+    val dir = path.getDirectory(settings, "MetrikValidations")
     println(dir)
     val importTer = new ImportGeoTiff()
 
