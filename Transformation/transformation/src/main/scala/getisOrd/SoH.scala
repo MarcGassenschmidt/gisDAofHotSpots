@@ -20,32 +20,22 @@ object SoH {
   }
 
 
-  def findNext(b: Int, c: Int, r: Int, child: MultibandTile, actual : (Double,Double,Double), visit : MultibandTile) : Double = {
-    val distanceCluster = child.band(b).get(c,r)
-    if(distanceCluster>0){
-      return Math.sqrt(actual._1*actual._1+actual._2*actual._2+actual._3*actual._3)
-    } else {
-      if (visit.band(b).get(c, r) == -1) {
-        return -1
-      } else {
-        visit.band(b).asInstanceOf[IntRawArrayTile].set(c, r, -1)
-        for (i <- -1 to 1) {
-          for (j <- -1 to 1) {
-            for (k <- -1 to 1) {
-              if (MultibandUtils.isInTile(b + i, c + j, r + k, child)) {
-                val res = findNext(b + i, c + j, r + k, child, actual + (i, j, k), visit)
-                if (res != -1) {
-                  return res
-                }
-              }
-
-            }
+  def findNext(b: Int, c: Int, r: Int, mbT: MultibandTile, max : Int) : Double = {
+    var distance = max.toDouble
+    for(i <- -2 to 2){
+      for(j <- -max to max){
+        for(k <- -max to max){
+          val bandDist = (b+i+24)%24
+          val cDist =c+j
+          val rDist = r+k
+          if(MultibandUtils.isInTile(cDist,rDist,mbT) &&
+            mbT.band(bandDist).get(cDist,rDist)!=0){
+            distance = Math.sqrt(bandDist*bandDist+cDist*cDist+rDist*rDist)
           }
         }
-      }
+     }
     }
-    return -1
-
+    return distance
   }
 
   def getDistance(parent: MultibandTile, child: MultibandTile) : Double = {
@@ -55,7 +45,7 @@ object SoH {
       for (r <- 0 to parent.rows - 1) {
         for (c <- 0 to parent.cols - 1) {
           if(parent.band(b).get(c,r)!=0){
-            val nextDistance = findNext(b,c,r,child,(0,0,0), MultibandUtils.getEmptyIntMultibandArray(child))
+            val nextDistance = findNext(b,c,r,child, parent.size)
             assert(nextDistance!= -1)
             val key = parent.band(b).get(c,r)
             if(map.contains(key)){
@@ -153,7 +143,7 @@ object SoH {
     val n : Double = (numberClusterInEachSplit.size-1)
     val mean : Double= numberClusterInEachSplit.reduce(_+_)/n
     val s : Double = Math.sqrt((1/n)*numberClusterInEachSplit.map(x=>Math.pow(x-mean,2)).reduce(_+_))
-    s
+    s/MultibandUtils.getHistogramDouble(mbT).median().get
   }
 
   def compareWithTile(mbT : MultibandTile, tile : Tile) : (Double,Double) = {
@@ -162,12 +152,14 @@ object SoH {
   }
 
   def getKL(parent : MultibandTile, child :MultibandTile): Double ={
-    val max = MultibandUtils.getHistogramInt(parent).merge(MultibandUtils.getHistogramInt(child)).maxValue().get.toDouble
+    val histo = MultibandUtils.getHistogramInt(parent).merge(MultibandUtils.getHistogramInt(child))
+    val max = histo.maxValue().get
+    val minPositiv = histo.values().filter(x=>(x)>0).min
     parent.mapBands((f : Int, tile : Tile) => {
       tile.mapDouble((c : Int,r : Int,v : Double)=>{
         if(child.band(f).getDouble(c,r)==0 || v==0) 0.0 else (v/max)*Math.log((v/max)/(child.band(f).getDouble(c,r)/max))
       })
-    }).bands.map(x=>x.toArrayDouble().reduce(_+_)).reduce(_+_)/(parent.bandCount*parent.cols*parent.rows)
+    }).bands.map(x=>x.toArrayDouble().reduce(_+_)).reduce(_+_)/(parent.bandCount*parent.cols*parent.rows*Math.log(max/minPositiv))
   }
 
   def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile), focalPN : (MultibandTile,MultibandTile)): Boolean ={
@@ -328,7 +320,20 @@ object SoH {
     val Aggregation,Weight,Focal = Value
   }
 
-  class SoHResults(downUp: (Double, Double), neighbours: Boolean, jaccard: Double, percentual: Double, time: (Double, Double), kl: Double, sturcture: Double, distance : Double)
+  class SoHResults(downUp: (Double, Double), neighbours: Boolean, jaccard: Double, percentual: Double, time: (Double, Double), kl: Double, sturcture: Double, distance : Double){
+    override def toString: String = "Metrik results are: \n" +
+      "SoH_Down,"+downUp._1+"\n" +
+      "SoH_Up,"+downUp._2+"\n" +
+      "neighbours,"+neighbours+"\n" +
+      "jaccard,"+jaccard+"\n" +
+      "percentaul,"+percentual+"\n"+
+      "time_Down,"+time._1+"\n" +
+      "time_Up,"+time._2+"\n" +
+      "KL,"+kl+"\n" +
+      "structure,"+sturcture+"\n" +
+      "distance,"+distance
+
+  }
 
 }
 

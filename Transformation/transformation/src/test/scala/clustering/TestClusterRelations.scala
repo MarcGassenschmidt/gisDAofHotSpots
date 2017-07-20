@@ -4,6 +4,7 @@ import java.util.Random
 
 import geotrellis.raster.{ArrayMultibandTile, ArrayTile, DoubleRawArrayTile, IntRawArrayTile, MultibandTile, Tile}
 import org.scalatest.FunSuite
+import timeUtitls.TestMultibandUtils
 
 
 /**
@@ -134,7 +135,7 @@ class TestClusterRelations extends FunSuite{
 
   test("Test ClusterRelations::getNumberChildrenAndParentsWhichIntersect(Multiband)"){
     val cr = new ClusterRelations()
-    assert(cr.getNumberChildrenAndParentsWhichIntersect(getTestClusterParentMulti(),getTestClusterChildMulti())==(0,15))
+    assert(cr.getNumberChildrenAndParentsWhichIntersect(getTestClusterParentMulti(),getTestClusterChildMulti())==(5,13))
   }
 
   test("Test ClusterRelations::getNumberChildrenAndParentsWhichIntersect"){
@@ -155,9 +156,9 @@ class TestClusterRelations extends FunSuite{
   def getTestClusterParentMulti(): MultibandTile ={
     val rnd = new Random(1)
     val bands = new Array[Tile](3)
-    bands(0) = getTestClusterChild()
-    bands(1) = getTestClusterChild()
-    bands(2) = getTestClusterChild().map(x=>if(x==0) 0 else if(x==1) 1 else x+10) // Double the cluster - 1 overlapping
+    bands(0) = getTestClusterParent()
+    bands(1) = getTestClusterParent()
+    bands(2) = getTestClusterParent().map(x=>if(x==0) 0 else if(x==1) 1 else x+10) // Double the cluster - 1 overlapping
     new ArrayMultibandTile(bands)
   }
 
@@ -211,6 +212,12 @@ class TestClusterRelations extends FunSuite{
       5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
     val weightTile = new DoubleRawArrayTile(arrayTile, 20,20)
     weightTile
+  }
+
+  test("Percentual Fitting") {
+    val relation = new ClusterRelations()
+    assert(1>(relation.getPercentualFitting(getTestClusterParentMulti, getTestClusterChildMulti)))
+    assert(1>(relation.getPercentualFitting(getTestClusterChildMulti, getTestClusterParentMulti)))
   }
 
 }

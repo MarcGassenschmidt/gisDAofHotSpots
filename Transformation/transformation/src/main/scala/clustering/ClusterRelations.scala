@@ -107,4 +107,24 @@ class ClusterRelations {
     return (parent, child)
   }
 
+  def getPercentualFitting(origionCluster : MultibandTile, compareCluster : MultibandTile): Double ={
+    var fit = 0
+    var total = 0
+    for(b <- 0 to origionCluster.bandCount-1){
+      for(r <- 0 to origionCluster.rows-1){
+        for(c <- 0 to origionCluster.cols-1){
+          if(origionCluster.band(b).getDouble(c,r)!=0){
+            if(compareCluster.band(b).getDouble(c,r)!=0){
+              fit += 1
+              total += 1
+            } else {
+              total += 1
+            }
+          }
+        }
+      }
+    }
+    fit/total.toDouble
+  }
+
 }

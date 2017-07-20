@@ -7,6 +7,10 @@ import geotrellis.raster.{ArrayMultibandTile, ArrayTile, BitArrayTile, CellType,
   */
 class ClusterHotSpotsTime(mbT : MultibandTile) {
 
+  def findClusters() : (MultibandTile) ={
+    findClusters(1.9,5)._1
+  }
+
   def findClusters(range : Double, critical : Double) : (MultibandTile,Int) ={
     var histogramm = mbT.band(0).histogramDouble()
     for(b <- 1 to mbT.bandCount-1){
@@ -26,12 +30,13 @@ class ClusterHotSpotsTime(mbT : MultibandTile) {
     var visit = ArrayMultibandTile.empty(CellType.fromString("bool"),mbT.bandCount,mbT.cols,mbT.rows)
     var clusterTile = ArrayMultibandTile.empty(CellType.fromString("uint16raw"),mbT.bandCount,mbT.cols,mbT.rows)
     for(c <- 0 to mbT.cols-1){
-      println("Next c:"+c)
+      //println("Next c:"+c)
       for(r <- 0 to mbT.rows-1){
         for(b <- 0 to mbT.bandCount-1)
         if((mbT.band(b).getDouble(c,r))>q) {
           if (clusterTile.band(b).get(c, r) == 0) {
             counterCluster += 1
+
             (visit.band(b).asInstanceOf[BitArrayTile]).set(c, r, 1)
             (clusterTile.band(b).asInstanceOf[UShortRawArrayTile]).set(c, r, counterCluster)
             expandCluster(clusterTile, range, q, visit, counterCluster, regionQuery(range, q, b, c, r, visit))

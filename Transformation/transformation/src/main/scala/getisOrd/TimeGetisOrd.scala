@@ -33,11 +33,11 @@ object TimeGetisOrd {
       var start = System.currentTimeMillis()
       for (c <- 0 to mbT.cols - 1) {
         for (b <- 0 to mbT.bandCount - 1) {
-          //var startBand = System.currentTimeMillis()
+          var startBand = System.currentTimeMillis()
           val RMWNW2 = getRMWNW2(b, c, r, mbT, spheroidWeight, position, neigbours, getNM(b, c, r, mbT, spheroidFocal, position, neigbours))
           val sd = getSD(b, c, r, mbT, spheroidFocal, position, neigbours, RMWNW2.M)
           FocalGStar.band(b).asInstanceOf[DoubleRawArrayTile].setDouble(c,r,RMWNW2.getGStar(sd))
-          //timeMeasuresFocal.addBand(System.currentTimeMillis()-startBand)
+          timeMeasuresFocal.addBand(System.currentTimeMillis()-startBand)
         }
 
       }
@@ -138,11 +138,11 @@ object TimeGetisOrd {
     val nw2 = wSum*nm._1
     val w2 =Math.pow(wSum,2)
 
-//    if(neighbour){
-//      timeMeasuresFocal.addNeighbour(System.currentTimeMillis()-start)
-//    } else {
-//      timeMeasuresFocal.addNoNeighbour(System.currentTimeMillis()-start)
-//    }
+    if(neighbour){
+     timeMeasuresFocal.addNeighbour(System.currentTimeMillis()-start)
+    } else {
+     timeMeasuresFocal.addNoNeighbour(System.currentTimeMillis()-start)
+    }
 
     new StatsRNMW(row,nm._1,nm._2,mw,nw2,w2)
   }

@@ -54,6 +54,20 @@ object MultibandUtils {
     multibandTile
   }
 
+  def aggregateToZoom(tile : Tile, zoomLevel : Int) : Tile = {
+    val result : Tile = tile.downsample(tile.cols/zoomLevel, tile.rows/zoomLevel)(f =>
+    {var sum = 0
+      f.foreach((x:Int,y:Int)=>if(x<tile.cols && y<tile.rows) sum+=tile.get(x,y) else sum+=0)
+      sum}
+    )
+    result
+  }
+
+  def aggregateToZoom(mbT: MultibandTile, zoomLevel : Int) : MultibandTile = {
+    mbT.mapBands((f : Int, t:Tile)=>aggregateToZoom(t,zoomLevel))
+  }
+
+
 }
 
 

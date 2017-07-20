@@ -85,25 +85,7 @@ class GenericScenario extends LazyLogging {
   }
 
   def gStar(tile : Tile, settings : parmeters.Settings, visualize : Boolean): Tile = {
-    var startTime = System.currentTimeMillis()
-    var ord : GetisOrd = null
-    if(settings.focal){
-      ord = new GetisOrdFocal(tile, settings)
-    } else {
-      ord = new GetisOrd(tile, settings)
-    }
-    println("Time for G* values =" + ((System.currentTimeMillis() - startTime) / 1000))
-    startTime = System.currentTimeMillis()
-    val score =ord.gStarComplete()
-    println("Time for G* =" + ((System.currentTimeMillis() - startTime) / 1000))
-
-    if(visualize){
-      startTime = System.currentTimeMillis()
-      val image = new TileVisualizer()
-      image.visualTileNew(score, settings, "gStar")
-      println("Time for Image G* =" + ((System.currentTimeMillis() - startTime) / 1000))
-    }
-    score
+    GenericScenario.gStar(tile,settings,visualize)
   }
 
   def getRaster(settings : Settings): Tile = {
@@ -267,4 +249,28 @@ class GenericScenario extends LazyLogging {
 
 
 
+}
+
+object GenericScenario{
+  def gStar(tile : Tile, settings : parmeters.Settings, visualize : Boolean): Tile = {
+    var startTime = System.currentTimeMillis()
+    var ord : GetisOrd = null
+    if(settings.focal){
+      ord = new GetisOrdFocal(tile, settings)
+    } else {
+      ord = new GetisOrd(tile, settings)
+    }
+    println("Time for G* values =" + ((System.currentTimeMillis() - startTime) / 1000))
+    startTime = System.currentTimeMillis()
+    val score =ord.gStarComplete()
+    println("Time for G* =" + ((System.currentTimeMillis() - startTime) / 1000))
+
+    if(visualize){
+      startTime = System.currentTimeMillis()
+      val image = new TileVisualizer()
+      image.visualTileNew(score, settings, "gStar")
+      println("Time for Image G* =" + ((System.currentTimeMillis() - startTime) / 1000))
+    }
+    score
+  }
 }

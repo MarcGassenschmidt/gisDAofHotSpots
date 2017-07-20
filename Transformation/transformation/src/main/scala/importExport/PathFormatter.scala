@@ -1,8 +1,9 @@
 package importExport
 
 import java.io.File
-
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 import parmeters.Settings
 
 /**
@@ -14,7 +15,8 @@ class PathFormatter {
     if(settings.test){
       settings.ouptDirectory = "/tmp/"
     }
-    var sub = "Time_"+LocalDateTime.now().formatted("dd_MM")+"/"
+    val formatter = DateTimeFormatter.ofPattern("dd_MM")
+    var sub = "Time_"+LocalDateTime.now().format(formatter)+"/"
     if(extra.equals("raster")){
       //For alle settings equal
     } else if(settings.focal){

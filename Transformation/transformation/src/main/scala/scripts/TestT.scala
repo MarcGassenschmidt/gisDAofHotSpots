@@ -25,9 +25,18 @@ object TestT {
     val rdd = importTer.repartitionFiles(dir+"firstTimeBand.tif", settings)
 
     //(new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(origin,settings,dir+"raster.tif"))
-    //TimeGetisOrd.getGetisOrd(rdd, settings, origin)
+
+    val r1 = TimeGetisOrd.getGetisOrd(rdd, settings, origin)
+    println(dir+"gStar.tif")
+    importTer.writeMultiGeoTiff(r1,settings,dir+"gStar.tif")
+
+
+
     settings.focal = true
-    var r = TimeGetisOrd.getGetisOrd(rdd, settings, origin)
+    val dirF = path.getDirectory(settings, "test")
+    println(dirF+"focalgStar.tif")
+    var r2 = TimeGetisOrd.getGetisOrd(rdd, settings, origin)
+    importTer.writeMultiGeoTiff(r2,settings,dirF+"focalgStar.tif")
 //    var clusterHotSpotsTime = new ClusterHotSpotsTime(r)
 //    println("Clustering")
 //    val hotSpots = clusterHotSpotsTime.findClusters(1.9,5)
