@@ -163,11 +163,12 @@ object SoH {
     val histo = MultibandUtils.getHistogramInt(parent).merge(MultibandUtils.getHistogramInt(child))
     val max = histo.maxValue().get
     val minPositiv = histo.values().filter(x=>(x)>0).min
+    val maxLogValue = Math.max(1.0,Math.log(1/(minPositiv/max.toDouble)))
     parent.mapBands((f : Int, tile : Tile) => {
       tile.mapDouble((c : Int,r : Int,v : Double)=>{
         if(child.band(f).getDouble(c,r)==0 || v==0) 0.0 else (v/max)*Math.log((v/max)/(child.band(f).getDouble(c,r)/max))
       })
-    }).bands.map(x=>x.toArrayDouble().reduce(_+_)).reduce(_+_)/(parent.bandCount*parent.cols*parent.rows*Math.log(max/minPositiv))
+    }).bands.map(x=>x.toArrayDouble().reduce(_+_)).reduce(_+_)/(parent.bandCount*parent.cols*parent.rows*maxLogValue)
   }
 
   def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile), focalPN : (MultibandTile,MultibandTile)): Boolean ={
