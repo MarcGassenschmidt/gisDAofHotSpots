@@ -59,7 +59,7 @@ object SoH {
         }
       }
     }
-    val maxDistance = Math.sqrt(100*100+100*100+2*2)
+    val maxDistance = Math.sqrt(100*100+100*100+2*2)+0.00000001
     val sumDist = map.map(x=>x._2).reduce(_+_)
     1-sumDist/(maxDistance*map.size)
   }

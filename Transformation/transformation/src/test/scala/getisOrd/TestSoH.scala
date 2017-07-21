@@ -24,7 +24,7 @@ class TestSoH extends FunSuite{
 
   test("Distance"){
     val distance = SoH.getDistance(TestMultibandUtils.getMultiband(TestMultibandUtils.getTestTileCluster(),24),TestMultibandUtils.getMultiband(TestMultibandUtils.getTestTileCluster2(),24))
-    assert(distance>0.6 && distance<1)
+    assert(distance>0 && distance<1)
   }
 
 
