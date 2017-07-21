@@ -19,6 +19,10 @@ import geotrellis.spark.{LayerId, SpatialKey, TileLayerMetadata, withProjectedEx
   * Created by marc on 02.06.17.
   */
 class ImportGeoTiff {
+  def writeGeoTiff(tile: Tile, file: String, settings: Settings): Unit = {
+    SinglebandGeoTiff.apply(tile, new Extent(settings.buttom._1,settings.buttom._2,settings.top._1,settings.top._2), crs).write(file)
+  }
+
   val crs = CRS.fromName("EPSG:3857")
 
   def geoTiffExists(globalSettings: Settings, i: Int, runs: Int, extra : String): Boolean = {
@@ -35,14 +39,14 @@ class ImportGeoTiff {
   }
 
   def getGeoTiff(setting : Settings, i : Int, runs : Int, extra : String): Tile ={
-    getGeoTiff(getFileName(setting,i,runs,extra),setting)
+    getGeoTiff(getFileName(setting,i,runs,extra))
   }
 
   def getMulitGeoTiff(setting : Settings, i : Int, runs : Int, extra : String): MultibandTile ={
-    getMulitGeoTiff(getFileName(setting,i,runs,extra),setting)
+    getMulitGeoTiff(getFileName(setting,i,runs,extra))
   }
 
-  def getMulitGeoTiff(file : String, setting : Settings): MultibandTile = {
+  def getMulitGeoTiff(file : String): MultibandTile = {
     GeoTiffReader.readMultiband(file)
   }
 
@@ -62,14 +66,18 @@ class ImportGeoTiff {
     tiled
   }
 
-  def getGeoTiff(file : String, setting : Settings): Tile ={
-    getMulitGeoTiff(file,setting).band(0)
+  def readGeoTiff(file : String): Tile = {
+    GeoTiffReader.readSingleband(file).tile
+  }
+
+  def getGeoTiff(file : String): Tile ={
+    getMulitGeoTiff(file).band(0)
   }
 
   def writeGeoTiff(tile: Tile, settings: Settings, i : Int, runs : Int, extra : String): Unit = {
     val name = getFileName(settings, i, runs, extra)
     //println(name)
-    writeGeoTiff(tile, settings, name)
+    writeGeoTiff(tile: Tile,name, settings: Settings)
   }
 
   def writeMultiGeoTiff(tile: MultibandTile, settings: Settings, i : Int, runs : Int, extra : String): Unit = {

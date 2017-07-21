@@ -70,7 +70,7 @@ class DifferentRatio extends GenericScenario{
           }
 
           val w = 1+(i+1)*2
-          if(w<globalSettings.focalRange && w<globalSettings.focalRange){
+          if(w<globalSettings.focalRange){
             //globalSettings.weightRadius = weightRatio(globalSettings, runs, j)
             val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double), lat: (Int, Int)) = oneCase(globalSettings, i, runs)
             saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, chs, sohVal, lat)

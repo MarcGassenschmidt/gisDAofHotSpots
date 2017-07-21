@@ -28,10 +28,10 @@ class DifferentRasterSizes extends GenericScenario{
     var outPutResults = ListBuffer[SoHResult]()
     val runs = 5
 
-        forGlobalG(globalSettings, outPutResults, runs)
-        saveResult(globalSettings, outPutResults)
-//    outPutResults = ListBuffer[SoHResult]()
-//    forFocalG(globalSettings, outPutResults, runs)
+    forGlobalG(globalSettings, outPutResults, runs)
+    saveResult(globalSettings, outPutResults)
+    outPutResults = ListBuffer[SoHResult]()
+    forFocalG(globalSettings, outPutResults, runs)
 
     saveResult(globalSettings, outPutResults)
   }

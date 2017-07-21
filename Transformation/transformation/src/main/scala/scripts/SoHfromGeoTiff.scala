@@ -28,8 +28,8 @@ object SoHfromGeoTiff {
     pw.println("Weight,DownFocalBlur,UpFocalBlur")
 
     for(i <- 0 to 10){
-      val child = imp.getGeoTiff(format+"focalgstar-221x213-z03-w"+(7+i*2).formatted("%02d")+".tif", globalSettings)
-      val parent = imp.getGeoTiff(format+"focalgstar-221x213-z03-w"+(7+(i+1)*2).formatted("%02d")+".tif", globalSettings)
+      val child = imp.getGeoTiff(format+"focalgstar-221x213-z03-w"+(7+i*2).formatted("%02d")+".tif")
+      val parent = imp.getGeoTiff(format+"focalgstar-221x213-z03-w"+(7+(i+1)*2).formatted("%02d")+".tif")
       val clusterParent = (new ClusterHotSpots(child)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
       val clusterChild = (new ClusterHotSpots(parent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
       val vis = new TileVisualizer()
@@ -48,8 +48,8 @@ object SoHfromGeoTiff {
 //    pw.println("-------------------gStar---blur----------------------")
     pw.println("Weight,DownBlur,UpBlur")
     for(i <- 0 to 10){
-      val child = imp.getGeoTiff(format+"gstar-221x213-z03-w"+(7+i*2).formatted("%02d")+".tif", globalSettings)
-      val parent = imp.getGeoTiff(format+"gstar-221x213-z03-w"+(7+(i+1)*2).formatted("%02d")+".tif", globalSettings)
+      val child = imp.getGeoTiff(format+"gstar-221x213-z03-w"+(7+i*2).formatted("%02d")+".tif")
+      val parent = imp.getGeoTiff(format+"gstar-221x213-z03-w"+(7+(i+1)*2).formatted("%02d")+".tif")
       val clusterParent = (new ClusterHotSpots(child)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
       val clusterChild = (new ClusterHotSpots(parent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
       val vis = new TileVisualizer()
@@ -75,8 +75,8 @@ object SoHfromGeoTiff {
 
       val sizeF = (661.0/(i)).ceil.toInt.formatted("%03d")+"x"+(639.0/(i)).ceil.toInt.formatted("%03d")
       val sizeF1 = (661.0/(i+1)).ceil.toInt.formatted("%03d")+"x"+(639.0/(i+1)).ceil.toInt.formatted("%03d")
-      val child = imp.getGeoTiff(format+"focalgstar-"+sizeF+"-z"+i.formatted("%02d")+"-w11.tif", globalSettings)
-      val parent = imp.getGeoTiff(format+"focalgstar-"+sizeF1+"-z"+(i+1).formatted("%02d")+"-w11.tif", globalSettings)
+      val child = imp.getGeoTiff(format+"focalgstar-"+sizeF+"-z"+i.formatted("%02d")+"-w11.tif")
+      val parent = imp.getGeoTiff(format+"focalgstar-"+sizeF1+"-z"+(i+1).formatted("%02d")+"-w11.tif")
       val clusterParent = (new ClusterHotSpots(child)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
       val clusterChild = (new ClusterHotSpots(parent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
 
@@ -91,8 +91,8 @@ object SoHfromGeoTiff {
     for(i <- 1 to 7){
       val sizeF = (661.0/(i)).ceil.toInt.formatted("%03d")+"x"+(639.0/(i)).ceil.toInt.formatted("%03d")
       val sizeF1 = (661.0/(i+1)).ceil.toInt.formatted("%03d")+"x"+(639.0/(i+1)).ceil.toInt.formatted("%03d")
-      val child = imp.getGeoTiff(format+"gstar-"+sizeF+"-z"+i.formatted("%02d")+"-w11.tif", globalSettings)
-      val parent = imp.getGeoTiff(format+"gstar-"+sizeF1+"-z"+(i+1).formatted("%02d")+"-w11.tif", globalSettings)
+      val child = imp.getGeoTiff(format+"gstar-"+sizeF+"-z"+i.formatted("%02d")+"-w11.tif")
+      val parent = imp.getGeoTiff(format+"gstar-"+sizeF1+"-z"+(i+1).formatted("%02d")+"-w11.tif")
       val clusterParent = (new ClusterHotSpots(child)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
       val clusterChild = (new ClusterHotSpots(parent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
 

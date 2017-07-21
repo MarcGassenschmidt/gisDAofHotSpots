@@ -30,12 +30,12 @@ object SoH {
           val rDist = r+k
           if(MultibandUtils.isInTile(cDist,rDist,mbT) &&
             mbT.band(bandDist).get(cDist,rDist)!=0){
-            distance = Math.sqrt(bandDist*bandDist+cDist*cDist+rDist*rDist)
+            distance = Math.sqrt(i*i+c*c+r*r)
           }
         }
      }
     }
-    return distance
+    return Math.sqrt(max*max+max*max+2*2)
   }
 
   def getDistance(parent: MultibandTile, child: MultibandTile) : Double = {
@@ -59,7 +59,9 @@ object SoH {
         }
       }
     }
-    1-map.map(x=>x._2).reduce(_+_)/(2*child.size)
+    val maxDistance = Math.sqrt(100*100+100*100+2*2)
+    val sumDist = map.map(x=>x._2).reduce(_+_)
+    1-sumDist/(maxDistance*map.size)
   }
 
   def getMetrikResults(mbT : MultibandTile,
@@ -83,7 +85,7 @@ object SoH {
     println("deb.2")
     val jaccard = getJaccardIndex(mbTCluster,weightPNCluster._2) //Eine Kennzahl
     println("deb.3")
-    val percentual = getSDForPercentualTiles(mbTCluster, settings) //Verteilung
+    val percentual = getSDForPercentualTiles(mbTCluster, settings) //Verteilung - Variationskoeffizient
     println("deb.4")
     val time = compareWithTile(mbTCluster,month) //Referenzbild
     println("deb.5")
@@ -151,12 +153,13 @@ object SoH {
     val n : Double = (numberClusterInEachSplit.size-1)
     val mean : Double= numberClusterInEachSplit.reduce(_+_)/n
     val s : Double = Math.sqrt((1/n)*numberClusterInEachSplit.map(x=>Math.pow(x-mean,2)).reduce(_+_))
-    s/MultibandUtils.getHistogramDouble(mbT).median().get
+    val meanTotal = MultibandUtils.getHistogramDouble(mbT).mean().get
+    s/meanTotal
   }
 
   def compareWithTile(mbT : MultibandTile, tile : Tile) : (Double,Double) = {
     val sohs = mbT.bands.map(x=>getSoHDowAndUp(x,tile))
-    (sohs.map(x=>x._1).reduce(_+_)/sohs.size,sohs.map(x=>x._2).reduce(_+_)/sohs.size)
+    (sohs.map(x=>x._1).reduce(_+_)/sohs.size.toDouble,sohs.map(x=>x._2).reduce(_+_)/sohs.size.toDouble)
   }
 
   def getKL(parent : MultibandTile, child :MultibandTile): Double ={
@@ -164,11 +167,14 @@ object SoH {
     val max = histo.maxValue().get
     val minPositiv = histo.values().filter(x=>(x)>0).min
     val maxLogValue = Math.max(1.0,Math.log(1/(minPositiv/max.toDouble)))
-    parent.mapBands((f : Int, tile : Tile) => {
+    val dist = parent.mapBands((f : Int, tile : Tile) => {
       tile.mapDouble((c : Int,r : Int,v : Double)=>{
-        if(child.band(f).getDouble(c,r)==0 || v==0) 0.0 else (v/max)*Math.log((v/max)/(child.band(f).getDouble(c,r)/max))
+        var tmp = 0.0
+        if(child.band(f).getDouble(c,r)==0 || v==0) tmp = 0.0 else tmp=(v/max)*Math.log(Math.abs((v/max))/Math.abs((child.band(f).getDouble(c,r)/max)))
+        tmp
       })
-    }).bands.map(x=>x.toArrayDouble().reduce(_+_)).reduce(_+_)/(parent.bandCount*parent.cols*parent.rows*maxLogValue)
+    }).bands.map(x=>x.toArrayDouble().reduce(_+_)).reduce(_+_)/(parent.bandCount*parent.cols*parent.rows)
+    Math.abs(dist)
   }
 
   def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile), focalPN : (MultibandTile,MultibandTile)): Boolean ={
@@ -335,7 +341,7 @@ object SoH {
       "SoH_Up,"+downUp._2+"\n" +
       "neighbours,"+neighbours+"\n" +
       "jaccard,"+jaccard+"\n" +
-      "percentaul,"+percentual+"\n"+
+      "percentual,"+percentual+"\n"+
       "time_Down,"+time._1+"\n" +
       "time_Up,"+time._2+"\n" +
       "KL,"+kl+"\n" +

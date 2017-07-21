@@ -21,7 +21,7 @@ object ClusterMBTResults {
     val importTer = new ImportGeoTiff()
 
 
-    val gStar = importTer.getMulitGeoTiff(dir+"gStar.tif",settings)
+    val gStar = importTer.getMulitGeoTiff(dir+"gStar.tif")
     var clusterHotSpotsTime = new ClusterHotSpotsTime(gStar)
     val hotSpots = clusterHotSpotsTime.findClusters(1.9,5)
     //println(hotSpots._1.band(10).resample(50,50).asciiDraw())
@@ -31,7 +31,7 @@ object ClusterMBTResults {
     settings.focal = true
     val dirF = path.getDirectory(settings, "test")
     println(dirF)
-    val focalgStar = importTer.getMulitGeoTiff(dirF+"focalgStar.tif",settings)
+    val focalgStar = importTer.getMulitGeoTiff(dirF+"focalgStar.tif")
     var clusterHotSpotsTimeF = new ClusterHotSpotsTime(focalgStar)
     val hotSpotsF = clusterHotSpotsTime.findClusters(1.9,5)
     //println(hotSpotsF._1.band(10).resample(50,50).asciiDraw())

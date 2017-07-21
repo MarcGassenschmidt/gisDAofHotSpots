@@ -16,7 +16,8 @@ class PathFormatter {
       settings.ouptDirectory = "/tmp/"
     }
     val formatter = DateTimeFormatter.ofPattern("dd_MM")
-    var sub = "Time_"+LocalDateTime.now().format(formatter)+"/"
+    var sub = "NoSubAtMM/"+settings.csvYear+"/"+settings.csvMonth+"/"
+    //var sub = "Time_"+LocalDateTime.now().format(formatter)+"/"
     if(extra.equals("raster")){
       //For alle settings equal
     } else if(settings.focal){

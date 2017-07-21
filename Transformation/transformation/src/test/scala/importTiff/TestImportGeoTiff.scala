@@ -34,7 +34,7 @@ class TestImportGeoTiff extends FunSuite {
     im.writeGeoTiff(getTestTile(), par, fileName)
     //fileName = im.getFileName(par,0,20,"T")
     println(fileName)
-    val tile = im.getGeoTiff(fileName, par)
+    val tile = im.getGeoTiff(fileName)
     println(tile.asciiDrawDouble())
   }
 
