@@ -29,7 +29,7 @@ class TestImportGeoTiff extends FunSuite {
     val im = new ImportGeoTiff()
 
     val par = new Settings()
-    var fileName = im.getFileName(par, 0,20, "Test")
+    var fileName = im.getFileName(par, "Test")
     println(fileName)
     im.writeGeoTiff(getTestTile(), par, fileName)
     //fileName = im.getFileName(par,0,20,"T")
@@ -57,7 +57,7 @@ class TestImportGeoTiff extends FunSuite {
     val crs = CRS.fromName("EPSG:3857")
     val par = new Settings()
     par.test = true
-    var fileName = im.getFileName(par, 0,20, "Test")
+    var fileName = im.getFileName(par, "Test")
     println(fileName)
     val setting = new Settings
     val rnd = new Random(1)

@@ -128,12 +128,12 @@ object MetrikValidation {
       val rdd = imporTer.repartitionFiles(dir+"validationGstar"+(settings.csvYear)+".tif", settings)
 
       var compare : MultibandTile= null
-      if(new File("validationCluster"+(settings.csvYear)+".tif").exists()){
-        compare = imporTer.getMulitGeoTiff("validationCluster"+(settings.csvYear)+".tif")
+      if(new File(dir+"validationCluster"+(settings.csvYear)+".tif").exists()){
+        compare = imporTer.getMulitGeoTiff(dir+"validationCluster"+(settings.csvYear)+".tif")
       } else {
         val gStarCompare = TimeGetisOrd.getGetisOrd(rdd,settings,origin)
         compare =  (new ClusterHotSpotsTime(gStarCompare)).findClusters()
-        imporTer.writeMultiGeoTiff(compare, settings ,"validationCluster"+(settings.csvYear)+".tif")
+        imporTer.writeMultiGeoTiff(compare, settings ,dir+"validationCluster"+(settings.csvYear)+".tif")
       }
       settings.csvYear += 1
 

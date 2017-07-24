@@ -73,6 +73,11 @@ class SpaceTimeScenario extends GenericScenario{
         (10.0 + 990.0 / runs.toDouble * i +1).ceil.toInt)) //Just lat for export
   }
 
+  override def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
+    //TODO
+  }
 
-
+  override def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
+    //TODO
+  }
 }

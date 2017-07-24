@@ -24,7 +24,7 @@ object Generate {
     globalSettings.sizeOfRasterLon = 100
     globalSettings.fromFile =true
     var raster : Tile = getRaster(globalSettings)
-    geoTiff.writeGeoTiff(raster,globalSettings,0,0, "Manhatten")
+    geoTiff.writeGeoTiff(raster,globalSettings, "Manhatten")
     val buttom = (40.5,-73.7)
     val top = (40.9,-47.25)
     val multiToInt = globalSettings.multiToInt
@@ -37,7 +37,7 @@ object Generate {
     globalSettings.sizeOfRasterLon = 400
     globalSettings.fromFile =true
     raster = getRaster(globalSettings)
-    geoTiff.writeGeoTiff(raster,globalSettings,0,0, "All")
+    geoTiff.writeGeoTiff(raster,globalSettings, "All")
 
   }
 
