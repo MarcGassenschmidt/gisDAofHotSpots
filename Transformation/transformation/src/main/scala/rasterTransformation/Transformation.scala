@@ -79,6 +79,7 @@ class Transformation {
   }
 
   def transformCSVtoTimeRaster(settings : Settings): ArrayMultibandTile ={
+    //transformCSVtoTimeRasterParametrised(settings,settings.inputDirectoryCSV+"in.csv",5,6,2)
     transformCSVtoTimeRasterParametrised(settings,settings.inputDirectoryCSV+settings.csvYear+"_"+settings.csvMonth+".csv",5,6,2)
   }
 

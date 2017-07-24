@@ -10,11 +10,11 @@ object Main {
   def main(args: Array[String]): Unit = {
     println(System.getProperty("sun.arch.data.model"))
 
-    val downloader = new DownloadFilesFromWeb()
-    val setting = new Settings()
-    setting.csvMonth = 5
-    setting.csvYear = 2015
-    downloader.downloadNewYorkTaxiFiles(setting)
+//    val downloader = new DownloadFilesFromWeb()
+//    val setting = new Settings()
+//    setting.csvMonth = 1
+//    setting.csvYear = 2016
+//    downloader.downloadNewYorkTaxiFiles(setting)
 
 //    (new SpaceTimeScenario).runScenario()
 

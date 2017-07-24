@@ -3,12 +3,15 @@ package scripts
 import java.io.File
 
 import clustering.{ClusterHotSpotsTime, ClusterRelations}
+import com.typesafe.scalalogging.Logger
 import geotrellis.raster.{MultibandTile, Tile}
 import geotrellis.spark.SpatialKey
 import getisOrd.SoH.SoHResults
 import getisOrd.{GetisOrd, SoH, TimeGetisOrd, Weight}
 import importExport.{ImportGeoTiff, PathFormatter}
+import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 import parmeters.{Scenario, Settings}
 import rasterTransformation.Transformation
 import scenarios.GenericScenario
@@ -49,9 +52,9 @@ object MetrikValidation {
     println(dir)
     val importTer = new ImportGeoTiff()
 
-    settings.csvMonth = 2016
+    settings.csvMonth = 1
     settings.csvYear = 2016
-    writeBand(settings, dir + "firstTimeBand.tif", importTer)
+    //writeBand(settings, dir + "firstTimeBand.tif", importTer)
 
 
     val origin = importTer.getMulitGeoTiff(dir+"firstTimeBand.tif")
@@ -70,13 +73,15 @@ object MetrikValidation {
     //println("deb1")
 
     //---------------------------------Calculate Metrik----------------------------------
-    println(writeExtraMetrikRasters(settings,dir,importTer,origin,rdd).toString)
+    //println(writeExtraMetrikRasters(settings,dir,importTer,origin,rdd).toString)
     //---------------------------------Calculate Metrik-End---------------------------------
 
     println("deb2")
 
     //---------------------------------Validate-Focal-GStar----------------------------------
     validate(settings,dir,importTer)
+    settings.csvMonth = 1
+    settings.csvYear = 2016
     //---------------------------------Validate-Focal-GStar----------------------------------
 
     println("deb3")
@@ -93,7 +98,7 @@ object MetrikValidation {
     println("deb4")
 
     //---------------------------------Calculate Metrik----------------------------------
-    println(writeExtraMetrikRasters(settings,dir,importTer,origin,rdd).toString)
+    //println(writeExtraMetrikRasters(settings,dir,importTer,origin,rdd).toString)
     //---------------------------------Calculate Metrik-End---------------------------------
 
     //---------------------------------Cluster-Focal-GStar----------------------------------
@@ -113,16 +118,26 @@ object MetrikValidation {
     val path = new PathFormatter()
     val relation = new ClusterRelations()
     val array = new Array[Double](11)
-    for(i <- 2 to 12){
-      settings.csvMonth = i
+    settings.csvYear = 2012
+    for(i <- 0 to 1){
+
       val dir = path.getDirectory(settings, "MetrikValidations")
-      writeBand(settings,dir+"validationGstar.tif",imporTer)
-      val origin = imporTer.getMulitGeoTiff(dir+"validationGstar.tif")
-      val rdd = imporTer.repartitionFiles(dir+"validationGstar.tif", settings)
-      writeBand(settings,dir+"validationCuster.tif",imporTer)
-      val gStarCompare = TimeGetisOrd.getGetisOrd(rdd,settings,origin)
-      val compare =  (new ClusterHotSpotsTime(gStarCompare)).findClusters()
-      array(i-2) = relation.getPercentualFitting(mbT,compare)
+
+      writeBand(settings,dir+"validationGstar"+(settings.csvYear)+".tif",imporTer)
+      val origin = imporTer.getMulitGeoTiff(dir+"validationGstar"+(settings.csvYear)+".tif")
+      val rdd = imporTer.repartitionFiles(dir+"validationGstar"+(settings.csvYear)+".tif", settings)
+
+      var compare : MultibandTile= null
+      if(new File("validationCluster"+(settings.csvYear)+".tif").exists()){
+        compare = imporTer.getMulitGeoTiff("validationCluster"+(settings.csvYear)+".tif")
+      } else {
+        val gStarCompare = TimeGetisOrd.getGetisOrd(rdd,settings,origin)
+        compare =  (new ClusterHotSpotsTime(gStarCompare)).findClusters()
+        imporTer.writeMultiGeoTiff(compare, settings ,"validationCluster"+(settings.csvYear)+".tif")
+      }
+      settings.csvYear += 1
+
+      array(i) = relation.getPercentualFitting(mbT,compare)
     }
     println("-----------------------------------------------------")
     println("Other year results are"+array)
@@ -219,9 +234,9 @@ object MetrikValidation {
       settings.sizeOfRasterLon = settings.sizeOfRasterLon / 2 //meters
       settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
       settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
-      writeBand(settings, dir, importTer)
-      val a2 = importTer.getMulitGeoTiff(dir + "firstTimeBand.tif")
-      val rdd2 = importTer.repartitionFiles(dir + "firstTimeBand.tif", settings)
+      writeBand(settings, dir+ "firstTimeBandBigger.tif", importTer)
+      val a2 = importTer.getMulitGeoTiff(dir + "firstTimeBandBigger.tif")
+      val rdd2 = importTer.repartitionFiles(dir + "firstTimeBandBigger.tif", settings)
       aggregateN = TimeGetisOrd.getGetisOrd(rdd2, settings, a2)
       //clusterHotSpotsTime = new ClusterHotSpotsTime(aggregateN)
       //hotSpots = clusterHotSpotsTime.findClusters(1.9, 5)
@@ -256,6 +271,19 @@ object MetrikValidation {
     val arrayTile = transform.transformCSVtoRaster(settings)
     val res = GenericScenario.gStar(arrayTile,settings,false)
     imporTer.writeGeoTiff(res,dir+"month.tif",settings)
+    res
+  }
+
+  def getMonthTileGisCup(settings: Settings, dir : String, imporTer : ImportGeoTiff) : Tile = {
+    if((new File(dir+"monthACM.tif").exists())){
+      return imporTer.readGeoTiff(dir+"monthACM.tif")
+    }
+    assert(false)
+    //TODO call it an set weight
+    val transform = new Transformation
+    val arrayTile = transform.transformCSVtoRaster(settings)
+    val res = GenericScenario.gStar(arrayTile,settings,false)
+    imporTer.writeGeoTiff(res,dir+"monthACM.tif",settings)
     res
   }
 

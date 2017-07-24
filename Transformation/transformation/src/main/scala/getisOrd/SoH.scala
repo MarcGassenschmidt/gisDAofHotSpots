@@ -186,6 +186,13 @@ object SoH {
 
   }
 
+  //TODO
+  //def getF1Score()
+//  TODO
+//  def getMoransI(mbT : MultibandTile): Unit ={
+//
+//  }
+
 
 //To complex
 //  val instableIndex = (isStable(mbT,zoomPN._2, Neighbours.Aggregation),isStable(zoomPN._1,mbT, Neighbours.Aggregation),

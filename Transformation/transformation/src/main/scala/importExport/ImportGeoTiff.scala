@@ -25,25 +25,25 @@ class ImportGeoTiff {
 
   val crs = CRS.fromName("EPSG:3857")
 
-  def geoTiffExists(globalSettings: Settings, i: Int, runs: Int, extra : String): Boolean = {
-    geoTiffExists(getFileName(globalSettings,i,runs, extra))
+  def geoTiffExists(globalSettings: Settings, extra : String): Boolean = {
+    geoTiffExists(getFileName(globalSettings, extra))
 
   }
 
-  def getFileName(globalSettings: Settings, i: Int, runs: Int, extra : String): String = {
-    ((new PathFormatter).getDirectory(globalSettings, extra) + "it_" + i + "runs_" + runs +"w_"+globalSettings.weightRadius+"h_"+globalSettings.hour+".tif")
+  def getFileName(globalSettings: Settings, extra : String): String = {
+    ((new PathFormatter).getDirectory(globalSettings, extra) + "aggregation_" + globalSettings.zoomLevel +"w_"+globalSettings.weightRadius+"h_"+globalSettings.hour+".tif")
   }
 
   def geoTiffExists(file : String): Boolean ={
     new File(file).exists()
   }
 
-  def getGeoTiff(setting : Settings, i : Int, runs : Int, extra : String): Tile ={
-    getGeoTiff(getFileName(setting,i,runs,extra))
+  def getGeoTiff(setting : Settings, extra : String): Tile ={
+    getGeoTiff(getFileName(setting,extra))
   }
 
-  def getMulitGeoTiff(setting : Settings, i : Int, runs : Int, extra : String): MultibandTile ={
-    getMulitGeoTiff(getFileName(setting,i,runs,extra))
+  def getMulitGeoTiff(setting : Settings, extra : String): MultibandTile ={
+    getMulitGeoTiff(getFileName(setting,extra))
   }
 
   def getMulitGeoTiff(file : String): MultibandTile = {
@@ -53,6 +53,7 @@ class ImportGeoTiff {
   def repartitionFiles(file: String, setting: Settings): RDD[(SpatialKey, MultibandTile)] ={
     //val tmp = getMulitGeoTiff(file,setting)
     val sc = SparkContext.getOrCreate(setting.conf)
+
     val inputRdd: RDD[(ProjectedExtent, MultibandTile)] =
       sc.hadoopMultibandGeoTiffRDD(file)
 
@@ -74,21 +75,16 @@ class ImportGeoTiff {
     getMulitGeoTiff(file).band(0)
   }
 
-  def writeGeoTiff(tile: Tile, settings: Settings, i : Int, runs : Int, extra : String): Unit = {
-    val name = getFileName(settings, i, runs, extra)
+  def writeGeoTiff(tile: Tile, settings: Settings, extra : String): Unit = {
+    val name = getFileName(settings, extra)
     //println(name)
     writeGeoTiff(tile: Tile,name, settings: Settings)
   }
 
-  def writeMultiGeoTiff(tile: MultibandTile, settings: Settings, i : Int, runs : Int, extra : String): Unit = {
-    val name = getFileName(settings, i, runs, extra)
-    println("--------------------------------------------------------------------------------------------"+name)
-    writeMultiGeoTiff(tile, settings, name)
-  }
 
-  def writeGeoTiff(tile: Tile, para: Settings, file : String): Unit = {
-    writeMultiGeoTiff(MultibandTile(Array(tile)),para,file)
-  }
+//  def writeGeoTiff(tile: Tile, para: Settings, file : String): Unit = {
+//    writeMultiGeoTiff(MultibandTile(Array(tile)),para,file)
+//  }
 
   def writeMultiGeoTiff(tile: MultibandTile, para: Settings, file : String): Unit = {
     val extent = new Extent(para.buttom._1,para.buttom._2,para.top._1,para.top._2)

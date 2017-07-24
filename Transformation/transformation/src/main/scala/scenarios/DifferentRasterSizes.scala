@@ -96,31 +96,23 @@ class DifferentRasterSizes extends GenericScenario{
     globalSettings.sizeOfRasterLat = 100
     globalSettings.sizeOfRasterLon = 100
 
+
     globalSettings.zoomLevel = i
-    val raster : Tile = getRasterFromGeoTiff(globalSettings, 3, runs, 0, "raster", getRaster(globalSettings))
-    globalSettings.zoomLevel = i+1
-    val rasterParent : Tile = getRasterFromGeoTiff(globalSettings, 3, runs, 0, "raster", getRaster(globalSettings))
-
-
     //globalSettings.focalRange = 2+i*6
     //globalSettings.weightRadius = 1+i*2
-    val gStarParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "gStar", gStar(raster, globalSettings, true))
+    val raster : Tile = getRasterFromGeoTiff(globalSettings, "raster", getRaster(globalSettings))
+    val gStarParent = getRasterFromGeoTiff(globalSettings, "gStar", gStar(raster, globalSettings, true))
+    val clusterParent = getRasterFromGeoTiff(globalSettings, "cluster",((new ClusterHotSpots(gStarParent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue))._1)
+
     //globalSettings.focalRange = 2+(i+1)*6
     //globalSettings.weightRadius = 1+(i+1)*2
-    val gStarChild = getRasterFromGeoTiff(globalSettings, i, runs, 1, "gStar", gStar(rasterParent, globalSettings, true))
+    globalSettings.zoomLevel = i+1
+    val rasterParent : Tile = getRasterFromGeoTiff(globalSettings, "raster", getRaster(globalSettings))
+    val gStarChild = getRasterFromGeoTiff(globalSettings, "gStar", gStar(rasterParent, globalSettings, true))
+    val clusterChild =getRasterFromGeoTiff(globalSettings, "cluster", (new ClusterHotSpots(gStarChild)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)._1)
 
-    //globalSettings.weightRadius = 1+i*2
-    println("G* End")
-
-
-    val clusterParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "cluster",((new ClusterHotSpots(gStarParent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue))._1)
-    val clusterChild =getRasterFromGeoTiff(globalSettings, i, runs, 1, "cluster", (new ClusterHotSpots(gStarChild)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)._1)
-    val time = System.currentTimeMillis()
     val numberclusterParent = clusterParent.findMinMax._2
     val numberclusterChild = clusterChild.findMinMax._2
-    System.out.println("Time for Number of Cluster:"+(System.currentTimeMillis()-time)/1000)
-    println("End Cluster")
-
 
     globalSettings.parent = true
     //globalSettings.focalRange = 3+i*6

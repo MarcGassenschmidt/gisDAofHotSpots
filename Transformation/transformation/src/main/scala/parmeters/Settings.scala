@@ -49,8 +49,8 @@ class Settings extends Serializable with Cloneable{
 
   //var inputDirectoryCSV = "/home/marc/Downloads/in.csv"
   var inputDirectoryCSV = "/home/media/Downloads/"
-  var csvMonth = 5
-  var csvYear = 2011
+  var csvMonth = 1
+  var csvYear = 2016
   var hour = 0
   var spaceTime = true
 

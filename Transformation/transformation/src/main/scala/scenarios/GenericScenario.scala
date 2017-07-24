@@ -18,7 +18,7 @@ import scala.collection.mutable.ListBuffer
 /**
   * Created by marc on 24.05.17.
   */
-class GenericScenario extends LazyLogging {
+abstract class GenericScenario extends LazyLogging {
 
   def runScenario(): Unit ={
     val globalSettings =new Settings()
@@ -31,7 +31,6 @@ class GenericScenario extends LazyLogging {
     //forGlobalG(globalSettings, outPutResults, runs)
     saveResult(globalSettings, outPutResults)
   }
-
 
 
   def saveResult(settings: Settings, outPutResults: ListBuffer[SoHResult]): Unit = {
@@ -109,8 +108,6 @@ class GenericScenario extends LazyLogging {
     result
   }
 
-
-
   def aggregateTile(tile : Tile): Tile ={
     val result : Tile = tile.downsample(tile.cols/2, tile.rows/2)(f =>
     {var sum = 0
@@ -143,60 +140,11 @@ class GenericScenario extends LazyLogging {
     multibandTile
   }
 
+  def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit
 
-  def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 5 to runs) {
-      var totalTime = System.currentTimeMillis()
-      globalSettings.focal = false
-      if(i==5){
-        globalSettings.fromFile = true
-      } else {
-        globalSettings.fromFile = false
-      }
-      val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double),  lat : (Int,Int)) = oneCase(globalSettings, i, runs)
-      saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, chs, sohVal, lat)
-    }
-  }
+  def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit
 
-  def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
-    for (i <- 5 to runs) {
-      var totalTime = System.currentTimeMillis()
-      globalSettings.focal = true
-      globalSettings.focalRange = 30
-      if(i==5){
-        globalSettings.fromFile = true
-      } else {
-        globalSettings.fromFile = false
-      }
-      val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double), lat : (Int,Int)) = oneCase(globalSettings, i, runs)
-      saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, chs, sohVal, lat)
-    }
-  }
-
-  def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), (Double, Double), (Int, Int)) = {
-    val raster : Tile = getRasterFromGeoTiff(globalSettings, i, runs, 0, "raster", getRasterWithCorrectResolution(globalSettings, i, runs, 0)._1)
-    val raster_plus1 = getRasterFromGeoTiff(globalSettings, i, runs, 1, "raster", getRasterWithCorrectResolution(globalSettings, i, runs, 1)._1)
-
-    val gStarParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "gStar", gStar(raster, globalSettings, i==0))
-    val gStarChild = getRasterFromGeoTiff(globalSettings, i, runs, 1, "gStar", gStar(raster_plus1, globalSettings, i<runs))
-
-    println("G* End")
-
-    val clusterParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "cluster",((new ClusterHotSpots(gStarParent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue))._1)
-    val clusterChild =getRasterFromGeoTiff(globalSettings, i, runs, 1, "cluster", (new ClusterHotSpots(gStarChild)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)._1)
-    val time = System.currentTimeMillis()
-    val numberclusterParent = clusterParent.findMinMax._2
-    val numberclusterChild = clusterChild.findMinMax._2
-    System.out.println("Time for Number of Cluster:"+(System.currentTimeMillis()-time)/1000)
-    println("End Cluster")
-    visulizeCluster(globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), i==0)
-    println("End Visual Cluster")
-
-    val sohVal :(Double,Double) = SoH.getSoHDowAndUp(clusterParent,clusterChild)
-    (globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), sohVal,
-      ((10.0 + 990.0 / runs.toDouble * i).ceil.toInt, //Just lat for export
-        (10.0 + 990.0 / runs.toDouble * i +1).ceil.toInt)) //Just lat for export
-  }
+  def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), (Double, Double), (Int, Int))
 
   def getRasterWithCorrectResolution(globalSettings: Settings, i : Int, runs : Int, next : Int): (Tile,Int,Int) = {
     val actualLat = ((globalSettings.latMax - globalSettings.latMin) / (10.0 + 990.0 / runs.toDouble * i + next)).ceil.toInt
@@ -224,24 +172,22 @@ class GenericScenario extends LazyLogging {
     (mulitband,(10.0 + 990.0 / runs.toDouble * i + next).ceil.toInt,(10.0 + 990.0 / runs.toDouble * i + next).ceil.toInt)
   }
 
-
-
-  def getRasterFromGeoTiff(globalSettings : Settings, i : Int, runs : Int, next : Int, extra : String, tileFunction :  => Tile): Tile = {
+  def getRasterFromGeoTiff(globalSettings : Settings, extra : String, tileFunction :  => Tile): Tile = {
     val importer = new ImportGeoTiff()
-    if (!importer.geoTiffExists(globalSettings, i+next, runs, extra)) {
+    if (!importer.geoTiffExists(globalSettings, extra)) {
       val tile = tileFunction
-      importer.writeGeoTiff(tile, globalSettings, i+next, runs, extra)
+      importer.writeGeoTiff(tile, globalSettings, extra)
     }
-    return importer.getGeoTiff(globalSettings, i+next, runs, extra)
+    return importer.getGeoTiff(globalSettings, extra)
   }
 
   def getRasterFromMulitGeoTiff(globalSettings : Settings, i : Int, runs : Int, next : Int, extra : String, tileFunction :  => MultibandTile): MultibandTile = {
     val importer = new ImportGeoTiff()
-    if (globalSettings.fromFile && importer.geoTiffExists(globalSettings, i+next, runs, extra)) {
-      return importer.getMulitGeoTiff(globalSettings, i+next, runs, extra)
+    if (globalSettings.fromFile && importer.geoTiffExists(globalSettings, extra)) {
+      return importer.getMulitGeoTiff(globalSettings, extra)
     } else {
       val tile = tileFunction
-      importer.writeMultiGeoTiff(tile, globalSettings, i+next, runs, extra)
+      importer.writeMultiGeoTiff(tile, globalSettings, extra)
 
       return tile
     }

@@ -51,14 +51,14 @@ class SpaceTimeScenario extends GenericScenario{
     globalSettings.hour = tempH
     val  raster = mulitBandTile.band(i)
 
-    val gStarParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "gStar", gStar(raster, globalSettings, true))
+    val gStarParent = getRasterFromGeoTiff(globalSettings, "gStar", gStar(raster, globalSettings, true))
     globalSettings.weightRadius = 30 //TODO
-    val gStarChild = getRasterFromGeoTiff(globalSettings, i, runs, 0, "gStar", gStar(raster, globalSettings, true))
+    val gStarChild = getRasterFromGeoTiff(globalSettings, "gStar", gStar(raster, globalSettings, true))
 
     println("G* End")
 
-    val clusterParent = getRasterFromGeoTiff(globalSettings, i, runs, 0, "cluster",((new ClusterHotSpots(gStarParent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue))._1)
-    val clusterChild =getRasterFromGeoTiff(globalSettings, i, runs, 0, "cluster", (new ClusterHotSpots(gStarChild)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)._1)
+    val clusterParent = getRasterFromGeoTiff(globalSettings, "cluster",((new ClusterHotSpots(gStarParent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue))._1)
+    val clusterChild =getRasterFromGeoTiff(globalSettings, "cluster", (new ClusterHotSpots(gStarChild)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)._1)
     val time = System.currentTimeMillis()
     val numberclusterParent = clusterParent.findMinMax._2
     val numberclusterChild = clusterChild.findMinMax._2

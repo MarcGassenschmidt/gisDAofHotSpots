@@ -13,6 +13,7 @@ class TestCluster extends FunSuite with BeforeAndAfter {
   var spark : SparkContext = _
   before {
     spark = SparkContext.getOrCreate(conf)
+
   }
 
   ignore("Test Spark Configuration"){
