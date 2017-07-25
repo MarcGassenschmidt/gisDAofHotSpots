@@ -97,6 +97,8 @@ class DifferentFocal extends GenericScenario{
     val gStarParent = getRasterFromGeoTiff(globalSettings, "gStar", gStar(raster, globalSettings, true))
     val clusterParent = getRasterFromGeoTiff(globalSettings, "cluster",((new ClusterHotSpots(gStarParent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue))._1)
 
+
+
     //globalSettings.zoomLevel = i+1
     globalSettings.focalRange = 8+(i+1)*6
     //globalSettings.weightRadius = 1+(i+1)*2

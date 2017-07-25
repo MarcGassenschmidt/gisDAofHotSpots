@@ -97,7 +97,27 @@ class DifferentRatio extends GenericScenario{
     val raster : Tile = getRasterFromGeoTiff(globalSettings, "raster", getRaster(globalSettings))
     val gStarParent = getRasterFromGeoTiff(globalSettings, "gStar", gStar(raster, globalSettings, true))
     val clusterParent = getRasterFromGeoTiff(globalSettings, "cluster",((new ClusterHotSpots(gStarParent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue))._1)
+   //val clusterParent = (new ClusterHotSpots(gStarParent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)._1
 
+    // For Testing
+    //    for(r <- 1 to clusterParent.rows-2){
+//      for(c <- 1 to clusterParent.cols-2){
+//        if(clusterParent.getDouble(c,r)!=0 ){
+//          println("-------------------------------------")
+//          val t = clusterParent.getDouble(c,r)
+//          assert( 0==clusterParent.getDouble(c-1,r-1) || t==clusterParent.getDouble(c-1,r-1))
+//          assert( 0==clusterParent.getDouble(c-1,r) || t==clusterParent.getDouble(c-1,r))
+//          assert( 0==clusterParent.getDouble(c,r-1) || t==clusterParent.getDouble(c,r-1))
+//          assert( 0==clusterParent.getDouble(c+1,r+1) || t==clusterParent.getDouble(c+1,r+1))
+//          assert( 0==clusterParent.getDouble(c,r+1) || t==clusterParent.getDouble(c,r+1))
+//          assert( 0==clusterParent.getDouble(c+1,r) || t==clusterParent.getDouble(c+1,r))
+//          println(clusterParent.getDouble(c-1,r+1))
+//          assert( 0==clusterParent.getDouble(c-1,r+1) || t==clusterParent.getDouble(c-1,r+1))
+//          assert( 0==clusterParent.getDouble(c+1,r-1) || t==clusterParent.getDouble(c+1,r-1))
+//          println("-------------------------------------")
+//        }
+//      }
+//    }
 
     //globalSettings.zoomLevel = i+1
     //globalSettings.focalRange = 2+(i+1)*6

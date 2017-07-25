@@ -19,9 +19,9 @@ class DownloadFilesFromWeb {
     //https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2016-02.csv
     //https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2015-03.csv
     println("Start Download")
-    for(i <- 0 to 5){
-      for(j <- 1 to 12){
-        println("Download y"+(2011+i)+" m"+j)
+    for(i <- 0 to 1){
+      for(j <- 1 to 4){
+        println("Download y"+(2015+i)+" m"+j)
         new URL("https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_"+setting.csvYear+"-"+setting.csvMonth.formatted("%02d")+".csv") #> new File(setting.inputDirectoryCSV+(2011+i)+"_"+j+".csv") !!
       }
     }

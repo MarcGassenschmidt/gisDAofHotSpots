@@ -119,21 +119,21 @@ object MetrikValidation {
     val relation = new ClusterRelations()
     val array = new Array[Double](11)
     settings.csvYear = 2012
-    for(i <- 0 to 1){
+    for(i <- 0 to 2){
 
       val dir = path.getDirectory(settings, "MetrikValidations")
 
-      writeBand(settings,dir+"validationGstar"+(settings.csvYear)+".tif",imporTer)
-      val origin = imporTer.getMulitGeoTiff(dir+"validationGstar"+(settings.csvYear)+".tif")
-      val rdd = imporTer.repartitionFiles(dir+"validationGstar"+(settings.csvYear)+".tif", settings)
+      writeBand(settings,dir+"validationGstar.tif",imporTer)
+      val origin = imporTer.getMulitGeoTiff(dir+"validationGstar.tif")
+      val rdd = imporTer.repartitionFiles(dir+"validationGstar.tif", settings)
 
       var compare : MultibandTile= null
-      if(new File(dir+"validationCluster"+(settings.csvYear)+".tif").exists()){
-        compare = imporTer.getMulitGeoTiff(dir+"validationCluster"+(settings.csvYear)+".tif")
+      if(new File(dir+"validationCluster.tif").exists()){
+        compare = imporTer.getMulitGeoTiff(dir+"validationCluster.tif")
       } else {
         val gStarCompare = TimeGetisOrd.getGetisOrd(rdd,settings,origin)
         compare =  (new ClusterHotSpotsTime(gStarCompare)).findClusters()
-        imporTer.writeMultiGeoTiff(compare, settings ,dir+"validationCluster"+(settings.csvYear)+".tif")
+        imporTer.writeMultiGeoTiff(compare, settings ,dir+"validationCluster.tif")
       }
       settings.csvYear += 1
 

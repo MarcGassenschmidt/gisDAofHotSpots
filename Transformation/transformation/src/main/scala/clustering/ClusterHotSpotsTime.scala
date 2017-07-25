@@ -1,6 +1,7 @@
 package clustering
 
-import geotrellis.raster.{ArrayMultibandTile, ArrayTile, BitArrayTile, CellType, IntArrayTile, IntCells, MultibandTile, Tile, UShortRawArrayTile}
+import geotrellis.raster.{ArrayMultibandTile, ArrayTile, BitArrayTile, CellType, IntArrayTile, IntCells, IntRawArrayTile, MultibandTile, Tile, UShortRawArrayTile}
+import timeUtils.MultibandUtils
 
 /**
   * Created by marc on 07.07.17.
@@ -27,8 +28,8 @@ class ClusterHotSpotsTime(mbT : MultibandTile) {
 
     var tempCluster = 0;
 
-    var visit = ArrayMultibandTile.empty(CellType.fromString("bool"),mbT.bandCount,mbT.cols,mbT.rows)
-    var clusterTile = ArrayMultibandTile.empty(CellType.fromString("uint16raw"),mbT.bandCount,mbT.cols,mbT.rows)
+    val visit = MultibandUtils.getEmptyIntMultibandArray(mbT)
+    val clusterTile = MultibandUtils.getEmptyIntMultibandArray(mbT)
     for(c <- 0 to mbT.cols-1){
       //println("Next c:"+c)
       for(r <- 0 to mbT.rows-1){
@@ -37,8 +38,8 @@ class ClusterHotSpotsTime(mbT : MultibandTile) {
           if (clusterTile.band(b).get(c, r) == 0) {
             counterCluster += 1
 
-            (visit.band(b).asInstanceOf[BitArrayTile]).set(c, r, 1)
-            (clusterTile.band(b).asInstanceOf[UShortRawArrayTile]).set(c, r, counterCluster)
+            (visit.band(b).asInstanceOf[IntRawArrayTile]).set(c, r, 1)
+            (clusterTile.band(b).asInstanceOf[IntRawArrayTile]).set(c, r, counterCluster)
             expandCluster(clusterTile, range, q, visit, counterCluster, regionQuery(range, q, b, c, r, visit))
           }
         }
@@ -48,10 +49,10 @@ class ClusterHotSpotsTime(mbT : MultibandTile) {
     (clusterTile,counterCluster)
   }
 
-  private def expandCluster(clusterTile: ArrayMultibandTile, range: Double, critical: Double, visit: ArrayMultibandTile, counterCluster: Int, neigbourhoud : List[(Int,Int,Int)] ) : Unit = {
+  private def expandCluster(clusterTile: MultibandTile, range: Double, critical: Double, visit: MultibandTile, counterCluster: Int, neigbourhoud : List[(Int,Int,Int)] ) : Unit = {
     var nextNeigbours = List[(Int,Int,Int)]()
     for((z,x,y) <- neigbourhoud){
-      clusterTile.band(z).asInstanceOf[UShortRawArrayTile].set(x,y,counterCluster)
+      clusterTile.band(z).asInstanceOf[IntRawArrayTile].set(x,y,counterCluster)
       nextNeigbours = List.concat(nextNeigbours, regionQuery(range, critical, z, x, y, visit))
     }
     if(nextNeigbours.size>0){
@@ -59,7 +60,7 @@ class ClusterHotSpotsTime(mbT : MultibandTile) {
     }
   }
 
-  def regionQuery(range: Double, critical: Double, clusterBand : Int, clusterCol: Int, clusterRow: Int, visit: ArrayMultibandTile) : List[(Int,Int,Int)] = {
+  def regionQuery(range: Double, critical: Double, clusterBand : Int, clusterCol: Int, clusterRow: Int, visit: MultibandTile) : List[(Int,Int,Int)] = {
     var neighborhood = List[(Int, Int, Int)]()
     for (i <- -range.toInt to range.toInt) {
       for (j <- -range.toInt to range.toInt) {
@@ -69,7 +70,7 @@ class ClusterHotSpotsTime(mbT : MultibandTile) {
             && clusterBand+b >= 0 && clusterBand+b < mbT.bandCount
             && Math.sqrt(j * j + i * i + b*b) <= range
             && visit.band(clusterBand+b).get(clusterCol + j, clusterRow + i) == 0) {
-            visit.band(clusterBand+b).asInstanceOf[BitArrayTile].set(clusterCol + j, clusterRow + i, 1)
+            visit.band(clusterBand+b).asInstanceOf[IntRawArrayTile].set(clusterCol + j, clusterRow + i, 1)
             if (mbT.band(clusterBand+b).get(clusterCol + j, clusterRow + i) > critical) {
               neighborhood = (clusterBand+b, clusterCol + j, clusterRow + i) :: neighborhood
             }

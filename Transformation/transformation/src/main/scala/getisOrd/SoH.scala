@@ -180,7 +180,7 @@ object SoH {
   def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile), focalPN : (MultibandTile,MultibandTile)): Boolean ={
     val  downUp = isStable(mbT,zoomPN._2, Neighbours.Aggregation) && isStable(zoomPN._1,mbT, Neighbours.Aggregation) &&
       isStable(mbT,focalPN._2, Neighbours.Focal) && isStable(focalPN._1,mbT, Neighbours.Focal)
-      isStable(mbT,weightPN._2, Neighbours.Weight) && isStable(weightPN._1,mbT, Neighbours.Weight)
+      isStable(mbT,weightPN._2, Neighbours.Weigth) && isStable(weightPN._1,mbT, Neighbours.Weigth)
     return downUp
 
 
@@ -243,7 +243,7 @@ object SoH {
 //  }
   def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile)): Boolean ={
     val  downUp = isStable(mbT,zoomPN._2, Neighbours.Aggregation) && isStable(zoomPN._1,mbT, Neighbours.Aggregation) &&
-      isStable(mbT,weightPN._2, Neighbours.Weight) && isStable(weightPN._1,mbT, Neighbours.Weight)
+      isStable(mbT,weightPN._2, Neighbours.Weigth) && isStable(weightPN._1,mbT, Neighbours.Weigth)
     return downUp
   }
 
@@ -281,7 +281,7 @@ object SoH {
   def isStable(child : MultibandTile, parent : MultibandTile, neighbours: Neighbours.Value): Boolean ={
     if(neighbours==Neighbours.Aggregation){
       return getSoHDowAndUp(child,parent)>(0.1,0.1)
-    } else if(neighbours==Neighbours.Weight){
+    } else if(neighbours==Neighbours.Weigth){
       return getSoHDowAndUp(child,parent)>(0.5,0.5)
     } else if(neighbours==Neighbours.Focal){
       return getSoHDowAndUp(child,parent)>(0.6,0.4)
@@ -339,7 +339,7 @@ object SoH {
   }
 
   object Neighbours extends Enumeration {
-    val Aggregation,Weight,Focal = Value
+    val Aggregation,Weigth,Focal = Value
   }
 
   class SoHResults(downUp: (Double, Double), neighbours: Boolean, jaccard: Double, percentual: Double, time: (Double, Double), kl: Double, sturcture: Double, distance : Double){
