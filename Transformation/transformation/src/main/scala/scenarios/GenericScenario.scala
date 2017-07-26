@@ -96,7 +96,7 @@ abstract class GenericScenario extends LazyLogging {
     } else {
       raster = serializer.read()
     }
-    aggregateToZoom(raster, settings.zoomLevel)
+    aggregateToZoom(raster, settings.aggregationLevel)
   }
 
   def aggregateToZoom(tile : Tile, zoomLevel : Int) : Tile = {
@@ -135,7 +135,7 @@ abstract class GenericScenario extends LazyLogging {
     println("Time for RasterTransformation =" + ((System.currentTimeMillis() - startTime) / 1000))
     println("Raster Size (cols,rows)=(" + multibandTile.cols + "," + multibandTile.rows + ")")
     for(tile <- multibandTile.bands){
-      aggregateToZoom(tile, settings.zoomLevel)
+      aggregateToZoom(tile, settings.aggregationLevel)
     }
     multibandTile
   }

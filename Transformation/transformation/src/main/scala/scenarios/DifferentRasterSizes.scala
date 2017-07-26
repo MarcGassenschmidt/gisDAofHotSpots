@@ -97,7 +97,7 @@ class DifferentRasterSizes extends GenericScenario{
     globalSettings.sizeOfRasterLon = 100
 
 
-    globalSettings.zoomLevel = i
+    globalSettings.aggregationLevel = i
     //globalSettings.focalRange = 2+i*6
     //globalSettings.weightRadius = 1+i*2
     val raster : Tile = getRasterFromGeoTiff(globalSettings, "raster", getRaster(globalSettings))
@@ -106,7 +106,7 @@ class DifferentRasterSizes extends GenericScenario{
 
     //globalSettings.focalRange = 2+(i+1)*6
     //globalSettings.weightRadius = 1+(i+1)*2
-    globalSettings.zoomLevel = i+1
+    globalSettings.aggregationLevel = i+1
     val rasterParent : Tile = getRasterFromGeoTiff(globalSettings, "raster", getRaster(globalSettings))
     val gStarChild = getRasterFromGeoTiff(globalSettings, "gStar", gStar(rasterParent, globalSettings, true))
     val clusterChild =getRasterFromGeoTiff(globalSettings, "cluster", (new ClusterHotSpots(gStarChild)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)._1)

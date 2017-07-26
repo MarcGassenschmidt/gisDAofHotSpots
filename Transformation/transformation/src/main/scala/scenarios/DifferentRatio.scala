@@ -32,7 +32,7 @@ class DifferentRatio extends GenericScenario{
 
   override def forGlobalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
     for(k <- 1 to 5) {
-      globalSettings.zoomLevel = k
+      globalSettings.aggregationLevel = k
       //globalSettings.weightRadius = 1+k*2
       for (i <- 0 to 9) {
         var totalTime = System.currentTimeMillis()
@@ -54,7 +54,7 @@ class DifferentRatio extends GenericScenario{
 
   override def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit = {
     for(k <- 1 to 5){
-      globalSettings.zoomLevel = k
+      globalSettings.aggregationLevel = k
       //globalSettings.weightRadius = 1+k*2
       for (j <- 0 to 9) {
         //globalSettings.weightRadius =3+j*2

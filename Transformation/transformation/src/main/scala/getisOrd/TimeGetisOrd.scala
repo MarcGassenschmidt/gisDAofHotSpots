@@ -373,7 +373,7 @@ object TimeGetisOrd {
 //    println("Time for own split"+System.currentTimeMillis()-start1)
 //    val split = raster.split(new TileLayout(origin.cols,origin.rows,origin.cols,origin.rows))(0)
     println("Raster,c,r"+raster.cols+","+raster.rows)
-    val path = (new PathFormatter).getDirectory(setting, "partitions")
+    val path = PathFormatter.getDirectory(setting, "partitions")
     assert(raster.dimensions==origin.dimensions)
     //(new ImportGeoTiff().writeMulitGeoTiff(tiles,setting,path+"all.tif"))
     val startWriting = System.currentTimeMillis()

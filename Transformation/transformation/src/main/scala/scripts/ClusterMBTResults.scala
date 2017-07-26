@@ -15,8 +15,8 @@ object ClusterMBTResults {
     val settings = new Settings()
     settings.focal = false
 
-    val path = new PathFormatter()
-    val dir = path.getDirectory(settings, "MetrikValidations")
+
+    val dir = PathFormatter.getDirectory(settings, "MetrikValidations")
     println(dir)
     val importTer = new ImportGeoTiff()
 
@@ -29,7 +29,7 @@ object ClusterMBTResults {
     (new ImportGeoTiff().writeMultiGeoTiff(hotSpots._1,settings,dir+"ClustergStar.tif"))
 
     settings.focal = true
-    val dirF = path.getDirectory(settings, "test")
+    val dirF = PathFormatter.getDirectory(settings, "test")
     println(dirF)
     val focalgStar = importTer.getMulitGeoTiff(dirF+"focalgStar.tif")
     var clusterHotSpotsTimeF = new ClusterHotSpotsTime(focalgStar)

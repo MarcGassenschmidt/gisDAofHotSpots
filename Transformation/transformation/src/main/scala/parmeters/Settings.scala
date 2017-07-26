@@ -10,7 +10,7 @@ class Settings extends Serializable with Cloneable{
   var test = false
 
 
-  var zoomLevel = 1
+  var aggregationLevel = 1
 
   var scenario : String = Scenario.NoScenario.toString
   var multiToInt = 1000000

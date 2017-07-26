@@ -314,7 +314,7 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     val M = getTestMatrix().focalMean(new Circle(2))
     assert(M.getDouble(0,0)==4.0/6.0)
     println("Mean: "+M.asciiDrawDouble())
-    val MW = M*getParentWeigth().toArrayDouble().reduce(_+_)
+    val MW = M*getParentWeight().toArrayDouble().reduce(_+_)
     println(MW.asciiDrawDouble())
     println((M*5).asciiDrawDouble())
     assert((MW-(M*5)).toArrayDouble().reduce(_+_)<0.001 && (MW-(M*5)).toArrayDouble().reduce(_+_)> -0.001)
@@ -326,8 +326,8 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     val N = new DoubleRawArrayTile(testTile, 4, 5).focalSum(new Circle(2))
     println("N:"+N.asciiDrawDouble())
 
-    val W = getParentWeigth().toArrayDouble().foldLeft(0.0){(x,y)=>x+y*y}
-    val mW = Math.pow(getParentWeigth().toArrayDouble().reduce(_+_),2)
+    val W = getParentWeight().toArrayDouble().foldLeft(0.0){(x,y)=>x+y*y}
+    val mW = Math.pow(getParentWeight().toArrayDouble().reduce(_+_),2)
     println(W)
     println(mW)
     val WmW =N*W-mW
@@ -449,7 +449,7 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     assert((r._2-numerator).toArrayDouble().reduce(_+_)==0.0)
   }
 
-  def getParentWeigth(): ArrayTile ={
+  def getParentWeight(): ArrayTile ={
     val arrayTile = Array[Double](
       0,1,0,
       1,1,1,
@@ -459,7 +459,7 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     weightTile
   }
 
-  def getChildWeigth(): ArrayTile ={
+  def getChildWeight(): ArrayTile ={
     val arrayTile = Array[Double](
       1
     )

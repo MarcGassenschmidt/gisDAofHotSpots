@@ -13,8 +13,8 @@ object TestT {
   def main(args: Array[String]): Unit = {
     val settings = new Settings()
     settings.focal = false
-    val path = new PathFormatter()
-    val dir = path.getDirectory(settings, "test")
+
+    val dir = PathFormatter.getDirectory(settings, "test")
     println(dir)
     val importTer = new ImportGeoTiff()
 
@@ -33,7 +33,7 @@ object TestT {
 
 
     settings.focal = true
-    val dirF = path.getDirectory(settings, "test")
+    val dirF = PathFormatter.getDirectory(settings, "test")
     println(dirF+"focalgStar.tif")
     var r2 = TimeGetisOrd.getGetisOrd(rdd, settings, origin)
     importTer.writeMultiGeoTiff(r2,settings,dirF+"focalgStar.tif")

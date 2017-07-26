@@ -31,7 +31,7 @@ class ImportGeoTiff {
   }
 
   def getFileName(globalSettings: Settings, extra : String): String = {
-    ((new PathFormatter).getDirectory(globalSettings, extra) + "aggregation_" + globalSettings.zoomLevel +"w_"+globalSettings.weightRadius+"h_"+globalSettings.hour+".tif")
+    (PathFormatter.getDirectory(globalSettings, extra) + "aggregation_" + globalSettings.aggregationLevel +"w_"+globalSettings.weightRadius+"h_"+globalSettings.hour+".tif")
   }
 
   def geoTiffExists(file : String): Boolean ={
@@ -46,14 +46,21 @@ class ImportGeoTiff {
     getMulitGeoTiff(getFileName(setting,extra))
   }
 
+  def getMulitGeoTiff(setting : Settings, tifType: TifType.Value): MultibandTile ={
+    getMulitGeoTiff(PathFormatter.getDirectoryAndName(setting,tifType))
+  }
+
   def getMulitGeoTiff(file : String): MultibandTile = {
     GeoTiffReader.readMultiband(file)
   }
 
-  def repartitionFiles(file: String, setting: Settings): RDD[(SpatialKey, MultibandTile)] ={
-    //val tmp = getMulitGeoTiff(file,setting)
-    val sc = SparkContext.getOrCreate(setting.conf)
+  def repartitionFiles(setting: Settings): RDD[(SpatialKey, MultibandTile)] ={
+    val file = PathFormatter.getDirectoryAndName(setting, TifType.Raw)
+    repartitionFiles(file,setting)
+  }
 
+  def repartitionFiles(file : String,setting: Settings): RDD[(SpatialKey, MultibandTile)] ={
+    val sc = SparkContext.getOrCreate(setting.conf)
     val inputRdd: RDD[(ProjectedExtent, MultibandTile)] =
       sc.hadoopMultibandGeoTiffRDD(file)
 
@@ -71,20 +78,29 @@ class ImportGeoTiff {
     GeoTiffReader.readSingleband(file).tile
   }
 
+  def readGeoTiff(settings: Settings, tifType: TifType.Value): Tile = {
+    GeoTiffReader.readSingleband(PathFormatter.getDirectoryAndName(settings,tifType,false)).tile
+  }
+
   def getGeoTiff(file : String): Tile ={
     getMulitGeoTiff(file).band(0)
   }
 
-  def writeGeoTiff(tile: Tile, settings: Settings, extra : String): Unit = {
-    val name = getFileName(settings, extra)
-    //println(name)
+  def writeGeoTiff(tile: Tile, settings: Settings, tifType: TifType.Value): Unit = {
+    val name = PathFormatter.getDirectoryAndName(settings,tifType,false)
     writeGeoTiff(tile: Tile,name, settings: Settings)
   }
 
+  def writeGeoTiff(tile: Tile, settings: Settings, extra : String): Unit = {
+    val name = getFileName(settings, extra)
 
-//  def writeGeoTiff(tile: Tile, para: Settings, file : String): Unit = {
-//    writeMultiGeoTiff(MultibandTile(Array(tile)),para,file)
-//  }
+    writeGeoTiff(tile: Tile,name, settings: Settings)
+  }
+
+  def writeMultiGeoTiff(tile: MultibandTile, settings: Settings, tifType: TifType.Value): Unit = {
+    writeMultiGeoTiff(tile,settings, PathFormatter.getDirectoryAndName(settings,tifType))
+  }
+
 
   def writeMultiGeoTiff(tile: MultibandTile, para: Settings, file : String): Unit = {
     val extent = new Extent(para.buttom._1,para.buttom._2,para.top._1,para.top._2)

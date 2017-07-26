@@ -4,6 +4,7 @@ import clustering.ClusterRelations
 import export.TileVisualizer
 import geotrellis.{Spheroid, SpheroidHelper}
 import geotrellis.raster.{IntRawArrayTile, MultibandTile, Tile}
+import osm.ConvertPositionToCoordinate
 import parmeters.Settings
 import timeUtils.MultibandUtils
 
@@ -64,6 +65,24 @@ object SoH {
     1-sumDist/(maxDistance*map.size)
   }
 
+  def getTop100Values(mbT: MultibandTile, settings: Settings) : Array[(Int,Double,Double,Double)] = {
+    val top100 = MultibandUtils.getHistogramDouble(mbT).values().takeRight(100)
+    var arr = new Array[(Int,Double,Double,Double)](top100.length)
+    var counter = 0
+    for(b <- 0 to mbT.bandCount-1) {
+      for (r <- 0 to mbT.rows - 1) {
+        for (c <- 0 to mbT.cols - 1) {
+          if(top100.contains(mbT.band(b).getDouble(c,r))){
+            val cord = ConvertPositionToCoordinate.getGPSCoordinate(r,c,settings)
+            arr(counter) = (b,cord._1,cord._2,mbT.band(b).getDouble(c,r))
+            counter += 1
+          }
+        }
+      }
+    }
+    arr
+  }
+
   def getMetrikResults(mbT : MultibandTile,
                        mbTWeight : MultibandTile,
                        mbTCluster : MultibandTile,
@@ -95,7 +114,9 @@ object SoH {
     println("deb.7")
     var distnace = getDistance(weightPNCluster._1,mbTCluster)
     println("deb.8")
-    new SoHResults(downUp,neighbours,jaccard,percentual,time,kl,sturcture,distnace)
+    val top100 = getTop100Values(mbT, settings)
+    println("deb.9")
+    new SoHResults(downUp,neighbours,jaccard,percentual,time,kl,sturcture,distnace,top100)
   }
 
   def getNumberCluster(tile: MultibandTile) : Int = {
@@ -180,7 +201,7 @@ object SoH {
   def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile), focalPN : (MultibandTile,MultibandTile)): Boolean ={
     val  downUp = isStable(mbT,zoomPN._2, Neighbours.Aggregation) && isStable(zoomPN._1,mbT, Neighbours.Aggregation) &&
       isStable(mbT,focalPN._2, Neighbours.Focal) && isStable(focalPN._1,mbT, Neighbours.Focal)
-      isStable(mbT,weightPN._2, Neighbours.Weigth) && isStable(weightPN._1,mbT, Neighbours.Weigth)
+      isStable(mbT,weightPN._2, Neighbours.Weight) && isStable(weightPN._1,mbT, Neighbours.Weight)
     return downUp
 
 
@@ -243,7 +264,7 @@ object SoH {
 //  }
   def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile)): Boolean ={
     val  downUp = isStable(mbT,zoomPN._2, Neighbours.Aggregation) && isStable(zoomPN._1,mbT, Neighbours.Aggregation) &&
-      isStable(mbT,weightPN._2, Neighbours.Weigth) && isStable(weightPN._1,mbT, Neighbours.Weigth)
+      isStable(mbT,weightPN._2, Neighbours.Weight) && isStable(weightPN._1,mbT, Neighbours.Weight)
     return downUp
   }
 
@@ -281,7 +302,7 @@ object SoH {
   def isStable(child : MultibandTile, parent : MultibandTile, neighbours: Neighbours.Value): Boolean ={
     if(neighbours==Neighbours.Aggregation){
       return getSoHDowAndUp(child,parent)>(0.1,0.1)
-    } else if(neighbours==Neighbours.Weigth){
+    } else if(neighbours==Neighbours.Weight){
       return getSoHDowAndUp(child,parent)>(0.5,0.5)
     } else if(neighbours==Neighbours.Focal){
       return getSoHDowAndUp(child,parent)>(0.6,0.4)
@@ -339,10 +360,10 @@ object SoH {
   }
 
   object Neighbours extends Enumeration {
-    val Aggregation,Weigth,Focal = Value
+    val Aggregation,Weight,Focal = Value
   }
 
-  class SoHResults(downUp: (Double, Double), neighbours: Boolean, jaccard: Double, percentual: Double, time: (Double, Double), kl: Double, sturcture: Double, distance : Double){
+  class SoHResults(downUp: (Double, Double), neighbours: Boolean, jaccard: Double, percentual: Double, time: (Double, Double), kl: Double, sturcture: Double, distance : Double, top100 : Array[(Int,Double,Double,Double)]){
     override def toString: String = "Metrik results are: \n" +
       "SoH_Down,"+downUp._1+"\n" +
       "SoH_Up,"+downUp._2+"\n" +
@@ -353,8 +374,13 @@ object SoH {
       "time_Up,"+time._2+"\n" +
       "KL,"+kl+"\n" +
       "structure,"+sturcture+"\n" +
-      "distance,"+distance
-
+      "distance,"+distance+"\n"+
+      "top100,"+getTop100Formated
+    def getTop100Formated(): String ={
+      var res = "xxx,Hx,lati,long,value"
+      top100.zipWithIndex.map(x=>res+"\n"+x._2.formatted("%03d")+","+x._1._1.formatted("%02d")+","+x._1._2.formatted("%04d")+","+x._1._3.formatted("%04d")+","+x._1._4)
+      res
+    }
   }
 
 }

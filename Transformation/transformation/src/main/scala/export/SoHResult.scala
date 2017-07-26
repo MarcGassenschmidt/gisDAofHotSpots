@@ -16,7 +16,7 @@ class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, s
     set.focalRange = wParent.focalRange
     set.weightMatrix = wParent.weightMatrix
     set.weightRadius = wParent.weightRadius
-    set.zoomLevel = wParent.zoomLevel
+    set.aggregationLevel = wParent.aggregationLevel
     set.hour = wParent.hour
     set
   }

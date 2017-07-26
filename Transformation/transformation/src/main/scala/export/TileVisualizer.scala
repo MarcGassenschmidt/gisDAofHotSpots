@@ -113,7 +113,7 @@ class TileVisualizer {
       }
     }
 
-    val fileName = (new PathFormatter).getDirectory(para, extra) +tile.rows+"______"+para.weightMatrix+"r_"+para.weightRadius+"_"+tile.cols+"Time_"+ LocalDateTime.now().formatted("HH_mm" ) + ".png"
+    val fileName = PathFormatter.getDirectory(para, extra) +tile.rows+"______"+para.weightMatrix+"r_"+para.weightRadius+"_"+tile.cols+"Time_"+ LocalDateTime.now().formatted("HH_mm" ) + ".png"
     if(!new File(fileName).exists()){
       return
     }

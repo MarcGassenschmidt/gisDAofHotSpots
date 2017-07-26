@@ -5,7 +5,7 @@ import parmeters.Settings
 /**
   * Created by marc on 16.05.17.
   */
-class ConvertPositionToCoordinate {
+object ConvertPositionToCoordinate {
 
 
   def getGPSCoordinate(rowLat : Int, colLon : Int, para : Settings): (Double, Double) = {

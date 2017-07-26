@@ -9,7 +9,23 @@ import parmeters.Settings
 /**
   * Created by marc on 05.06.17.
   */
-class PathFormatter {
+object PathFormatter {
+  def getResultDirectoryAndName(settings: Settings, resultType: ResultType.Value) : String = {
+    if(settings.test){
+      settings.ouptDirectory = "/tmp/"
+    }
+    var sub = "GIS_Daten/"+resultType+"/"
+    if(settings.focal){
+      sub += "focal/"
+    } else {
+      sub += "global/"
+    }
+    val dir = settings.ouptDirectory+"/"+sub
+    val f = new File(dir)
+    f.mkdirs()
+    dir+"result.txt"
+  }
+
 
   def getDirectory(settings : Settings, extra : String): String ={
     if(settings.test){
@@ -31,4 +47,38 @@ class PathFormatter {
     dir
   }
 
+  def getDirectoryAndName(settings : Settings, tifType: TifType.Value): String ={
+    getDirectoryAndName(settings,tifType,true)
+  }
+
+  def getDirectoryAndName(settings : Settings, tifType: TifType.Value, isMultiband : Boolean): String ={
+    if(settings.test){
+      settings.ouptDirectory = "/tmp/"
+    }
+    var sub = "GIS_Daten/Mulitband"+isMultiband+"/"+settings.csvYear+"/"+settings.csvMonth+"/"
+    if(tifType==TifType.Raw){
+      sub += "Raster/"
+    } else if(settings.focal){
+      sub += tifType+"/focal/"
+    } else {
+      sub += tifType+"/global/"
+    }
+    val dir = settings.ouptDirectory+"/"+sub
+    val f = new File(dir)
+    f.mkdirs()
+    dir+"a"+settings.aggregationLevel+"_w"+settings.weightRadius+"_wT"+settings.weightRadiusTime+"_f"+settings.focalRange+"_fT"+settings.focalRangeTime+"_.tif"
+  }
+
+  def exist(settings: Settings, tifType: TifType.Value): Boolean ={
+    (new File(getDirectoryAndName(settings,tifType))).exists()
+  }
+
+}
+
+object TifType extends Enumeration {
+  val Raw,GStar,Cluster = Value
+}
+
+object ResultType extends Enumeration {
+  val Validation,Metrik,Time = Value
 }
