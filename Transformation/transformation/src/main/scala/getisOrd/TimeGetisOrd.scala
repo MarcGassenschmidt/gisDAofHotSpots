@@ -1,11 +1,12 @@
 package getisOrd
 
+
 import geotrellis.Spheroid
 import geotrellis.raster.stitch.Stitcher.MultibandTileStitcher
 import geotrellis.raster.{DoubleRawArrayTile, GridBounds, MultibandTile, Tile, TileLayout}
 import geotrellis.spark.SpatialKey
 import geotrellis.vector.Extent
-import importExport.{ImportGeoTiff, PathFormatter}
+import importExport.{ImportGeoTiff, PathFormatter, ResultType, StringWriter}
 import org.apache.spark.SparkContext
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
@@ -384,10 +385,12 @@ object TimeGetisOrd {
     if(setting.focal){
       timeMeasuresFocal.setWriting(System.currentTimeMillis()-startWriting)
       timeMeasuresFocal.setAll(System.currentTimeMillis()-start)
+      StringWriter.writeFile(timeMeasuresFocal.getPerformanceMetrik(),ResultType.Time,setting)
       println(timeMeasuresFocal.getPerformanceMetrik())
     } else {
       timeMeasuresGlobal.setWriting(System.currentTimeMillis()-startWriting)
       timeMeasuresGlobal.setAllTime(System.currentTimeMillis()-start)
+      StringWriter.writeFile(timeMeasuresGlobal.getPerformanceMetrik(),ResultType.Time,setting)
       println(timeMeasuresGlobal.getPerformanceMetrik())
     }
     println("------------------------------------------------------------------End----------" +

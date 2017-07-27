@@ -65,22 +65,28 @@ object SoH {
     1-sumDist/(maxDistance*map.size)
   }
 
-  def getTop100Values(mbT: MultibandTile, settings: Settings) : Array[(Int,Double,Double,Double)] = {
-    val top100 = MultibandUtils.getHistogramDouble(mbT).values().takeRight(100)
-    var arr = new Array[(Int,Double,Double,Double)](top100.length)
-    var counter = 0
+
+  def getTop100Values(mbT: MultibandTile, settings: Settings) : scala.collection.mutable.Set[(Int,Double,Double,Double)] = {
+    //val top100 = MultibandUtils.getHistogramDouble(mbT).values().takeRight(100)
+    var set = scala.collection.mutable.Set[(Int,Double,Double,Double)]()
+    //var counter = 0
     for(b <- 0 to mbT.bandCount-1) {
       for (r <- 0 to mbT.rows - 1) {
         for (c <- 0 to mbT.cols - 1) {
-          if(top100.contains(mbT.band(b).getDouble(c,r))){
+          val tmp = mbT.band(b).getDouble(c,r)
+          if(set.size == 0 || set.minBy(_._4)._4<tmp){
             val cord = ConvertPositionToCoordinate.getGPSCoordinate(r,c,settings)
-            arr(counter) = (b,cord._1,cord._2,mbT.band(b).getDouble(c,r))
-            counter += 1
+            if(set.size<100){
+              set.add(b,cord._1,cord._2,tmp)
+            } else {
+              set.remove(set.minBy(_._4))
+              set.add(b,cord._1,cord._2,tmp)
+            }
           }
         }
       }
     }
-    arr
+    set
   }
 
   def getMetrikResults(mbT : MultibandTile,
@@ -363,7 +369,7 @@ object SoH {
     val Aggregation,Weight,Focal = Value
   }
 
-  class SoHResults(downUp: (Double, Double), neighbours: Boolean, jaccard: Double, percentual: Double, time: (Double, Double), kl: Double, sturcture: Double, distance : Double, top100 : Array[(Int,Double,Double,Double)]){
+  class SoHResults(downUp: (Double, Double), neighbours: Boolean, jaccard: Double, percentual: Double, time: (Double, Double), kl: Double, sturcture: Double, distance : Double, top100 : scala.collection.mutable.Set[(Int,Double,Double,Double)]){
     override def toString: String = "Metrik results are: \n" +
       "SoH_Down,"+downUp._1+"\n" +
       "SoH_Up,"+downUp._2+"\n" +
@@ -378,7 +384,7 @@ object SoH {
       "top100,"+getTop100Formated
     def getTop100Formated(): String ={
       var res = "xxx,Hx,lati,long,value"
-      top100.zipWithIndex.map(x=>res+"\n"+x._2.formatted("%03d")+","+x._1._1.formatted("%02d")+","+x._1._2.formatted("%04d")+","+x._1._3.formatted("%04d")+","+x._1._4)
+      top100.zipWithIndex.map(x=>res+="\n"+x._2+","+x._1._1+","+x._1._2+","+x._1._3+","+x._1._4)
       res
     }
   }

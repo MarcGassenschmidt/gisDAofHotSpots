@@ -40,7 +40,7 @@ class ClusterHotSpotsTime(mbT : MultibandTile) {
 
             (visit.band(b).asInstanceOf[IntRawArrayTile]).set(c, r, 1)
             (clusterTile.band(b).asInstanceOf[IntRawArrayTile]).set(c, r, counterCluster)
-            expandCluster(clusterTile, range, q, visit, counterCluster, regionQuery(range, q, b, c, r, visit))
+            expandCluster(clusterTile, 1, q, visit, counterCluster, regionQuery(1, q, b, c, r, visit))
           }
         }
       }
@@ -68,10 +68,10 @@ class ClusterHotSpotsTime(mbT : MultibandTile) {
           if (clusterCol + j < mbT.cols && clusterCol + j >= 0
             && clusterRow + i < mbT.rows && clusterRow + i >= 0
             && clusterBand+b >= 0 && clusterBand+b < mbT.bandCount
-            && Math.sqrt(j * j + i * i + b*b) <= range
+            //&& Math.sqrt(j * j + i * i + b*b) <= range
             && visit.band(clusterBand+b).get(clusterCol + j, clusterRow + i) == 0) {
             visit.band(clusterBand+b).asInstanceOf[IntRawArrayTile].set(clusterCol + j, clusterRow + i, 1)
-            if (mbT.band(clusterBand+b).get(clusterCol + j, clusterRow + i) > critical) {
+            if (mbT.band(clusterBand+b).getDouble(clusterCol + j, clusterRow + i) > critical) {
               neighborhood = (clusterBand+b, clusterCol + j, clusterRow + i) :: neighborhood
             }
           }

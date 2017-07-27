@@ -66,11 +66,20 @@ object PathFormatter {
     val dir = settings.ouptDirectory+"/"+sub
     val f = new File(dir)
     f.mkdirs()
-    dir+"a"+settings.aggregationLevel+"_w"+settings.weightRadius+"_wT"+settings.weightRadiusTime+"_f"+settings.focalRange+"_fT"+settings.focalRangeTime+"_.tif"
+    if(tifType==TifType.Raw){
+      dir+"a"+settings.aggregationLevel+"_.tif"
+    } else {
+      return dir+"a"+settings.aggregationLevel+"_w"+settings.weightRadius+"_wT"+settings.weightRadiusTime+"_f"+settings.focalRange+"_fT"+settings.focalRangeTime+"_.tif"
+    }
+
   }
 
   def exist(settings: Settings, tifType: TifType.Value): Boolean ={
-    (new File(getDirectoryAndName(settings,tifType))).exists()
+    exist(settings,tifType,true)
+  }
+
+  def exist(settings: Settings, tifType: TifType.Value, isMultiband : Boolean): Boolean ={
+    (new File(getDirectoryAndName(settings,tifType, isMultiband))).exists()
   }
 
 }

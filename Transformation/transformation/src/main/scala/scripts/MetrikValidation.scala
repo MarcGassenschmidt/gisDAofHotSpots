@@ -46,7 +46,7 @@ object MetrikValidation {
 
     settings.focal = false
     settings.focalRange = settings.weightRadius + 20
-
+    settings.focalRangeTime = 2
 
 
     val importTer = new ImportGeoTiff()
@@ -66,7 +66,7 @@ object MetrikValidation {
 
     //----------------------------------GStar----------------------------------
     settings.focal = false
-    getGstar(settings, importTer, origin, rdd)
+    writeOrGetGStar(rdd,settings,origin,importTer)
     //----------------------------------GStar-End---------------------------------
 
     //println("deb1")
@@ -91,7 +91,7 @@ object MetrikValidation {
 
     //---------------------------------Focal-GStar----------------------------------
     settings.focal = true
-    getGstar(settings, importTer, origin, rdd)
+    writeOrGetGStar(rdd,settings,origin,importTer)
     //---------------------------------Focal-GStar-End---------------------------------
 
     println("deb4")
@@ -118,15 +118,15 @@ object MetrikValidation {
     val array = new Array[Double](11)
     settings.csvYear = 2012
     for (i <- 0 to 2) {
-      writeBand(settings, imporTer)
-      val origin = imporTer.getMulitGeoTiff(settings, TifType.GStar)
-      val rdd = imporTer.repartitionFiles(settings)
-
       var compare: MultibandTile = null
       if (PathFormatter.exist(settings, TifType.Cluster)) {
         compare = imporTer.getMulitGeoTiff(settings, TifType.Cluster)
       } else {
+        writeBand(settings, imporTer)
+        val origin = imporTer.getMulitGeoTiff(settings, TifType.Raw)
+        val rdd = imporTer.repartitionFiles(settings)
         val gStarCompare = TimeGetisOrd.getGetisOrd(rdd, settings, origin)
+        imporTer.writeMultiGeoTiff(gStarCompare, settings, TifType.GStar)
         compare = (new ClusterHotSpotsTime(gStarCompare)).findClusters()
         imporTer.writeMultiGeoTiff(compare, settings, TifType.Cluster)
       }
@@ -188,23 +188,28 @@ object MetrikValidation {
     //----------------------------Aggregation P--------------------------
     println("deb.05")
     settings.aggregationLevel += 1
-    if (!PathFormatter.exist(settings, TifType.Raw)) {
-      val a1 = MultibandUtils.aggregateToZoom(origin, settings.aggregationLevel)
-      importTer.writeMultiGeoTiff(a1, settings, TifType.Raw)
-      val rdd1 = importTer.repartitionFiles(settings)
-      aggregateP = writeOrGetGStar(rdd1, settings, a1, importTer)
+    settings.sizeOfRasterLat = settings.sizeOfRasterLat*2 //meters
+    settings.sizeOfRasterLon = settings.sizeOfRasterLon*2 //meters
+    settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
+    settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
+    if (!PathFormatter.exist(settings, TifType.GStar)) {
+      writeBand(settings, importTer)
+      val a2 = importTer.getMulitGeoTiff(settings, TifType.Raw)
+      val rdd2 = importTer.repartitionFiles(settings)
+      aggregateP = TimeGetisOrd.getGetisOrd(rdd2, settings, a2)
+      importTer.writeMultiGeoTiff(aggregateP, settings, TifType.GStar)
     } else {
       aggregateP = writeOrGetGStar(rdd, settings, origin, importTer)
     }
     //----------------------------Aggregation N--------------------------
     println("deb.06")
     settings.aggregationLevel -= 2
-    settings.sizeOfRasterLat = 100*settings.aggregationLevel //meters
-    settings.sizeOfRasterLon = 100*settings.aggregationLevel //meters
+    settings.sizeOfRasterLat = settings.sizeOfRasterLat/4 //meters
+    settings.sizeOfRasterLon = settings.sizeOfRasterLon/4 //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
 
-    if (!PathFormatter.exist(settings, TifType.Raw)) {
+    if (!PathFormatter.exist(settings, TifType.GStar)) {
       writeBand(settings, importTer)
       val a2 = importTer.getMulitGeoTiff(settings, TifType.Raw)
       val rdd2 = importTer.repartitionFiles(settings)
@@ -215,8 +220,8 @@ object MetrikValidation {
       aggregateN = writeOrGetGStar(rdd, settings, origin, importTer)
     }
     settings.aggregationLevel += 1
-    settings.sizeOfRasterLat = 100*settings.aggregationLevel //meters
-    settings.sizeOfRasterLon = 100*settings.aggregationLevel //meters
+    settings.sizeOfRasterLat = 2*settings.sizeOfRasterLat //meters
+    settings.sizeOfRasterLon = 2*settings.sizeOfRasterLon //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
 
@@ -236,7 +241,7 @@ object MetrikValidation {
   }
 
   def getMonthTile(settings: Settings, imporTer: ImportGeoTiff): Tile = {
-    if (PathFormatter.exist(settings, TifType.GStar)) {
+    if (PathFormatter.exist(settings, TifType.GStar,false)) {
       return imporTer.readGeoTiff(settings, TifType.GStar)
     }
     val transform = new Transformation
@@ -286,10 +291,7 @@ object MetrikValidation {
     return hotSpots
   }
 
-  def getGstar(settings: Settings, importTer: ImportGeoTiff, origin: MultibandTile, rdd: RDD[(SpatialKey, MultibandTile)]): Unit = {
-    var r2 = TimeGetisOrd.getGetisOrd(rdd, settings, origin)
-    importTer.writeMultiGeoTiff(r2, settings, TifType.Raw)
-  }
+
 
   def writeBand(settings: Settings, importTer: ImportGeoTiff): Unit = {
     if (PathFormatter.exist(settings, TifType.Raw)) {
