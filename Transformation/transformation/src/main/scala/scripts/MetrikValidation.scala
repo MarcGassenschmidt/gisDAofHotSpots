@@ -115,7 +115,7 @@ object MetrikValidation {
     val gStar = imporTer.getMulitGeoTiff(settings, TifType.GStar)
     val mbT = (new ClusterHotSpotsTime(gStar)).findClusters()
     val relation = new ClusterRelations()
-    val array = new Array[Double](11)
+    val array = new Array[Double](4)
     settings.csvYear = 2012
     for (i <- 0 to 2) {
       var compare: MultibandTile = null
@@ -135,7 +135,7 @@ object MetrikValidation {
       array(i) = relation.getPercentualFitting(mbT, compare)
     }
     var res = ""
-    array.map(x => res+=x)
+    array.map(x => res+=x+"\n")
     StringWriter.writeFile(res,ResultType.Validation,settings)
 
   }
