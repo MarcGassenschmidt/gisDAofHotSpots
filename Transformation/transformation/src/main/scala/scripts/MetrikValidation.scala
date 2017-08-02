@@ -251,16 +251,17 @@ object MetrikValidation {
     res
   }
 
-  def getMonthTileGisCup(settings: Settings, imporTer: ImportGeoTiff): Tile = {
-    assert(false)
-    //TODO call it an set weight
+  def getMonthTileGisCup(settings: Settings, imporTer: ImportGeoTiff, origin: MultibandTile, rdd: RDD[(SpatialKey, MultibandTile)]): MultibandTile = {
+    settings.weightRadiusTime = 1
+    settings.weightRadius = 1
+    settings.weightMatrix = Weight.One
     if (PathFormatter.exist(settings, TifType.GStar)) {
-      return imporTer.readGeoTiff(settings, TifType.GStar)
+      return imporTer.getMulitGeoTiff(settings, TifType.GStar)
     }
-    val transform = new Transformation
-    val arrayTile = transform.transformCSVtoRaster(settings)
-    val res = GenericScenario.gStar(arrayTile, settings, false)
-    imporTer.writeGeoTiff(res, settings, TifType.GStar)
+    val res = TimeGetisOrd.getGetisOrd(rdd, settings, origin)
+    settings.weightRadiusTime = 1
+    settings.weightRadius = 10
+    settings.weightMatrix = Weight.Square
     res
   }
 
@@ -269,14 +270,15 @@ object MetrikValidation {
     val gStar = importTer.getMulitGeoTiff(settings, TifType.GStar)
     val clusterNeighbours = getClusterNeighbours(neighbours)
     val month: Tile = getMonthTile(settings, importTer)
+    val gisCups = getMonthTileGisCup(settings,importTer,origin,rdd)
     SoH.getMetrikResults(gStar,
-      neighbours._2._2,
       clusterHotspots(settings, importTer),
       clusterNeighbours._3,
       clusterNeighbours._2,
       clusterNeighbours._1,
       month,
-      settings)
+      settings,
+      (new ClusterHotSpotsTime(gisCups)).findClusters())
 
   }
 

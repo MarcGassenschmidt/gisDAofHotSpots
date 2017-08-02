@@ -41,6 +41,19 @@ class TestMultibandUtils extends FunSuite {
   }
 }
 object TestMultibandUtils{
+  def getCheesBoardRaster(): MultibandTile = {
+    val arrayTile = Array[Int](
+      0,1,0,1,0,1,
+      1,0,1,0,1,0,
+      0,1,0,1,0,1,
+      1,0,1,0,1,0,
+      0,1,0,1,0,1,
+      1,0,1,0,1,0)
+    val bands = new Array[Tile](1)
+    bands(0) = new IntRawArrayTile(arrayTile,6,6)
+    new ArrayMultibandTile(bands)
+  }
+
 
   var rnd = new Random(1)
 

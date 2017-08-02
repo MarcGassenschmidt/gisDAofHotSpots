@@ -1,7 +1,10 @@
 package timeUtils
 
+import geotrellis.{Cube, Spheroid, TimeNeighbourhood}
 import geotrellis.raster.{DoubleRawArrayTile, IntRawArrayTile, MultibandTile, Tile}
 import geotrellis.raster.histogram.Histogram
+import getisOrd.Weight
+import parmeters.Settings
 
 /**
   * Created by marc on 11.07.17.
@@ -24,12 +27,12 @@ object MultibandUtils {
     histogram
   }
 
-  def isInTile(x: Int, y: Int, mbT: MultibandTile): Boolean = {
-    x>=0 && y>=0 && x<mbT.cols && y < mbT.rows
+  def isInTile(c: Int, r: Int, mbT: MultibandTile): Boolean = {
+    c>=0 && r>=0 && c<mbT.cols && r < mbT.rows
   }
 
-  def isInTile(b : Int, x: Int, y: Int, mbT: MultibandTile): Boolean = {
-    x>=0 && y>=0 && x<mbT.cols && y < mbT.rows && b>0 && b<24
+  def isInTile(b : Int, c: Int, r: Int, mbT: MultibandTile): Boolean = {
+    c>=0 && r>=0 && c<mbT.cols && r < mbT.rows && b>=0 && b<mbT.bandCount
   }
 
   def getEmptyMultibandArray(mbT: MultibandTile): MultibandTile = {
@@ -65,6 +68,14 @@ object MultibandUtils {
 
   def aggregateToZoom(mbT: MultibandTile, zoomLevel : Int) : MultibandTile = {
     mbT.mapBands((f : Int, t:Tile)=>aggregateToZoom(t,zoomLevel))
+  }
+
+  def getWeight(settings: Settings, radius : Int, radiusTime : Int): TimeNeighbourhood ={
+    if(settings.weightMatrix==Weight.One){
+      return new Cube(radius,radius)
+    } else {
+      new Spheroid(radius,radiusTime)
+    }
   }
 
 

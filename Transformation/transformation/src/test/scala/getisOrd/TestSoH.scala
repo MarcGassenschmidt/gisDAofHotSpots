@@ -1,10 +1,14 @@
 package getisOrd
 
+import clustering.{ClusterHotSpots, ClusterHotSpotsTime}
 import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, MultibandTile}
+import geotrellis.spark.SpatialKey
 import org.scalatest.FunSuite
 import parmeters.Settings
 import timeUtils.MultibandUtils
 import timeUtitls.TestMultibandUtils
+
+import scala.collection.mutable
 
 /**
   * Created by marc on 07.06.17.
@@ -23,11 +27,68 @@ class TestSoH extends FunSuite{
   }
 
   test("Distance"){
-    val distance = SoH.getDistance(TestMultibandUtils.getMultiband(TestMultibandUtils.getTestTileCluster(),24),TestMultibandUtils.getMultiband(TestMultibandUtils.getTestTileCluster2(),24))
+    val distance = SoH.getDistance(TestMultibandUtils.getMultiband(TestMultibandUtils.getTestTileCluster(),24))
+    println(distance)
     assert(distance>0 && distance<1)
+
   }
 
 
+  test("MoransI"){
+    assert(SoH.getMoransI(TestMultibandUtils.getCheesBoardRaster())> -1)
+  }
+
+  test("F1 Score"){
+    val f1score = SoH.getF1Score(TestMultibandUtils.getMultiband(TestMultibandUtils.getTestTileCluster()),TestMultibandUtils.getMultiband(TestMultibandUtils.getTestTileCluster2()))
+    //TODO Validate result
+    assert(f1score==8.746430756934297)
+  }
+
+
+  ignore("Metrik Result"){
+    val setting = new Settings
+    var hashMap = new mutable.HashMap[SpatialKey, MultibandTile]()
+    setting.layoutTileSize = (100,100)
+    var mbT = TimeGetisOrd.getMultibandFocalGetisOrd(TestMultibandUtils.getMultibandTileRandom(),setting, new SpatialKey(0,0),hashMap)
+    var mbTCluster = (new ClusterHotSpotsTime(mbT)).findClusters()
+    setting.weightRadius += 1
+    var weightP = (new ClusterHotSpotsTime((TimeGetisOrd.getMultibandFocalGetisOrd(TestMultibandUtils.getMultibandTileRandomWithoutReset,setting, new SpatialKey(0,0),hashMap)))).findClusters()
+    setting.weightRadius -= 2
+    var weightN = (new ClusterHotSpotsTime(TimeGetisOrd.getMultibandFocalGetisOrd(TestMultibandUtils.getMultibandTileRandomWithoutReset,setting, new SpatialKey(0,0),hashMap))).findClusters()
+    setting.weightRadius += 1
+    var weightPN = (weightP,weightN)
+    var focalPN = (new ClusterHotSpotsTime(TimeGetisOrd.getMultibandFocalGetisOrd(TestMultibandUtils.getMultibandTileRandomWithoutReset,setting, new SpatialKey(0,0),hashMap)).findClusters(),
+                  (new ClusterHotSpotsTime(TimeGetisOrd.getMultibandFocalGetisOrd(TestMultibandUtils.getMultibandTileRandomWithoutReset,setting, new SpatialKey(0,0),hashMap))).findClusters())
+    var aggreagtePN = (new ClusterHotSpotsTime(TimeGetisOrd.getMultibandFocalGetisOrd(TestMultibandUtils.getMultibandTileRandomWithoutReset.resample(50,50),setting, new SpatialKey(0,0),hashMap)).findClusters(),
+                      (new ClusterHotSpotsTime(TimeGetisOrd.getMultibandFocalGetisOrd(TestMultibandUtils.getMultibandTileRandomWithoutReset.resample(200,200),setting, new SpatialKey(0,0),hashMap))).findClusters())
+    var month = (new ClusterHotSpots((new GetisOrdFocal(TestMultibandUtils.newArrayTile(100,100,TestMultibandUtils.nextInt), setting).gStarComplete()))).findClusters(1.9,5)._1
+
+    var focalResults = SoH.getMetrikResults(mbT,mbTCluster,aggreagtePN,weightPN,focalPN,month,setting,weightP)
+
+    println(focalResults.toString)
+
+    mbT = TimeGetisOrd.getMultibandGetisOrd(TestMultibandUtils.getMultibandTileRandom(), setting, new SpatialKey(0,0),hashMap)
+    mbTCluster = (new ClusterHotSpotsTime(mbT)).findClusters()
+    setting.weightRadius += 1
+    weightP = (TimeGetisOrd.getMultibandGetisOrd(TestMultibandUtils.getMultibandTileRandomWithoutReset,setting, new SpatialKey(0,0),hashMap))
+    setting.weightRadius -= 2
+    weightN = TimeGetisOrd.getMultibandGetisOrd(TestMultibandUtils.getMultibandTileRandomWithoutReset,setting, new SpatialKey(0,0),hashMap)
+    setting.weightRadius += 1
+    weightPN = (weightP,weightN)
+    focalPN = (TimeGetisOrd.getMultibandGetisOrd(TestMultibandUtils.getMultibandTileRandomWithoutReset,setting, new SpatialKey(0,0),hashMap),
+      TimeGetisOrd.getMultibandGetisOrd(TestMultibandUtils.getMultibandTileRandomWithoutReset,setting, new SpatialKey(0,0),hashMap))
+
+    setting.layoutTileSize = (50,50)
+    val aP = TimeGetisOrd.getMultibandGetisOrd(TestMultibandUtils.getMultibandTileRandomWithoutReset.resample(50,50),setting, new SpatialKey(0,0),hashMap)
+    setting.layoutTileSize = (200,200)
+    val aN  = TimeGetisOrd.getMultibandGetisOrd(TestMultibandUtils.getMultibandTileRandomWithoutReset.resample(200,200),setting, new SpatialKey(0,0),hashMap)
+    aggreagtePN = (aP,aN)
+    month = (new ClusterHotSpots((new GetisOrdFocal(TestMultibandUtils.newArrayTile(100,100,TestMultibandUtils.nextInt), setting).gStarComplete()))).findClusters(1.9,5)._1
+
+    var globalResults = SoH.getMetrikResults(mbT,mbTCluster,aggreagtePN,weightPN,focalPN,month,setting,weightP)
+
+    println(globalResults.toString)
+  }
 
 
 

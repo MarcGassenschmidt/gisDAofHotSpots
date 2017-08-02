@@ -17,5 +17,8 @@ class MockTesting extends FunSuite with BeforeAndAfter with MockitoSugar{
     when(connection.createStatement()).thenReturn(null)
   }
 
+  ignore("Squar"){
+    assert(4==(2^2))
+  }
 
 }

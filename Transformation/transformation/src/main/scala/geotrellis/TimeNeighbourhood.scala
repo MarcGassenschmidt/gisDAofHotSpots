@@ -11,42 +11,8 @@ import timeUtils.MultibandUtils
 trait TimeNeighbourhood {
   val a : Int
   val c : Int
-}
-
-case class Spheroid(a:Int,c:Int) extends TimeNeighbourhood {
-  //https://en.wikipedia.org/wiki/Spheroid
-
-
-  def isInRange(x:Double,y:Double,z:Double): Boolean = {
-    val tmp1 = (x*x+y*y)/(a*a)
-    val tmp2 = (z*z)/(c*c)
-    val tmp = tmp1+tmp2
-    tmp<=1
-  }
-
-  def getSquare(z:Int): Square ={
-    assert(z<c)
-    //x==y => equation to x
-    val r = Math.sqrt(((c*c*a*a)/(z*z))/2).ceil.toInt
-    return Square(r)
-  }
-
-  def getSum(): Int ={
-    var sum = 0
-    for(x <- -a to a){
-      for(y <- -a to a){
-        for(z <- -c to c){
-          if(isInRange(x,y,z)){
-            //println(x+","+y+","+z)
-            sum += 1
-          }
-        }
-      }
-    }
-    sum
-  }
-
-
+  def isInRange(x:Double,y:Double,z:Double): Boolean
+  def getSum(): Int
   def countInRange(clusterId: Int, mbT: MultibandTile, startBand: Int, startRows: Int, startCols: Int): (Int,Int,Int,Int) = {
     var sum = 0
     for(x <- -a to a){
@@ -86,7 +52,52 @@ case class Spheroid(a:Int,c:Int) extends TimeNeighbourhood {
     }
     clusterPercent(clusterId,mbT,maxKey._2,maxKey._3,maxKey._4, maxKey._1)
   }
+}
 
+case class Cube(a:Int,c:Int) extends TimeNeighbourhood {
+
+  override def isInRange(x:Double,y:Double,z:Double): Boolean = {
+    (x<=a && y<=a && z<=a)
+  }
+
+  override def getSum(): Int = {
+    a*a*a
+  }
+
+}
+
+case class Spheroid(a:Int,c:Int) extends TimeNeighbourhood {
+  //https://en.wikipedia.org/wiki/Spheroid
+
+
+  override def isInRange(x:Double,y:Double,z:Double): Boolean = {
+    val tmp1 = (x*x+y*y)/(a*a)
+    val tmp2 = (z*z)/(c*c)
+    val tmp = tmp1+tmp2
+    tmp<=1
+  }
+
+  def getSquare(z:Int): Square ={
+    assert(z<c)
+    //x==y => equation to x
+    val r = Math.sqrt(((c*c*a*a)/(z*z))/2).ceil.toInt
+    return Square(r)
+  }
+
+  override def getSum(): Int ={
+    var sum = 0
+    for(x <- -a to a){
+      for(y <- -a to a){
+        for(z <- -c to c){
+          if(isInRange(x,y,z)){
+            //println(x+","+y+","+z)
+            sum += 1
+          }
+        }
+      }
+    }
+    sum
+  }
 
 
 }
@@ -98,6 +109,17 @@ object SpheroidHelper{
   def getSpheroidWithSum(sum : Double, z : Double): Spheroid ={
     //Volume equation
     new Spheroid(Math.sqrt(3/(Math.PI*4)*sum/(z+0.5)).toInt,z.toInt)
+
+  }
+
+  //Nearly same as some for smaller a,c bigger % gap
+  def getVolume(timeNeighbourhood: TimeNeighbourhood): Double ={
+    if(timeNeighbourhood.isInstanceOf[Spheroid]){
+      getVolume(timeNeighbourhood)
+    } else {
+      timeNeighbourhood.getSum()
+    }
+
   }
 
   //Nearly same as some for smaller a,c bigger % gap

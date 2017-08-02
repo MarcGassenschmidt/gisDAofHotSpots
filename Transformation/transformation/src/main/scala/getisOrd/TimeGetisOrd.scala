@@ -1,7 +1,7 @@
 package getisOrd
 
 
-import geotrellis.Spheroid
+import geotrellis.{Spheroid, TimeNeighbourhood}
 import geotrellis.raster.stitch.Stitcher.MultibandTileStitcher
 import geotrellis.raster.{DoubleRawArrayTile, GridBounds, MultibandTile, Tile, TileLayout}
 import geotrellis.spark.SpatialKey
@@ -23,8 +23,8 @@ object TimeGetisOrd {
   var timeMeasuresGlobal = new MeasuersGloabl()
 
   def getMultibandFocalGetisOrd(mbT: MultibandTile, setting: Settings, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
-    val spheroidFocal = new Spheroid(setting.focalRange, setting.focalRangeTime)
-    val spheroidWeight = new Spheroid(setting.weightRadius, setting.weightRadiusTime)
+    val spheroidFocal = MultibandUtils.getWeight(setting,setting.focalRange, setting.focalRangeTime)
+    val spheroidWeight = MultibandUtils.getWeight(setting,setting.weightRadius, setting.weightRadiusTime)
     val radius = spheroidFocal.a
     val radiusTime = spheroidFocal.c
     val FocalGStar: MultibandTile = MultibandUtils.getEmptyMultibandArray(mbT)
@@ -52,7 +52,7 @@ object TimeGetisOrd {
 
 
 
-  def getSD(b: Int, c: Int, r: Int, mbT: MultibandTile, spheroid : Spheroid, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile], mean : Double): Double = {
+  def getSD(b: Int, c: Int, r: Int, mbT: MultibandTile, spheroid : TimeNeighbourhood, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile], mean : Double): Double = {
     val radius = spheroid.a
     val radiusTime = spheroid.c
     var sd : Double = 0.0
@@ -93,7 +93,7 @@ object TimeGetisOrd {
     Math.sqrt(sd*(1.0 / (n.toDouble - 1.0)))
   }
 
-  def getRMWNW2(b: Int, c: Int, r: Int, mbT: MultibandTile, spheroid : Spheroid, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile], nm : (Int,Double)): StatsRNMW = {
+  def getRMWNW2(b: Int, c: Int, r: Int, mbT: MultibandTile, spheroid : TimeNeighbourhood, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile], nm : (Int,Double)): StatsRNMW = {
     val radius = spheroid.a
     val radiusTime = spheroid.c
     var row : Double = 0.0
@@ -148,15 +148,15 @@ object TimeGetisOrd {
     new StatsRNMW(row,nm._1,nm._2,mw,nw2,w2)
   }
 
-  def getNM(b: Int, c: Int, r: Int, mbT: MultibandTile, spheroid : Spheroid, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): (Int,Double) = {
-    val radius = spheroid.a
-    val radiusTime = spheroid.c
+  def getNM(b: Int, c: Int, r: Int, mbT: MultibandTile, weightNeighbour : TimeNeighbourhood, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): (Int,Double) = {
+    val radius = weightNeighbour.a
+    val radiusTime = weightNeighbour.c
     var sum : Double = 0.0
     var count : Int= 0
     for (x <- -radius to radius) {
       for (y <- -radius to radius) {
         for(z <- -radiusTime to radiusTime){
-          if (spheroid.isInRange(x,y,z)) {
+          if (weightNeighbour.isInRange(x,y,z)) {
             var cx = c + x
             var ry = r + y
             var bz = (b + z) % 24
@@ -189,14 +189,14 @@ object TimeGetisOrd {
     (count,sum/count.toDouble)
   }
 
-  def getSum(b: Int, c: Int, r: Int, mbT: MultibandTile, spheroid : Spheroid, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): Double = {
-    val radius = spheroid.a
-    val radiusTime = spheroid.c
+  def getSum(b: Int, c: Int, r: Int, mbT: MultibandTile, weightNeighbour : TimeNeighbourhood, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): Double = {
+    val radius = weightNeighbour.a
+    val radiusTime = weightNeighbour.c
     var sum : Double = 0.0
     for (x <- -radius to radius) {
       for (y <- -radius to radius) {
         for(z <- -radiusTime to radiusTime){
-        if (spheroid.isInRange(x,y,z)) {
+        if (weightNeighbour.isInRange(x,y,z)) {
           var cx = c + x
           var ry = r + y
           var bz = (b + z) % 24
@@ -229,14 +229,14 @@ object TimeGetisOrd {
     sum
   }
 
-  def getSum(mbT: MultibandTile, spheroid : Spheroid, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
+  def getSum(mbT: MultibandTile, weightNeighbour : TimeNeighbourhood, position : SpatialKey, neigbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
     val multibandTile: MultibandTile = MultibandUtils.getEmptyMultibandArray(mbT)
 
     for(b <- 0 to mbT.bandCount-1){
       val singleBand = multibandTile.band(b).asInstanceOf[DoubleRawArrayTile]
       for(c <- 0 to multibandTile.cols-1){
         for(r <- 0 to multibandTile.rows-1){
-          singleBand.setDouble(c,r, getSum(b,c,r,mbT, spheroid, position, neigbours))
+          singleBand.setDouble(c,r, getSum(b,c,r,mbT, weightNeighbour, position, neigbours))
         }
       }
     }
@@ -245,13 +245,23 @@ object TimeGetisOrd {
 
   }
 
-
+  /**
+    * Only for Testing
+    * @param multibandTile
+    * @param setting
+    * @param position
+    * @param neighbours
+    * @return
+    */
+  def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings, position : SpatialKey, neighbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
+    getMultibandGetisOrd(multibandTile,setting, getSTGlobal(multibandTile),position,neighbours)
+  }
 
   def getMultibandGetisOrd(multibandTile: MultibandTile, setting: Settings, stats : StatsGlobal, position : SpatialKey, neighbours: mutable.HashMap[SpatialKey, MultibandTile]): MultibandTile = {
-    val spheroid = Spheroid(setting.weightRadius, setting.weightRadiusTime)
+    val weightNeighbour = MultibandUtils.getWeight(setting,setting.weightRadius, setting.weightRadiusTime)
 
     var start = System.currentTimeMillis()
-    val RoW = getSum(multibandTile, spheroid, position,neighbours)
+    val RoW = getSum(multibandTile, weightNeighbour, position,neighbours)
     if(position._1==0 && position._2==0)
       timeMeasuresGlobal.setRoW(System.currentTimeMillis()-start)
 
@@ -263,17 +273,17 @@ object TimeGetisOrd {
     val extent = new Extent(0,0,setting.layoutTileSize._1, setting.layoutTileSize._2)
 
     start = System.currentTimeMillis()
-    val MW = stats.gM*spheroid.getSum() //W entry is allways 1
+    val MW = stats.gM*weightNeighbour.getSum() //W entry is allways 1
     if(position._1==0 && position._2==0)
       timeMeasuresGlobal.setMW(System.currentTimeMillis()-start)
 
     start = System.currentTimeMillis()
-    val NW2 = stats.gN.toLong*spheroid.getSum().toLong //W entry is allways 1
+    val NW2 = stats.gN.toLong*weightNeighbour.getSum().toLong //W entry is allways 1
     if(position._1==0 && position._2==0)
       timeMeasuresGlobal.setNW2(System.currentTimeMillis()-start)
 
     start = System.currentTimeMillis()
-    val W2 = Math.pow(spheroid.getSum(),2)
+    val W2 = Math.pow(weightNeighbour.getSum(),2)
     if(position._1==0 && position._2==0)
       timeMeasuresGlobal.setW2(System.currentTimeMillis()-start)
 
