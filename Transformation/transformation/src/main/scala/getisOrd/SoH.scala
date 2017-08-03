@@ -9,6 +9,7 @@ import parmeters.Settings
 import timeUtils.MultibandUtils
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scalaz.std.java.enum
 
 /**
@@ -121,10 +122,24 @@ object SoH {
       }
     }
     neighborhoodVar
+  }
 
-
-
-
+  def getPoints(mbT : MultibandTile, settings: Settings): String ={
+    val list = new ListBuffer[(Int,Double,Double)]()
+    for(b <- 0 to mbT.bandCount-1) {
+      for (r <- 0 to mbT.rows - 1) {
+        for (c <- 0 to mbT.cols - 1) {
+          val tmp = mbT.band(b).getDouble(c,r)
+          if(tmp!=0) {
+            val cord = ConvertPositionToCoordinate.getGPSCoordinate(r, c, settings)
+            list += ((b,cord._1,cord._2))
+          }
+        }
+      }
+    }
+    var res = "H,Lat,Lon\n"
+    list.map(x=>res+=x._1+","+x._2+","+x._3+"\n")
+    res
   }
 
   def getTop100Values(mbT: MultibandTile, settings: Settings) : scala.collection.mutable.Set[(Int,Double,Double,Double)] = {
@@ -155,49 +170,49 @@ object SoH {
 //    val array = new Array[Double]()
 //  }
   def getF1Score(parent : MultibandTile,child : MultibandTile): Double ={
-  var xIJ = scala.collection.mutable.HashMap[(Int,Int),Int]()
-  var parentCluster = scala.collection.mutable.HashMap[Int,Int]()
-  var childCluster = scala.collection.mutable.HashMap[Int,Int]()
+    var xIJ = scala.collection.mutable.HashMap[(Int,Int),Int]()
+    var parentCluster = scala.collection.mutable.HashMap[Int,Int]()
+    var childCluster = scala.collection.mutable.HashMap[Int,Int]()
 
-  for(b <- 0 to parent.bandCount-1) {
-    for (i <- 0 to parent.cols - 1) {
-      for (j <- 0 to parent.rows - 1) {
-        if (i < child.cols && j < child.rows) {
-          if (child.band(b).get(i, j) != 0 && parent.band(b).get(i, j) != 0) {
-            val key = (parent.band(b).get(i, j),child.band(b).get(i, j))
-            if(xIJ.contains(key)){
-              xIJ.put(key,xIJ.get(key).get+1)
-            } else {
-              xIJ.put(key,1)
+    for(b <- 0 to parent.bandCount-1) {
+      for (i <- 0 to parent.cols - 1) {
+        for (j <- 0 to parent.rows - 1) {
+          if (i < child.cols && j < child.rows) {
+            if (child.band(b).get(i, j) != 0 && parent.band(b).get(i, j) != 0) {
+              val key = (parent.band(b).get(i, j),child.band(b).get(i, j))
+              if(xIJ.contains(key)){
+                xIJ.put(key,xIJ.get(key).get+1)
+              } else {
+                xIJ.put(key,1)
+              }
             }
-          }
-          if (parent.band(b).get(i, j) != 0) {
-            val key = parent.band(b).get(i, j)
-            if(parentCluster.contains(key)){
-              parentCluster.put(key,parentCluster.get(key).get+1)
-            } else {
-              parentCluster.put(key,1)
+            if (parent.band(b).get(i, j) != 0) {
+              val key = parent.band(b).get(i, j)
+              if(parentCluster.contains(key)){
+                parentCluster.put(key,parentCluster.get(key).get+1)
+              } else {
+                parentCluster.put(key,1)
+              }
             }
-          }
-          if (child.band(b).get(i, j) != 0) {
-            val key = child.band(b).get(i, j)
-            if(childCluster.contains(key)){
-              childCluster.put(key,childCluster.get(key).get+1)
-            } else {
-              childCluster.put(key,1)
+            if (child.band(b).get(i, j) != 0) {
+              val key = child.band(b).get(i, j)
+              if(childCluster.contains(key)){
+                childCluster.put(key,childCluster.get(key).get+1)
+              } else {
+                childCluster.put(key,1)
+              }
             }
           }
         }
       }
     }
-  }
-  xIJ.map(x=>{
-    val recall = x._2/parentCluster.get(x._1._1).get.toDouble
-    val precision = x._2/childCluster.get(x._1._2).get.toDouble
-    (2*recall*precision)/(precision+recall)
-  } ).reduce(_+_)
+    xIJ.map(x=>{
+      val recall = x._2/parentCluster.get(x._1._1).get.toDouble
+      val precision = x._2/childCluster.get(x._1._2).get.toDouble
+      (2*recall*precision)/(precision+recall)
+    } ).reduce(_+_)/(xIJ.size.toDouble)
 
-}
+  }
 
   def getMoransI(mbT : MultibandTile): Double ={
     val N = mbT.size*mbT.bandCount
@@ -236,7 +251,7 @@ object SoH {
     val downUp = getSoHDowAndUp(mbTCluster,weightPNCluster._2)
     //val variance = getVariance(mbTCluster)
     println("deb.1")
-    var neighbours = false
+    var neighbours = (0,0,0,0,0,0)
     if(focalPNCluster._1==null){
       neighbours =  getSoHNeighbours(mbT,zoomPNCluster,weightPNCluster)
     } else {
@@ -344,73 +359,25 @@ object SoH {
     1-Math.abs(dist)
   }
 
-  def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile), focalPN : (MultibandTile,MultibandTile)): Boolean ={
-    val  downUp = isStable(mbT,zoomPN._2, Neighbours.Aggregation) && isStable(zoomPN._1,mbT, Neighbours.Aggregation) &&
-      isStable(mbT,focalPN._2, Neighbours.Focal) && isStable(focalPN._1,mbT, Neighbours.Focal)
-      isStable(mbT,weightPN._2, Neighbours.Weight) && isStable(weightPN._1,mbT, Neighbours.Weight)
-    return downUp
+  def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile), focalPN : (MultibandTile,MultibandTile)): (Int,Int,Int,Int,Int,Int) ={
+//    val  downUp = isStable(mbT,zoomPN._2, Neighbours.Aggregation) && isStable(zoomPN._1,mbT, Neighbours.Aggregation) &&
+//      isStable(mbT,focalPN._2, Neighbours.Focal) && isStable(focalPN._1,mbT, Neighbours.Focal)
+//      isStable(mbT,weightPN._2, Neighbours.Weight) && isStable(weightPN._1,mbT, Neighbours.Weight)
+//    return downUp
 
+    val  downUp = (isStableI(mbT,zoomPN._2, Neighbours.Aggregation) ,isStableI(zoomPN._1,mbT, Neighbours.Aggregation) ,
+      isStableI(mbT,focalPN._2, Neighbours.Focal) , isStableI(focalPN._1,mbT, Neighbours.Focal),
+      isStableI(mbT,weightPN._2, Neighbours.Weight) , isStableI(weightPN._1,mbT, Neighbours.Weight))
+    return downUp
 
   }
 
-  //TODO
-  //def getF1Score()
-//  TODO
-//  def getMoransI(mbT : MultibandTile): Unit ={
-//
-//  }
-
-
-//To complex
-//  val instableIndex = (isStable(mbT,zoomPN._2, Neighbours.Aggregation),isStable(zoomPN._1,mbT, Neighbours.Aggregation),
-//    isStable(mbT,focalPN._2, Neighbours.Focal),isStable(focalPN._1,mbT, Neighbours.Focal),
-//    isStable(mbT,weightPN._2, Neighbours.Weight),isStable(weightPN._1,mbT, Neighbours.Weight))
-//  if(instableIndex==0){
-//    return true
-//  } else if(instableIndex==-1){
-//    return false
-//  } else {
-//    //One Neigbour is instable
-//    return false
-//  }
-
-
-  //  def getInstable(boolean1: Boolean,boolean2: Boolean,boolean3: Boolean,boolean4: Boolean,boolean5: Boolean,boolean6: Boolean,
-//                  zoomPN : (MultibandTile,MultibandTile),
-//                  weightPN : (MultibandTile,MultibandTile),
-//                  focalPN : (MultibandTile,MultibandTile),
-//                  getNeighbours :  (Neighbours.Value,MultibandTile) => ((MultibandTile,MultibandTile,Neighbours.Value),(MultibandTile,MultibandTile,Neighbours.Value))): Int ={
-//    if(!boolean1 && boolean2 && boolean3 && boolean4 && boolean5 && boolean6){
-//      val nb = getNeighbours(Neighbours.Aggregation,zoomPN._1)
-//      if(isStable(nb._1._1,zoomPN._1,nb._1._3) && isStable(nb._1._2,zoomPN._1,nb._1._3) &&
-//        isStable(nb._2._1,zoomPN._1,nb._2._3) && isStable(nb._2._2,zoomPN._1,nb._2._3)){
-//        return 0
-//      }
-//      return 1
-//    } else if(boolean1 && !boolean2 && boolean3 && boolean4 && boolean5 && boolean6){
-//      val nb = getNeighbours(Neighbours.Aggregation)
-//      if(isStable(nb._1._1,zoomPN._1,nb._1._3) && isStable(nb._1._2,zoomPN._1,nb._1._3) &&
-//        isStable(nb._2._1,zoomPN._1,nb._2._3) && isStable(nb._2._2,zoomPN._1,nb._2._3)){
-//        return 0
-//      }
-//      return 2
-//    } else if(boolean1 && boolean2 && !boolean3 && boolean4 && boolean5 && boolean6){
-//      return 3
-//    } else if(boolean1 && boolean2 && boolean3 && !boolean4 && boolean5 && boolean6){
-//      return 4
-//    } else if(boolean1 && boolean2 && boolean3 && boolean4 && !boolean5 && boolean6){
-//      return 5
-//    } else if(boolean1 && boolean2 && boolean3 && boolean4 && boolean5 && !boolean6){
-//      return 6
-//    } else if(boolean1 && boolean2 && boolean3 && boolean4 && boolean5 && boolean6){
-//      return 0
-//    }
-//
-//    return -1
-//  }
-  def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile)): Boolean ={
-    val  downUp = isStable(mbT,zoomPN._2, Neighbours.Aggregation) && isStable(zoomPN._1,mbT, Neighbours.Aggregation) &&
-      isStable(mbT,weightPN._2, Neighbours.Weight) && isStable(weightPN._1,mbT, Neighbours.Weight)
+  def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile)): (Int,Int,Int,Int,Int,Int) ={
+//    val  downUp = isStable(mbT,zoomPN._2, Neighbours.Aggregation) && isStable(zoomPN._1,mbT, Neighbours.Aggregation) &&
+//      isStable(mbT,weightPN._2, Neighbours.Weight) && isStable(weightPN._1,mbT, Neighbours.Weight)
+      val  downUp = (isStableI(mbT,zoomPN._2, Neighbours.Aggregation) ,isStableI(zoomPN._1,mbT, Neighbours.Aggregation) ,
+                    1,1,
+                    isStableI(mbT,weightPN._2, Neighbours.Weight) , isStableI(weightPN._1,mbT, Neighbours.Weight))
     return downUp
   }
 
@@ -443,6 +410,9 @@ object SoH {
     }
 
     map.map(x=>x._2).reduce(_+_)/map.size
+  }
+  def isStableI(child : MultibandTile, parent : MultibandTile, neighbours: Neighbours.Value): Int ={
+    if(isStable(child,parent,neighbours)) 1 else 0
   }
 
   def isStable(child : MultibandTile, parent : MultibandTile, neighbours: Neighbours.Value): Boolean ={
@@ -511,7 +481,7 @@ object SoH {
     val Aggregation,Weight,Focal = Value
   }
 
-  class SoHResults(downUp: (Double, Double), neighbours: Boolean, jaccard: Double, percentual: Double,
+  class SoHResults(downUp: (Double, Double), neighbours: (Int,Int,Int,Int,Int,Int), jaccard: Double, percentual: Double,
                    time: (Double, Double), kl: Double, sturcture: Double, distance : Double,
                    top100 : scala.collection.mutable.Set[(Int,Double,Double,Double)], f1score : Double, moransI : Double, gisCup : Double){
     override def toString: String = "Metrik results are: \n" +

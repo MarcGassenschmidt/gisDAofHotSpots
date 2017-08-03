@@ -58,5 +58,11 @@ class Settings extends Serializable with Cloneable{
   val conf = new SparkConf().setAppName("Test")
   conf.setMaster("local[*]")
 
+  override def toString: String = {
+    scenario+","+sizeOfRasterLat+","+weightRadius+","+weightRadiusTime+","+focalRange+","+focalRangeTime+","+csvMonth
+  }
 
+  def getHeader(): String ={
+    "Secnario,pixelSize,weight,weightTime,focal,focalTime,csvMonth"
+  }
 }

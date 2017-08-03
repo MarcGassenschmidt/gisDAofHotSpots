@@ -19,10 +19,10 @@ class DownloadFilesFromWeb {
     //https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2016-02.csv
     //https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2015-03.csv
     println("Start Download")
-    for(i <- 0 to 1){
-      for(j <- 1 to 4){
+    for(i <- 0 to 6){
+      for(j <- 1 to 3){
         println("Download y"+(2015+i)+" m"+j)
-        new URL("https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_"+setting.csvYear+"-"+setting.csvMonth.formatted("%02d")+".csv") #> new File(setting.inputDirectoryCSV+(2011+i)+"_"+j+".csv") !!
+        new URL("https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_"+(2011+i)+"-"+j.formatted("%02d")+".csv") #> new File(setting.inputDirectoryCSV+(2011+i)+"_"+j+".csv") !!
       }
     }
 

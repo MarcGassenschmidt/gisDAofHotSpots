@@ -14,7 +14,7 @@ object PathFormatter {
     if(settings.test){
       settings.ouptDirectory = "/tmp/"
     }
-    var sub = "GIS_Daten/"+resultType+"/"
+    var sub = "GIS_Daten/"+settings.csvYear+"/"+settings.csvMonth+"/"+resultType+"/"
     if(settings.focal){
       sub += "focal/"
     } else {
@@ -23,7 +23,7 @@ object PathFormatter {
     val dir = settings.ouptDirectory+"/"+sub
     val f = new File(dir)
     f.mkdirs()
-    dir+"result.txt"
+    dir+"a"+settings.aggregationLevel+"_w"+settings.weightRadius+"_wT"+settings.weightRadiusTime+"_f"+settings.focalRange+"_fT"+settings.focalRangeTime+"result.txt"
   }
 
 
@@ -89,5 +89,5 @@ object TifType extends Enumeration {
 }
 
 object ResultType extends Enumeration {
-  val Validation,Metrik,Time = Value
+  val Validation,Metrik,Time,HotSpots = Value
 }
