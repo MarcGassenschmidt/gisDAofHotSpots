@@ -49,13 +49,16 @@ object SoH {
           if(mbT.band(b).get(c,r)!=0){
             counter += 1
             val ai = dist(mbT,r,c,b)
-            val bi = minDist(mbT,r,c,b,20)
+            val bi = minDist(mbT,r,c,b,5)
             sum += (bi-ai)/Math.max(bi,ai)
           }
 
 
         }
       }
+    }
+    if(counter==0){
+      return -1
     }
     sum/counter.toDouble
   }
@@ -341,7 +344,15 @@ object SoH {
 
   def compareWithTile(mbT : MultibandTile, tile : Tile) : (Double,Double) = {
     val sohs = mbT.bands.map(x=>getSoHDowAndUp(x,tile))
-    (sohs.map(x=>x._1).reduce(_+_)/sohs.size.toDouble,sohs.map(x=>x._2).reduce(_+_)/sohs.size.toDouble)
+    var down = sohs.map(x=>x._1).reduce(_+_)
+    var up = sohs.map(x=>x._2).reduce(_+_)
+    if(down!=0){
+      down = down/sohs.size.toDouble
+    }
+    if(up!=0){
+      up = up/sohs.size.toDouble
+    }
+    (down,up)
   }
 
   def getKL(parent : MultibandTile, child :MultibandTile): Double ={

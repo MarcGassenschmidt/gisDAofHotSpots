@@ -59,12 +59,12 @@ object MetrikValidation {
     val validation = new MetrikValidation()
     val monthToTest = 2 //1 to 3
     val weightToTest = 2
-    val weightStepSize = 1 //10 to 10+2*weightToTest
+    val weightStepSize = 5 //10 to 10+2*weightToTest
     val focalRangeToTest = 2
-    val focalRangeStepSize = 2 //30 to 30+2*focalRangeToTest
+    val focalRangeStepSize = 5 //30 to 30+2*focalRangeToTest
     val timeDimensionStep = 2
     val aggregationSteps = 2 //400, 800
-    val experiments = new Array[Settings](monthToTest*weightToTest*focalRangeToTest*timeDimensionStep*aggregationSteps)
+    val experiments = new Array[Settings](monthToTest*weightToTest*focalRangeToTest*timeDimensionStep*timeDimensionStep*aggregationSteps)
     var counter = 0
     for(m <- 0 to monthToTest-1){
       for(w <- 0 to weightToTest-1){
@@ -72,7 +72,7 @@ object MetrikValidation {
           for(a <- 0 to aggregationSteps-1) {
             for(tf <- 0 to timeDimensionStep-1) {
               for(tw <- 0 to timeDimensionStep-1) {
-                experiments(counter) = getBasicSettings(10 + w * weightStepSize, 1+tw, 30 + focalRangeToTest * focalRangeStepSize, 2+tf, 4 + a, 1 + m)
+                experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1+tw, 20 + f * focalRangeStepSize, 2+tf, 4 + a, 1 + m)
                 counter += 1
               }
             }
@@ -104,7 +104,7 @@ class MetrikValidation {
     //----------------------------------GStar-End---------------------------------
     println("deb1")
     //---------------------------------Calculate Metrik----------------------------------
-    StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
+    //StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
     //---------------------------------Calculate Metrik-End---------------------------------
     println("deb2")
     //---------------------------------Validate-Focal-GStar----------------------------------
@@ -120,7 +120,7 @@ class MetrikValidation {
     //---------------------------------Focal-GStar-End---------------------------------
     println("deb4")
     //---------------------------------Calculate Metrik----------------------------------
-    StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
+    //StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
     //---------------------------------Calculate Metrik-End---------------------------------
     //---------------------------------Cluster-Focal-GStar----------------------------------
     //clusterHotspots(settings, dir, importTer)
@@ -135,7 +135,7 @@ class MetrikValidation {
     val gStar = importTer.getMulitGeoTiff(settings, TifType.GStar)
     val mbT = (new ClusterHotSpotsTime(gStar)).findClusters()
     val relation = new ClusterRelations()
-    val array = new Array[Double](4)
+    val array = new Array[Double](5)
     val old = settings.csvYear
     settings.csvYear = 2011
     for (i <- 0 to 4) {
