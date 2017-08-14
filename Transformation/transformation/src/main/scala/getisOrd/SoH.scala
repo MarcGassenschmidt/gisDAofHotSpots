@@ -216,6 +216,7 @@ object SoH {
                        zoomPNCluster : (MultibandTile,MultibandTile),
                        weightPNCluster : (MultibandTile,MultibandTile),
                        focalPNCluster : (MultibandTile,MultibandTile),
+                       weightNRaw : MultibandTile,
                        month : Tile,
                        settings: Settings,
                        gisCup : MultibandTile): SoHResults ={
@@ -235,7 +236,7 @@ object SoH {
     println("deb.4")
     val time = compareWithTile(mbTCluster,month) //Referenzbild
     println("deb.5")
-    val kl = getKL(mbT,weightPNCluster._2) //KL
+    val kl = getKL(mbT,weightNRaw) //KL
     println("deb.6")
     val sturcture = -1 //measureStructure(mbT) //Struktur
     println("deb.7")

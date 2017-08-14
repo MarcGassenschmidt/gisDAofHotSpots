@@ -76,6 +76,9 @@ class ClusterHotSpots(tile : Tile) {
 //      expandClusterNegative(clusterTile, range, critical, visit, counterCluster, nextNeigbours)
 //    }
 //  }
+  def findClusters() : Tile ={
+    findClusters(1.9,5)._1
+  }
 
   //inspired by dbscan
   def findClusters(range : Double, critical : Double) : (Tile,Int) ={

@@ -2,8 +2,9 @@ package scripts
 
 import java.io.File
 
-import clustering.{ClusterHotSpotsTime, ClusterRelations}
+import clustering.{ClusterHotSpots, ClusterHotSpotsTime, ClusterRelations}
 import com.typesafe.scalalogging.Logger
+import datastructure.{GStarClusterNeighbours, PartResult, ResultTuple}
 import geotrellis.raster.{MultibandTile, Tile}
 import geotrellis.spark.SpatialKey
 import getisOrd.SoH.SoHResults
@@ -132,8 +133,11 @@ class MetrikValidation {
   }
 
   def validate(): Unit = {
+    if((new File(PathFormatter.getResultDirectoryAndName(settings, ResultType.Validation))).exists()){
+      return
+    }
     val gStar = importTer.getMulitGeoTiff(settings, TifType.GStar)
-    val mbT = (new ClusterHotSpotsTime(gStar)).findClusters()
+    val mbT = clusterHotspots()
     val relation = new ClusterRelations()
     val array = new Array[Double](5)
     val old = settings.csvYear
@@ -161,13 +165,15 @@ class MetrikValidation {
     settings.csvYear = old
   }
 
-  def writeOrGetGStar(rdd: RDD[(SpatialKey, MultibandTile)], origin: MultibandTile): MultibandTile = {
-    if (PathFormatter.exist(settings, TifType.GStar)) {
-      return importTer.getMulitGeoTiff(settings, TifType.GStar)
+  def writeOrGetGStar(rdd: RDD[(SpatialKey, MultibandTile)], origin: MultibandTile): ResultTuple = {
+    if (PathFormatter.exist(settings, TifType.GStar) && PathFormatter.exist(settings, TifType.Cluster)) {
+      return new ResultTuple(importTer.getMulitGeoTiff(settings, TifType.GStar),importTer.getMulitGeoTiff(settings, TifType.Cluster))
     } else {
       val gStar = TimeGetisOrd.getGetisOrd(rdd, settings, origin)
       importTer.writeMultiGeoTiff(gStar, settings, TifType.GStar)
-      return gStar
+      val cluster = (new ClusterHotSpotsTime(gStar).findClusters())
+      importTer.writeMultiGeoTiff(cluster, settings, TifType.Cluster)
+      return new ResultTuple(gStar,cluster)
     }
   }
 
@@ -175,16 +181,16 @@ class MetrikValidation {
                     importTer: ImportGeoTiff,
                     origin: MultibandTile,
                     rdd: RDD[(SpatialKey, MultibandTile)]
-                   ): ((MultibandTile, MultibandTile), (MultibandTile, MultibandTile), (MultibandTile, MultibandTile)) = {
+                   ): GStarClusterNeighbours = {
 
-    var focalP: MultibandTile = null
-    var focalN: MultibandTile = null
+    var focalP: ResultTuple = null
+    var focalN: ResultTuple = null
 
-    var weightP: MultibandTile = null
-    var weightN: MultibandTile = null
+    var weightP: ResultTuple = null
+    var weightN: ResultTuple = null
 
-    var aggregateP: MultibandTile = null
-    var aggregateN: MultibandTile = null
+    var aggregateP: ResultTuple = null
+    var aggregateN: ResultTuple = null
 
     //----------------------------Focal--P------------------------
     println("deb.01")
@@ -213,12 +219,15 @@ class MetrikValidation {
     settings.sizeOfRasterLon = settings.sizeOfRasterLon*2 //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
-    if (!PathFormatter.exist(settings, TifType.GStar)) {
+    if (!PathFormatter.exist(settings, TifType.GStar) || !PathFormatter.exist(settings, TifType.Cluster)) {
       writeBand()
       val a2 = importTer.getMulitGeoTiff(settings, TifType.Raw)
       val rdd2 = importTer.repartitionFiles(settings)
-      aggregateP = TimeGetisOrd.getGetisOrd(rdd2, settings, a2)
-      importTer.writeMultiGeoTiff(aggregateP, settings, TifType.GStar)
+      val gStarP = TimeGetisOrd.getGetisOrd(rdd2, settings, a2)
+      importTer.writeMultiGeoTiff(gStarP, settings, TifType.GStar)
+      val clusterP = (new ClusterHotSpotsTime(gStarP).findClusters())
+      importTer.writeMultiGeoTiff(clusterP, settings, TifType.Cluster)
+      aggregateP = new ResultTuple(gStarP,clusterP)
     } else {
       aggregateP = writeOrGetGStar(rdd, origin)
     }
@@ -234,9 +243,11 @@ class MetrikValidation {
       writeBand()
       val a2 = importTer.getMulitGeoTiff(settings, TifType.Raw)
       val rdd2 = importTer.repartitionFiles(settings)
-      aggregateN = TimeGetisOrd.getGetisOrd(rdd2, settings, a2)
-      importTer.writeMultiGeoTiff(aggregateN, settings, TifType.GStar)
-
+      val gStarN = TimeGetisOrd.getGetisOrd(rdd2, settings, a2)
+      importTer.writeMultiGeoTiff(gStarN, settings, TifType.GStar)
+      val clusterN = (new ClusterHotSpotsTime(gStarN).findClusters())
+      importTer.writeMultiGeoTiff(clusterN, settings, TifType.Cluster)
+      aggregateN = new ResultTuple(gStarN, clusterN)
     } else {
       aggregateN = writeOrGetGStar(rdd, origin)
     }
@@ -245,31 +256,20 @@ class MetrikValidation {
     settings.sizeOfRasterLon = 2*settings.sizeOfRasterLon //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
-
-    ((focalP, focalN), (weightP, weightN), (aggregateP, aggregateN))
-  }
-
-  def getClusterNeighbours(neighbours: ((MultibandTile, MultibandTile), (MultibandTile, MultibandTile), (MultibandTile, MultibandTile)))
-  : ((MultibandTile, MultibandTile), (MultibandTile, MultibandTile), (MultibandTile, MultibandTile)) = {
-    (((new ClusterHotSpotsTime(neighbours._1._1)).findClusters(),
-      (new ClusterHotSpotsTime(neighbours._1._2)).findClusters()),
-
-      ((new ClusterHotSpotsTime(neighbours._2._1)).findClusters(),
-        (new ClusterHotSpotsTime(neighbours._2._2)).findClusters()),
-
-      ((new ClusterHotSpotsTime(neighbours._3._1)).findClusters(),
-        (new ClusterHotSpotsTime(neighbours._3._2)).findClusters()))
+    new GStarClusterNeighbours(new PartResult(focalP, focalN), new PartResult(weightP, weightN), new PartResult(aggregateP, aggregateN))
   }
 
   def getMonthTile(): Tile = {
-    if (PathFormatter.exist(settings, TifType.GStar,false)) {
+    if (PathFormatter.exist(settings, TifType.GStar,false) && PathFormatter.exist(settings, TifType.Cluster,false)) {
       return importTer.readGeoTiff(settings, TifType.GStar)
     }
     val transform = new Transformation
     val arrayTile = transform.transformCSVtoRaster(settings)
     val res = GenericScenario.gStar(arrayTile, settings, false)
     importTer.writeGeoTiff(res, settings, TifType.GStar)
-    res
+    val cluster = (new ClusterHotSpots(res)).findClusters()
+    importTer.writeGeoTiff(cluster, settings, TifType.Cluster)
+    cluster
   }
 
   def getMonthTileGisCup(origin: MultibandTile, rdd: RDD[(SpatialKey, MultibandTile)]): MultibandTile = {
@@ -292,7 +292,7 @@ class MetrikValidation {
   def writeExtraMetrikRasters(origin: MultibandTile, rdd: RDD[(SpatialKey, MultibandTile)]): SoHResults = {
     val neighbours = getNeighbours(settings: Settings, importTer: ImportGeoTiff, origin, rdd)
     val gStar = importTer.getMulitGeoTiff(settings, TifType.GStar)
-    val clusterNeighbours = getClusterNeighbours(neighbours)
+    val clusterNeighbours = neighbours.getClusterNeighbours()
     val month: Tile = getMonthTile()
     val gisCups = getMonthTileGisCup(origin,rdd)
     val cluster = clusterHotspots()
@@ -302,10 +302,10 @@ class MetrikValidation {
       clusterNeighbours._3,
       clusterNeighbours._2,
       clusterNeighbours._1,
+      neighbours.gStar._2._2,
       month,
       settings,
       (new ClusterHotSpotsTime(gisCups)).findClusters())
-
   }
 
   def clusterHotspots(): MultibandTile = {
@@ -318,8 +318,6 @@ class MetrikValidation {
     (new ImportGeoTiff().writeMultiGeoTiff(hotSpots, settings, TifType.Cluster))
     return hotSpots
   }
-
-
 
   def writeBand(): Unit = {
     if (PathFormatter.exist(settings, TifType.Raw)) {
