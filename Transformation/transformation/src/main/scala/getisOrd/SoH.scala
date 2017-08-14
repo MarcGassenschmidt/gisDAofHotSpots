@@ -100,20 +100,20 @@ object SoH {
 
 
    def getPoints(mbT : MultibandTile, settings: Settings): String ={
-    val list = new ListBuffer[(Int,Double,Double)]()
+    val list = new ListBuffer[(Int,Double,Double,Double)]()
     for(b <- 0 to mbT.bandCount-1) {
       for (r <- 0 to mbT.rows - 1) {
         for (c <- 0 to mbT.cols - 1) {
           val tmp = mbT.band(b).getDouble(c,r)
           if(tmp!=0) {
             val cord = ConvertPositionToCoordinate.getGPSCoordinate(r, c, settings)
-            list += ((b,cord._1,cord._2))
+            list += ((b,cord._1,cord._2,tmp))
           }
         }
       }
     }
-    var res = "H,Lat,Lon\n"
-    list.map(x=>res+=x._1+","+x._2+","+x._3+"\n")
+    var res = "H,Lat,Lon,Val\n"
+    list.map(x=>res+=x._1+","+x._2+","+x._3+","+x._4+"\n")
     res
   }
 
@@ -140,10 +140,6 @@ object SoH {
     set
   }
 
-
-//  def getVariogram(mbT : MultibandTile): Unit ={
-//    val array = new Array[Double]()
-//  }
   def getF1Score(parent : MultibandTile,child : MultibandTile): Double ={
     var xIJ = scala.collection.mutable.HashMap[(Int,Int),Int]()
     var parentCluster = scala.collection.mutable.HashMap[Int,Int]()
@@ -235,7 +231,7 @@ object SoH {
     println("deb.2")
     val jaccard = getJaccardIndex(mbTCluster,weightPNCluster._2) //Eine Kennzahl
     println("deb.3")
-    val percentual = getSDForPercentualTiles(mbTCluster, settings) //Verteilung - Variationskoeffizient
+    val percentual = -1 //getSDForPercentualTiles(mbTCluster, settings) //Verteilung - Variationskoeffizient
     println("deb.4")
     val time = compareWithTile(mbTCluster,month) //Referenzbild
     println("deb.5")
@@ -253,14 +249,6 @@ object SoH {
     println("deb.11")
     val ref = (new ClusterRelations()).getPercentualFitting(mbTCluster,gisCup)
     new SoHResults(downUp,neighbours,jaccard,percentual,time,kl,sturcture,distnace,top100,f1,morans,ref)
-  }
-
-
-
-
-  def getVariance(mbT : MultibandTile): Unit ={
-    var histogramm = MultibandUtils.getHistogramInt(mbT)
-    Math.pow(histogramm.statistics().get.stddev,2)
   }
 
   def getJaccardIndex(parent : MultibandTile, child :MultibandTile): Double ={
