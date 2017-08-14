@@ -8,6 +8,7 @@ import clustering.ClusterHotSpots
 import com.typesafe.scalalogging.LazyLogging
 import export.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
 import geotrellis.raster.{MultibandTile, Tile}
+import getisOrd.SoH.SoHR
 import getisOrd.{GetisOrd, GetisOrdFocal, SoH, Weight}
 import parmeters.Settings
 import rasterTransformation.Transformation
@@ -49,7 +50,7 @@ abstract class GenericScenario extends LazyLogging {
     pwShort.close()
   }
 
-  def saveSoHResults(totalTime: Long, outPutResults: ListBuffer[SoHResult], globalSettings: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double), lat : (Int,Int)): Unit = {
+  def saveSoHResults(totalTime: Long, outPutResults: ListBuffer[SoHResult], globalSettings: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: SoHR, lat : (Int,Int)): Unit = {
     val outPutResultPrinter = new SoHResultTabell()
     outPutResults += new SoHResult(chs._1._1,
       chs._2._1,
@@ -144,7 +145,7 @@ abstract class GenericScenario extends LazyLogging {
 
   def forFocalG(globalSettings: Settings, outPutResults: ListBuffer[SoHResult], runs: Int): Unit
 
-  def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), (Double, Double), (Int, Int))
+  def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), SoHR, (Int, Int))
 
   def getRasterWithCorrectResolution(globalSettings: Settings, i : Int, runs : Int, next : Int): (Tile,Int,Int) = {
     val actualLat = ((globalSettings.latMax - globalSettings.latMin) / (10.0 + 990.0 / runs.toDouble * i + next)).ceil.toInt

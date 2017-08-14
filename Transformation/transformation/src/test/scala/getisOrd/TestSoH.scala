@@ -26,10 +26,10 @@ class TestSoH extends FunSuite{
     assert(goodExample<badExample) //Small value is better
   }
 
-  ignore("Distance"){
-    val distance = SoH.getDistance(TestMultibandUtils.getMultiband(TestMultibandUtils.getTestTileCluster(),24))
+  test("Distance"){
+    val distance = SoH.getF1Score(TestMultibandUtils.getMultiband(TestMultibandUtils.getTestTileCluster()),TestMultibandUtils.getMultiband(TestMultibandUtils.getTestTileCluster2()))
     println(distance)
-    assert(distance>0 && distance<1)
+    assert(distance> -1 && distance<1)
 
   }
 
@@ -47,7 +47,7 @@ class TestSoH extends FunSuite{
 
 
 
-  ignore("Metrik Result"){
+  test("Metrik Result"){
     val setting = new Settings
     var hashMap = new mutable.HashMap[SpatialKey, MultibandTile]()
     setting.layoutTileSize = (100,100)
@@ -130,7 +130,7 @@ class TestSoH extends FunSuite{
   }
 
   test("compare with Tile"){
-    val testWihtTile = SoH.compareWithTile(TestMultibandUtils.getMultibandTileRandom(),TestMultibandUtils.newArrayTile(100,100,TestMultibandUtils.nextInt))
+    val testWihtTile = SoH.compareWithTile(TestMultibandUtils.getMultibandTileRandom(),TestMultibandUtils.newArrayTile(100,100,TestMultibandUtils.nextInt)).getDownUp()
     assert(testWihtTile==(1.0,0.37878787878787884))
   }
 
@@ -167,41 +167,41 @@ class TestSoH extends FunSuite{
   }
 
   test("Test validation of SoH Multiband"){
-    var sohValuesGood = SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getTestClusterParent()),TestMultibandUtils.getMultiband(getTestClusterChild1()))
+    var sohValuesGood = SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getTestClusterParent()),TestMultibandUtils.getMultiband(getTestClusterChild1())).getDownUp()
     println(sohValuesGood)
-    var sohValuesBad = SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getTestClusterParent()),TestMultibandUtils.getMultiband(getTestClusterChild2()))
+    var sohValuesBad = SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getTestClusterParent()),TestMultibandUtils.getMultiband(getTestClusterChild2())).getDownUp()
     println(sohValuesBad)
     assert(sohValuesGood._1>sohValuesBad._1 && sohValuesGood._2>sohValuesBad._2)
-    var sohValues = SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getSmallParent()),TestMultibandUtils.getMultiband(getSmallChild1()))
+    var sohValues = SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getSmallParent()),TestMultibandUtils.getMultiband(getSmallChild1())).getDownUp()
     println(sohValues)
-    sohValues = SoH.getSoHDowAndUp(getSmallParent(),getSmallChild2())
+    sohValues = SoH.getSoHDowAndUp(getSmallParent(),getSmallChild2()).getDownUp()
     println(sohValues)
-    assert(SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getParent1()),TestMultibandUtils.getMultiband(getChild1))==(1,1))
-    assert(SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getParent1()),TestMultibandUtils.getMultiband(getChild2))==(1,0))
-    assert(SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getParent1()),TestMultibandUtils.getMultiband(getChild3))==(1,1))
-    assert(SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild4))==(1,0))
-    assert(SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild1))==(0,0))
-    assert(SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild5))==(0.5,1))
+    assert(SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getParent1()),TestMultibandUtils.getMultiband(getChild1)).getDownUp()==(1,1))
+    assert(SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getParent1()),TestMultibandUtils.getMultiband(getChild2)).getDownUp()==(1,0))
+    assert(SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getParent1()),TestMultibandUtils.getMultiband(getChild3)).getDownUp()==(1,1))
+    assert(SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild4)).getDownUp()==(1,0))
+    assert(SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild1)).getDownUp()==(0,0))
+    assert(SoH.getSoHDowAndUp(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild5)).getDownUp()==(0.5,1))
   }
 
 
   test("Test validation of SoH"){
 
-    var sohValuesGood = SoH.getSoHDowAndUp(getTestClusterParent(),getTestClusterChild1())
+    var sohValuesGood = SoH.getSoHDowAndUp(getTestClusterParent(),getTestClusterChild1()).getDownUp()
     println(sohValuesGood)
-    var sohValuesBad = SoH.getSoHDowAndUp(getTestClusterParent(),getTestClusterChild2())
+    var sohValuesBad = SoH.getSoHDowAndUp(getTestClusterParent(),getTestClusterChild2()).getDownUp()
     println(sohValuesBad)
     assert(sohValuesGood._1>sohValuesBad._1 && sohValuesGood._2>sohValuesBad._2)
     var sohValues = SoH.getSoHDowAndUp(getSmallParent(),getSmallChild1())
     println(sohValues)
     sohValues = SoH.getSoHDowAndUp(getSmallParent(),getSmallChild2())
     println(sohValues)
-    assert(SoH.getSoHDowAndUp(getParent1(),getChild1)==(1,1))
-    assert(SoH.getSoHDowAndUp(getParent1(),getChild2)==(1,0))
-    assert(SoH.getSoHDowAndUp(getParent1(),getChild3)==(1,1))
-    assert(SoH.getSoHDowAndUp(getParent2(),getChild4)==(1,0))
-    assert(SoH.getSoHDowAndUp(getParent2(),getChild1)==(0,0))
-    assert(SoH.getSoHDowAndUp(getParent2(),getChild5)==(0.5,1))
+    assert(SoH.getSoHDowAndUp(getParent1(),getChild1).getDownUp()==(1,1))
+    assert(SoH.getSoHDowAndUp(getParent1(),getChild2).getDownUp()==(1,0))
+    assert(SoH.getSoHDowAndUp(getParent1(),getChild3).getDownUp()==(1,1))
+    assert(SoH.getSoHDowAndUp(getParent2(),getChild4).getDownUp()==(1,0))
+    assert(SoH.getSoHDowAndUp(getParent2(),getChild1).getDownUp()==(0,0))
+    assert(SoH.getSoHDowAndUp(getParent2(),getChild5).getDownUp()==(0.5,1))
 
 
   }

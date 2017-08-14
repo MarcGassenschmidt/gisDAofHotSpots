@@ -39,8 +39,8 @@ object MetrikValidation {
     settings.latMax = top._1 * multiToInt
     settings.lonMax = top._2 * multiToInt + settings.shiftToPostive
     settings.aggregationLevel = aggregationLevel
-    settings.sizeOfRasterLat = settings.aggregationLevel * 100 //meters
-    settings.sizeOfRasterLon = settings.aggregationLevel * 100 //meters
+    settings.sizeOfRasterLat = Math.pow(2.toDouble,settings.aggregationLevel.toDouble-1).toInt * 50 //meters
+    settings.sizeOfRasterLon = Math.pow(2.toDouble,settings.aggregationLevel.toDouble-1).toInt * 50 //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
 
@@ -104,7 +104,7 @@ class MetrikValidation {
     //----------------------------------GStar-End---------------------------------
     println("deb1")
     //---------------------------------Calculate Metrik----------------------------------
-    //StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
+    StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
     //---------------------------------Calculate Metrik-End---------------------------------
     println("deb2")
     //---------------------------------Validate-Focal-GStar----------------------------------
@@ -120,7 +120,7 @@ class MetrikValidation {
     //---------------------------------Focal-GStar-End---------------------------------
     println("deb4")
     //---------------------------------Calculate Metrik----------------------------------
-    //StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
+    StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
     //---------------------------------Calculate Metrik-End---------------------------------
     //---------------------------------Cluster-Focal-GStar----------------------------------
     //clusterHotspots(settings, dir, importTer)
@@ -273,6 +273,9 @@ class MetrikValidation {
   }
 
   def getMonthTileGisCup(origin: MultibandTile, rdd: RDD[(SpatialKey, MultibandTile)]): MultibandTile = {
+    val timeOld = settings.weightRadiusTime
+    val radiusOld = settings.weightRadius
+
     settings.weightRadiusTime = 1
     settings.weightRadius = 1
     settings.weightMatrix = Weight.One
@@ -280,8 +283,8 @@ class MetrikValidation {
       return importTer.getMulitGeoTiff(settings, TifType.GStar)
     }
     val res = TimeGetisOrd.getGetisOrd(rdd, settings, origin)
-    settings.weightRadiusTime = 1
-    settings.weightRadius = 10
+    settings.weightRadiusTime = timeOld
+    settings.weightRadius = radiusOld
     settings.weightMatrix = Weight.Square
     res
   }

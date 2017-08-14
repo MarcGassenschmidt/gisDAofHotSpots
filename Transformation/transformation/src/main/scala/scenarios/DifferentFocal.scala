@@ -3,6 +3,7 @@ package scenarios
 import clustering.ClusterHotSpots
 import export.SoHResult
 import geotrellis.raster.Tile
+import getisOrd.SoH.SoHR
 import getisOrd.{SoH, Weight}
 import parmeters.{Scenario, Settings}
 
@@ -44,7 +45,7 @@ class DifferentFocal extends GenericScenario{
           globalSettings.fromFile = false
         }
 
-        val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double), lat: (Int, Int)) = oneCase(globalSettings, i, runs)
+        val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: SoHR, lat: (Int, Int)) = oneCase(globalSettings, i, runs)
         saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, chs, sohVal, lat)
 
 
@@ -71,7 +72,7 @@ class DifferentFocal extends GenericScenario{
           val f = 8+(i)*6
           if(globalSettings.weightRadius<f){
             //globalSettings.weightRadius = weightRatio(globalSettings, runs, j)
-            val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double), lat: (Int, Int)) = oneCase(globalSettings, i, runs)
+            val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: SoHR, lat: (Int, Int)) = oneCase(globalSettings, i, runs)
             saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, chs, sohVal, lat)
           }
         }
@@ -86,7 +87,7 @@ class DifferentFocal extends GenericScenario{
 
 
 
-  override def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), (Double, Double), (Int, Int)) = {
+  override def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), SoHR, (Int, Int)) = {
     globalSettings.sizeOfRasterLat = 100
     globalSettings.sizeOfRasterLon = 100
 
@@ -119,7 +120,7 @@ class DifferentFocal extends GenericScenario{
 
 
 
-    val sohVal :(Double,Double) = SoH.getSoHDowAndUp((clusterParent),(clusterChild))
+    val sohVal = SoH.getSoHDowAndUp((clusterParent),(clusterChild))
     (globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), sohVal,
       (3+i*6, //Just lat for export
         3+(i+1)*6)) //Just lat for export

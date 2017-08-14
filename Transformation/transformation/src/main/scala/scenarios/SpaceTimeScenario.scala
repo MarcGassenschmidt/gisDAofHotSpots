@@ -3,6 +3,7 @@ package scenarios
 import clustering.ClusterHotSpots
 import export.SoHResult
 import geotrellis.raster.Tile
+import getisOrd.SoH.SoHR
 import getisOrd.{SoH, Weight}
 import parmeters.{Scenario, Settings}
 
@@ -36,13 +37,13 @@ class SpaceTimeScenario extends GenericScenario{
       globalSettings.hour = h
         var totalTime = System.currentTimeMillis()
         globalSettings.focal = focal
-        val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: (Double, Double), lat: (Int, Int)) = oneCase(globalSettings, h, runs)
+        val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: SoHR, lat: (Int, Int)) = oneCase(globalSettings, h, runs)
         saveSoHResults((System.currentTimeMillis() - totalTime) / 1000, outPutResults, para, chs, sohVal, lat)
 
     }
   }
 
-  override def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), (Double, Double), (Int, Int)) = {
+  override def oneCase(globalSettings: Settings, i : Int, runs : Int): (Settings, ((Tile, Int), (Tile, Int)), SoHR, (Int, Int)) = {
     globalSettings.weightRadius = 20 //TODO
     val zoomStep = 1
     val tempH = globalSettings.hour
@@ -67,7 +68,7 @@ class SpaceTimeScenario extends GenericScenario{
     visulizeCluster(globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), i==0)
     println("End Visual Cluster")
 
-    val sohVal :(Double,Double) = SoH.getSoHDowAndUp(clusterParent,clusterChild)
+    val sohVal = SoH.getSoHDowAndUp(clusterParent,clusterChild)
     (globalSettings, ((clusterParent,numberclusterParent),(clusterChild,numberclusterChild)), sohVal,
       ((10.0 + 990.0 / runs.toDouble * i).ceil.toInt, //Just lat for export
         (10.0 + 990.0 / runs.toDouble * i +1).ceil.toInt)) //Just lat for export

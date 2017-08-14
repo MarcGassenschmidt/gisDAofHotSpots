@@ -40,94 +40,66 @@ object SoH {
     return Math.sqrt(max*max+max*max+2*2)
   }
 
-  def getDistance(mbT: MultibandTile) : Double = {
+  def getCenter(child: MultibandTile) : mutable.ListBuffer[(Int,Int,Int)] = {
+    val cMax = new mutable.HashMap[Int,Int]()
+    val cMin = new mutable.HashMap[Int,Int]()
+    val rMax = new mutable.HashMap[Int,Int]()
+    val rMin = new mutable.HashMap[Int,Int]()
+    val bMin = new mutable.HashMap[Int,Int]()
+    val bMax = new mutable.HashMap[Int,Int]()
+    for(b <- 0 to child.bandCount-1) {
+      for (r <- 0 to child.rows - 1) {
+        for (c <- 0 to child.cols - 1) {
+          val cluster = child.band(b).get(c,r)
+          if(cluster!=0){
+            setMinMax(cMax, cMin, c, cluster)
+            setMinMax(rMax, rMin, r, cluster)
+            setMinMax(bMax, bMin, b, cluster)
+          }
+        }
+      }
+    }
+    val centers = new mutable.ListBuffer[(Int,Int,Int)]()
+    for(max <- cMax){
+      val clusterId = max._1
+      val cCenter = (cMin.get(clusterId).get+max._2)/2
+      val bCenter = (bMin.get(clusterId).get+(bMax.get(clusterId).get))/2
+      val rCenter = (rMin.get(clusterId).get+(rMax.get(clusterId).get))/2
+      centers += ((bCenter,cCenter,rCenter))
+    }
+    centers
+  }
+
+  def setMinMax(max: mutable.HashMap[Int, Int], min: mutable.HashMap[Int, Int], c: Int, cluster: Int): Option[Int] = {
+    if (max.contains(cluster)) {
+      max.put(cluster, Math.max(max.get(cluster).get, c))
+      min.put(cluster, Math.min(min.get(cluster).get, c))
+    } else {
+      max.put(cluster, c)
+      min.put(cluster, c)
+    }
+  }
+
+  def getDistance(parent: MultibandTile, child : MultibandTile) : Double = {
     var counter = 0
     var sum = 0.0
-    for(b <- 0 to mbT.bandCount-1) {
-      for (r <- 0 to mbT.rows - 1) {
-        for (c <- 0 to mbT.cols - 1) {
-          if(mbT.band(b).get(c,r)!=0){
-            counter += 1
-            val ai = dist(mbT,r,c,b)
-            val bi = minDist(mbT,r,c,b,5)
-            sum += (bi-ai)/Math.max(bi,ai)
-          }
 
-
-        }
+    val centerParent = getCenter(parent)
+    val centerChild = getCenter(child)
+    for(p1 <- centerParent){
+      var minDist = Double.MaxValue
+      for(p2 <- centerChild){
+        minDist = Math.min(minDist,Math.sqrt(Math.pow(p1._1-p2._1,2)+Math.pow(p1._2-p2._2,2)+Math.pow(p1._3-p2._3,2)))
       }
+      sum += minDist
+      counter += 1
     }
-    if(counter==0){
-      return -1
-    }
-    sum/counter.toDouble
+    1-sum/(counter*Math.sqrt(child.bandCount*child.bandCount*child.rows*child.rows*child.cols*child.cols))
+
   }
 
-  private def minDist(mbT : MultibandTile, r : Int, c : Int, b : Int, criticalRange : Int): Double ={
-    var visit = MultibandUtils.getEmptyIntMultibandArray(mbT)
-    val clusterNumber = mbT.band(b).get(c,r)
-    var minDist = Math.sqrt(criticalRange*criticalRange*3)
-    for(i <- 0 to criticalRange) {
-      for (j <- 0 to criticalRange) {
-        for (k <- 0 to criticalRange) {
-          val band = b+k
-          val row = r+i
-          val col = c+j
-          if(MultibandUtils.isInTile(band,col,row,mbT) && mbT.band(band).get(col,row)!=0 && mbT.band(band).get(col,row)!=clusterNumber){
-            minDist = Math.min(minDist,dist(mbT,row,col,band))
-          }
-        }
-      }
-    }
-    minDist
-  }
 
-  private def dist(mbT : MultibandTile, r : Int, c : Int, b : Int): Double ={
-    val visit = MultibandUtils.getEmptyIntMultibandArray(mbT)
-    val clusterNumber = mbT.band(b).get(c,r)
-    val cluster = getCluster(mbT,r,c,b,clusterNumber,visit,regionQuery(mbT,r,c,b,clusterNumber,visit))
-    var sum = 0.0
-    for((x,y,z) <- cluster){
-      sum += Math.sqrt(Math.pow((x-b),2)+Math.pow((y-c),2)+Math.pow((r-z),2))
-    }
-    sum/cluster.length.toDouble
-  }
-
-  private def getCluster(mbT: MultibandTile, r : Int, c : Int, b : Int, clusterNumber: Int, visit: MultibandTile, neighbourhood : List[(Int,Int,Int)] ) : List[(Int,Int,Int)] = {
-    var nextNeigbours = List[(Int,Int,Int)]()
-    for((z,x,y) <- neighbourhood){
-      nextNeigbours = List.concat(nextNeigbours, regionQuery(mbT, y, x, z, clusterNumber,visit))
-    }
-    if(nextNeigbours.size>0){
-      nextNeigbours = getCluster(mbT, r,c,b, clusterNumber, visit, nextNeigbours)
-    }
-    return List.concat(nextNeigbours,neighbourhood)
-  }
-
-  private def regionQuery(mbT : MultibandTile, r : Int, c : Int, b : Int, clusterNumber : Int,visit : MultibandTile):  List[(Int, Int, Int)] ={
-    var neighborhoodVar = List[(Int, Int, Int)]()
-    visit.band(b).asInstanceOf[IntRawArrayTile].set(c,r,1)
-    for (i <- -1 to 1) {
-      for (j <- -1 to 1) {
-        for(k <- -1 to 1) {
-          val band = b+k
-          val row = r+i
-          val col = c+j
-          if (MultibandUtils.isInTile(band,col,row, mbT)){
-            if(visit.band(band).get(col,row)==0) {
-              visit.band(band).asInstanceOf[IntRawArrayTile].set(col, row, 1)
-              if (mbT.band(band).get(col, row) == clusterNumber) {
-                neighborhoodVar = (band, col, row) :: neighborhoodVar
-              }
-            }
-          }
-        }
-      }
-    }
-    neighborhoodVar
-  }
-
-  def getPoints(mbT : MultibandTile, settings: Settings): String ={
+   def getPoints(mbT : MultibandTile, settings: Settings): String ={
     val list = new ListBuffer[(Int,Double,Double)]()
     for(b <- 0 to mbT.bandCount-1) {
       for (r <- 0 to mbT.rows - 1) {
@@ -271,7 +243,7 @@ object SoH {
     println("deb.6")
     val sturcture = -1 //measureStructure(mbT) //Struktur
     println("deb.7")
-    var distnace = getDistance(mbTCluster)
+    var distnace = getDistance(mbTCluster,weightPNCluster._2)
     println("deb.8")
     val top100 = getTop100Values(mbT, settings)
     println("deb.9")
@@ -283,34 +255,8 @@ object SoH {
     new SoHResults(downUp,neighbours,jaccard,percentual,time,kl,sturcture,distnace,top100,f1,morans,ref)
   }
 
-  def getNumberCluster(tile: MultibandTile) : Int = {
-    MultibandUtils.getHistogramInt(tile).values().size-1
-  }
 
-  def getSoHDowAndUp(parent : MultibandTile, child : MultibandTile): (Double, Double) ={
-    val childParent = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(parent,child)
-    val childParentInverse = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(child,parent)
-    val numberClusterParent = getNumberCluster(parent)
-    val numberClusterChild = getNumberCluster(child)
-    var down = childParent._2.toDouble/numberClusterParent.toDouble
-    var up = 1-childParent._1.toDouble/numberClusterChild.toDouble
-    (down,up)
 
-  }
-  def getSoHDowAndUp(parent : Tile, child : Tile): (Double, Double) ={
-     val sohAll = getSoHDowAndUp((parent,parent.toArray().distinct.length-1), (child,child.toArray().distinct.length-1))
-     var result = (sohAll._1,sohAll._2)
-    if(result._2==Double.NaN && result._1==Double.NaN){
-      return (0,0)
-    }
-    if(result._1==Double.NaN){
-      return (0,result._2)
-    }
-    if(result._2==Double.NaN){
-      return (result._1,0)
-    }
-    return result
-  }
 
   def getVariance(mbT : MultibandTile): Unit ={
     var histogramm = MultibandUtils.getHistogramInt(mbT)
@@ -342,8 +288,8 @@ object SoH {
     s/meanTotal
   }
 
-  def compareWithTile(mbT : MultibandTile, tile : Tile) : (Double,Double) = {
-    val sohs = mbT.bands.map(x=>getSoHDowAndUp(x,tile))
+  def compareWithTile(mbT : MultibandTile, tile : Tile) : SoHR = {
+    val sohs = mbT.bands.map(x=>getSoHDowAndUp(x,tile).getDownUp())
     var down = sohs.map(x=>x._1).reduce(_+_)
     var up = sohs.map(x=>x._2).reduce(_+_)
     if(down!=0){
@@ -352,7 +298,7 @@ object SoH {
     if(up!=0){
       up = up/sohs.size.toDouble
     }
-    (down,up)
+    new SoHR(down,up)
   }
 
   def getKL(parent : MultibandTile, child :MultibandTile): Double ={
@@ -371,11 +317,6 @@ object SoH {
   }
 
   def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile), focalPN : (MultibandTile,MultibandTile)): (Int,Int,Int,Int,Int,Int) ={
-//    val  downUp = isStable(mbT,zoomPN._2, Neighbours.Aggregation) && isStable(zoomPN._1,mbT, Neighbours.Aggregation) &&
-//      isStable(mbT,focalPN._2, Neighbours.Focal) && isStable(focalPN._1,mbT, Neighbours.Focal)
-//      isStable(mbT,weightPN._2, Neighbours.Weight) && isStable(weightPN._1,mbT, Neighbours.Weight)
-//    return downUp
-
     val  downUp = (isStableI(mbT,zoomPN._2, Neighbours.Aggregation) ,isStableI(zoomPN._1,mbT, Neighbours.Aggregation) ,
       isStableI(mbT,focalPN._2, Neighbours.Focal) , isStableI(focalPN._1,mbT, Neighbours.Focal),
       isStableI(mbT,weightPN._2, Neighbours.Weight) , isStableI(weightPN._1,mbT, Neighbours.Weight))
@@ -384,8 +325,6 @@ object SoH {
   }
 
   def getSoHNeighbours(mbT : MultibandTile, zoomPN : (MultibandTile,MultibandTile), weightPN : (MultibandTile,MultibandTile)): (Int,Int,Int,Int,Int,Int) ={
-//    val  downUp = isStable(mbT,zoomPN._2, Neighbours.Aggregation) && isStable(zoomPN._1,mbT, Neighbours.Aggregation) &&
-//      isStable(mbT,weightPN._2, Neighbours.Weight) && isStable(weightPN._1,mbT, Neighbours.Weight)
       val  downUp = (isStableI(mbT,zoomPN._2, Neighbours.Aggregation) ,isStableI(zoomPN._1,mbT, Neighbours.Aggregation) ,
                     1,1,
                     isStableI(mbT,weightPN._2, Neighbours.Weight) , isStableI(weightPN._1,mbT, Neighbours.Weight))
@@ -430,56 +369,38 @@ object SoH {
     val tmp = getSoHDowAndUp(child,parent)
     println("neigbours,"+neighbours+","+tmp)
     if(neighbours==Neighbours.Aggregation){
-      return tmp>(0.1,0.1)
+      return tmp.getDownUp()>(0.1,0.1)
     } else if(neighbours==Neighbours.Weight){
-      return tmp>(0.5,0.5)
+      return tmp.getDownUp()>(0.5,0.5)
     } else if(neighbours==Neighbours.Focal){
-      return tmp>(0.6,0.4)
+      return tmp.getDownUp()>(0.6,0.4)
     }
     return false
   }
 
-  private def getSoHDowAndUp(parent : (Tile,Int), child : (Tile,Int)): (Double, Double, Double, Double) ={
-    val childParent = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(parent._1,child._1)
-    val childParentInverse = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(child._1,parent._1)
-    var down = childParent._2.toDouble/parent._2.toDouble
-    var up = 1-childParent._1.toDouble/child._2.toDouble
-    var downInv = childParentInverse._2.toDouble/child._2.toDouble
-    var upInv = 1-childParentInverse._1.toDouble/parent._2.toDouble
-    val visul = new TileVisualizer()
-    val t = (new ClusterRelations).rescaleBiggerTile(parent._1,child._1)
-    if(t._1.cols!=t._2.cols || t._1.rows!=t._2.rows){
-      println("--------------------------------------------------------------------------------------------------------------------------"+t._1.cols+","+t._2.cols +","+ t._1.rows+","+t._2.rows)
-    } else {
-      visul.visualTileNew(t._1-(t._2), new Settings, "diff")
-    }
-    if(down<0 || down>1){
-      println("----------------------------------------------------------------------------------------------------------------------------")
-      println("Down:"+down)
-      println("childParent:"+childParent._2)
-      println("D:"+parent._2)
-      println("Parent"+parent._1.resample(100,100).asciiDrawDouble())
-      println("Child"+child._1.resample(100,100).asciiDrawDouble())
-      println("D:"+parent._1.toArray().distinct.length)
-      println("Details:")
-      parent._1.toArray().distinct.map(x => print(x+","))
-      throw new IllegalArgumentException("")
-      println("----------------------------------------------------------------------------------------------------------------------------")
-    }
-    if(up<0 || up>1){
-      println("----------------------------------------------------------------------------------------------------------------------------")
-      println("Up:"+up)
-      println("childParent:"+childParent._1)
-      println("D:"+child._2)
-      println("Parent"+parent._1.resample(100,100).asciiDrawDouble())
-      println("Child"+child._1.resample(100,100).asciiDrawDouble())
-      println("D:"+child._1.toArray().distinct.length)
-      println("Details:")
-      child._1.toArray().distinct.map(x => print(x+","))
-      throw new IllegalArgumentException("")
-      println("----------------------------------------------------------------------------------------------------------------------------")
-    }
-    (down, up, downInv, upInv)
+  def getNumberCluster(tile: MultibandTile) : Int = {
+    MultibandUtils.getHistogramInt(tile).values().size-1
+  }
+
+  def getSoHDowAndUp(parent : MultibandTile, child : MultibandTile): SoHR ={
+    val childParent = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(parent,child)
+    val childParentInverse = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(child,parent)
+    val numberClusterParent = getNumberCluster(parent)
+    val numberClusterChild = getNumberCluster(child)
+    var down = childParent._2.toDouble/numberClusterParent.toDouble
+    var up = 1-childParent._1.toDouble/numberClusterChild.toDouble
+    new SoHR(down,up)
+  }
+
+  def getSoHDowAndUp(parent : Tile, child : Tile): SoHR ={
+    val nClusterParent = parent.toArray().distinct.length-1
+    val nClusterChild = child.toArray().distinct.length-1
+    assert(parent.histogram.values().size-1==nClusterParent)
+    assert(child.histogram.values().size-1==nClusterChild)
+    val childParent = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(parent,child)
+    var down = childParent._2.toDouble/nClusterParent
+    var up = 1-childParent._1.toDouble/nClusterChild
+    new SoHR(down, up)
   }
 
   implicit class TuppleAdd(t: (Double, Double)) {
@@ -492,17 +413,29 @@ object SoH {
     val Aggregation,Weight,Focal = Value
   }
 
-  class SoHResults(downUp: (Double, Double), neighbours: (Int,Int,Int,Int,Int,Int), jaccard: Double, percentual: Double,
-                   time: (Double, Double), kl: Double, sturcture: Double, distance : Double,
+  class SoHR(down : Double, up : Double){
+    def getDown(): Double ={
+      return down
+    }
+    def getUp() : Double = {
+      return up
+    }
+    def getDownUp() : (Double,Double) ={
+      return (down,up)
+    }
+  }
+
+  class SoHResults(downUp: SoHR, neighbours: (Int,Int,Int,Int,Int,Int), jaccard: Double, percentual: Double,
+                   time: SoHR, kl: Double, sturcture: Double, distance : Double,
                    top100 : scala.collection.mutable.Set[(Int,Double,Double,Double)], f1score : Double, moransI : Double, gisCup : Double){
     override def toString: String = "Metrik results are: \n" +
-      "SoH_Down,"+downUp._1+"\n" +
-      "SoH_Up,"+downUp._2+"\n" +
+      "SoH_Down,"+downUp.getDownUp()+"\n" +
+      "SoH_Up,"+downUp.getUp()+"\n" +
       "neighbours,"+neighbours+"\n" +
       "jaccard,"+jaccard+"\n" +
       "percentual,"+percentual+"\n"+
-      "time_Down,"+time._1+"\n" +
-      "time_Up,"+time._2+"\n" +
+      "time_Down,"+time.getDown()+"\n" +
+      "time_Up,"+time.getUp()+"\n" +
       "KL,"+kl+"\n" +
       "structure,"+sturcture+"\n" +
       "distance,"+distance+"\n"+

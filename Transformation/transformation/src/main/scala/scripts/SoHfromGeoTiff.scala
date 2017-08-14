@@ -40,8 +40,8 @@ object SoHfromGeoTiff {
       globalSettings.parent = true
       vis.visualTileNew(clusterParent._1, globalSettings, "cluster")
 
-      val sohVal :(Double,Double) = SoH.getSoHDowAndUp(clusterParent._1,clusterChild._1)
-      pw.println((7+(i+1)*2).formatted("%02d")+","+sohVal._1+","+sohVal._2)
+      val sohVal = SoH.getSoHDowAndUp(clusterParent._1,clusterChild._1)
+      pw.println((7+(i+1)*2).formatted("%02d")+","+sohVal.getDown()+","+sohVal.getUp())
     }
 
 
@@ -60,8 +60,8 @@ object SoHfromGeoTiff {
       globalSettings.parent = true
       vis.visualTileNew(clusterParent._1, globalSettings, "cluster")
 
-      val sohVal :(Double,Double) = SoH.getSoHDowAndUp(clusterParent._1,clusterChild._1)
-      pw.println((7+(i+1)*2).formatted("%02d")+","+sohVal._1+","+sohVal._2)
+      val sohVal = SoH.getSoHDowAndUp(clusterParent._1,clusterChild._1)
+      pw.println((7+(i+1)*2).formatted("%02d")+","+sohVal.getDown()+","+sohVal.getUp())
     }
 
     pw.flush()
@@ -81,8 +81,8 @@ object SoHfromGeoTiff {
       val clusterChild = (new ClusterHotSpots(parent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
 
 
-      val sohVal :(Double,Double) = SoH.getSoHDowAndUp(clusterParent._1,clusterChild._1)
-      pw.println((i+1).formatted("%02d")+","+sohVal._1+","+sohVal._2)
+      val sohVal = SoH.getSoHDowAndUp(clusterParent._1,clusterChild._1)
+      pw.println((i+1).formatted("%02d")+","+sohVal.getDown()+","+sohVal.getUp())
     }
 
 
@@ -97,8 +97,8 @@ object SoHfromGeoTiff {
       val clusterChild = (new ClusterHotSpots(parent)).findClusters(globalSettings.clusterRange, globalSettings.critivalValue)
 
 
-      val sohVal :(Double,Double) = SoH.getSoHDowAndUp(clusterParent._1,clusterChild._1)
-      pw.println((i+1).formatted("%02d")+","+sohVal._1+","+sohVal._2)
+      val sohVal = SoH.getSoHDowAndUp(clusterParent._1,clusterChild._1)
+      pw.println((i+1).formatted("%02d")+","+sohVal.getDown()+","+sohVal.getUp())
     }
     pw.flush()
     pw.close()

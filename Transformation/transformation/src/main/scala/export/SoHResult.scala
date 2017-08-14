@@ -1,13 +1,14 @@
 package export
 
 import geotrellis.raster.Tile
+import getisOrd.SoH.SoHR
 import getisOrd.Weight.Weight
 import parmeters.Settings
 
 /**
   * Created by marc on 11.05.17.
   */
-class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, sohValue : (Double,Double), lat : Int) {
+class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, sohValue : SoHR, lat : Int) {
 
   def copySettings(): Settings = {
     val set = new Settings
@@ -29,16 +30,16 @@ class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, s
     }
     val parentString  = lat+","+localSet.hour+","+localSet.focal+","+localSet.focalRange+","+parent.cols+","+parent.rows+","+localSet.weightMatrix+","+localSet.weightRadius
     //val childString = wChild.sizeOfRasterLat+","+wChild.focal+","+wChild.weightMatrix+","+wChild.weightRadius
-    return parentString+","+time+","+sohValue._1+","+sohValue._2+","
+    return parentString+","+time+","+sohValue.getDown()+","+sohValue.getUp()
 
   }
 
   def formatShort(): String = {
-    return getLat+","+localSet.hour+","+sohValue._1+","+sohValue._2
+    return getLat+","+localSet.hour+","+sohValue.getUp()+","+sohValue.getDown()
   }
 
   def headerShort() : String = {
-    "rasterSize(meters),time,downward-"+localSet.focal+"-"+localSet.focalRange+",upward-"+localSet.focal+"-"+localSet.focalRange+",downwardInverse-"+localSet.focal+"-"+localSet.focalRange+",upwardInverse-"+localSet.focal+"-"+localSet.focalRange+","
+    "rasterSize(meters),time,downward-"+localSet.focal+"-"+localSet.focalRange+",upward-"+localSet.focal+"-"+localSet.focalRange
   }
 
   def getLat() : Int = {
@@ -53,11 +54,11 @@ class SoHResult(parent : Tile, weight : Tile, wParent : Settings, time : Long, s
   }
 
   def getSohUp(): Double = {
-    sohValue._2
+    sohValue.getUp()
   }
 
   def getSohDown(): Double = {
-    sohValue._1
+    sohValue.getDown()
   }
 
 
