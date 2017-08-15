@@ -94,7 +94,9 @@ object SoH {
       sum += minDist
       counter += 1
     }
-    1-sum/(counter*Math.sqrt(child.bandCount*child.bandCount*child.rows*child.rows*child.cols*child.cols))
+    val size = (child.bandCount*child.bandCount).toLong*(child.rows*child.rows).toLong*(child.cols*child.cols).toLong
+    val d = (counter*Math.sqrt(size))
+    1-sum/d
 
   }
 
@@ -376,8 +378,15 @@ object SoH {
     val childParentInverse = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(child,parent)
     val numberClusterParent = getNumberCluster(parent)
     val numberClusterChild = getNumberCluster(child)
-    var down = childParent._2.toDouble/numberClusterParent.toDouble
-    var up = 1-childParent._1.toDouble/numberClusterChild.toDouble
+    var down = 0.0
+    if(numberClusterParent!=0){
+      down = childParent._2.toDouble/numberClusterParent.toDouble
+    }
+    var up = 0.0
+    if(numberClusterChild!=0){
+      up = 1-childParent._1.toDouble/numberClusterChild.toDouble
+    }
+
     new SoHR(down,up)
   }
 
@@ -387,8 +396,14 @@ object SoH {
     assert(parent.histogram.values().size-1==nClusterParent)
     assert(child.histogram.values().size-1==nClusterChild)
     val childParent = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(parent,child)
-    var down = childParent._2.toDouble/nClusterParent
-    var up = 1-childParent._1.toDouble/nClusterChild
+    var down = 0.0
+    if(nClusterParent!=0){
+      down = childParent._2.toDouble/nClusterParent.toDouble
+    }
+    var up = 0.0
+    if(nClusterChild!=0){
+      up = 1-childParent._1.toDouble/nClusterChild.toDouble
+    }
     new SoHR(down, up)
   }
 
@@ -418,7 +433,7 @@ object SoH {
                    time: SoHR, kl: Double, sturcture: Double, distance : Double,
                    top100 : scala.collection.mutable.Set[(Int,Double,Double,Double)], f1score : Double, moransI : Double, gisCup : Double){
     override def toString: String = "Metrik results are: \n" +
-      "SoH_Down,"+downUp.getDownUp()+"\n" +
+      "SoH_Down,"+downUp.getDown()+"\n" +
       "SoH_Up,"+downUp.getUp()+"\n" +
       "neighbours,"+neighbours+"\n" +
       "jaccard,"+jaccard+"\n" +

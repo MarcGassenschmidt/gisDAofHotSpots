@@ -1,6 +1,6 @@
 package importExport
 
-import java.io.PrintWriter
+import java.io.{File, PrintWriter}
 
 import parmeters.Settings
 
@@ -13,6 +13,10 @@ object StringWriter {
     pw.write(text)
     pw.flush()
     pw.close()
+  }
+
+  def exists(resultType: ResultType.Value, settings : Settings): Boolean ={
+    (new File(PathFormatter.getResultDirectoryAndName(settings, resultType))).exists()
   }
 
 
