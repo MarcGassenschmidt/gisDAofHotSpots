@@ -62,6 +62,12 @@ object MetrikValidation {
   }
 
   def main(args: Array[String]): Unit = {
+    val downloader = new DownloadFilesFromWeb()
+    val setting = new Settings()
+    setting.csvMonth = 1
+    setting.csvYear = 2016
+    downloader.downloadNewYorkTaxiFiles(setting)
+
     val validation = new MetrikValidation()
     val monthToTest = 2 //1 to 3
     val weightToTest = 2
