@@ -62,11 +62,11 @@ object MetrikValidation {
   }
 
   def main(args: Array[String]): Unit = {
-    val downloader = new DownloadFilesFromWeb()
-    val setting = new Settings()
-    setting.csvMonth = 1
-    setting.csvYear = 2016
-    downloader.downloadNewYorkTaxiFiles(setting)
+//    val downloader = new DownloadFilesFromWeb()
+//    val setting = new Settings()
+//    setting.csvMonth = 1
+//    setting.csvYear = 2016
+//    downloader.downloadNewYorkTaxiFiles(setting)
 
     val validation = new MetrikValidation()
     val monthToTest = 2 //1 to 3
@@ -77,7 +77,7 @@ object MetrikValidation {
     val timeDimensionStep = 2
     val aggregationSteps = 2 //400, 800
     val zoom = 3
-    val experiments = new Array[Settings](monthToTest*weightToTest*focalRangeToTest*timeDimensionStep*timeDimensionStep*aggregationSteps)
+    val experiments = new Array[Settings](monthToTest*weightToTest*focalRangeToTest*timeDimensionStep*timeDimensionStep*aggregationSteps*zoom)
     var counter = 0
     for(m <- 0 to monthToTest-1){
       for(w <- 0 to weightToTest-1){
