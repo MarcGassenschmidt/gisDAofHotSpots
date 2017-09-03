@@ -21,9 +21,9 @@ class DownloadFilesFromWeb {
     println("Start Download")
     for(i <- 0 to 5){
       for(j <- 1 to 3){
-println("create")
-val f1 = new File(setting.inputDirectoryCSV)
-f1.mkdir()
+        println("create")
+        val f1 = new File(setting.inputDirectoryCSV)
+        f1.mkdir()
 
 
         println("Download y"+(2011+i)+" m"+j)
