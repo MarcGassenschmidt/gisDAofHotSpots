@@ -68,7 +68,7 @@ object PathFormatter {
     val f = new File(dir)
     f.mkdirs()
     if(tifType==TifType.Raw){
-      dir+"a"+settings.aggregationLevel+"_.tif"
+      return dir+"a"+settings.aggregationLevel+"_.tif"
     } else {
       return dir+"a"+settings.aggregationLevel+"_w"+settings.weightRadius+"_wT"+settings.weightRadiusTime+"_f"+settings.focalRange+"_fT"+settings.focalRangeTime+"_.tif"
     }
