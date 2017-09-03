@@ -56,6 +56,7 @@ class Settings extends Serializable with Cloneable{
 
   var layoutTileSize: (Int,Int) = (300,300)
   val conf = new SparkConf().setAppName("Test")
+
   conf.setMaster("local[*]")
 
   override def toString: String = {

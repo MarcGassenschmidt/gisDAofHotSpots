@@ -43,6 +43,7 @@ object PathFormatter {
     }
     val dir = settings.ouptDirectory+settings.scenario+"/"+sub
     val f = new File(dir)
+    
     f.mkdirs()
     dir
   }
