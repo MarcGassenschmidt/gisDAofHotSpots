@@ -91,7 +91,7 @@ abstract class GenericScenario extends LazyLogging {
   def getRaster(settings : Settings): Tile = {
     val serializer = new SerializeTile(settings.serilizeDirectory)
     var raster : Tile = null
-    if(settings.fromFile){
+    if(!settings.fromFile){
       raster = creatRaster(settings)
       serializer.write(raster)
     } else {

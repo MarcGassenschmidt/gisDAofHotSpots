@@ -21,9 +21,17 @@ class DownloadFilesFromWeb {
     println("Start Download")
     for(i <- 0 to 5){
       for(j <- 1 to 3){
+println("create")
+val f1 = new File(setting.inputDirectoryCSV)
+f1.mkdir()
+
+
         println("Download y"+(2011+i)+" m"+j)
 
         new URL("https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_"+(2011+i)+"-"+j.formatted("%02d")+".csv") #> new File(setting.inputDirectoryCSV+(2011+i)+"_"+j+".csv") !!
+
+
+	println("End")
       }
     }
 
