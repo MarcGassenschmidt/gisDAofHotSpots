@@ -3,7 +3,7 @@ package scenarios
 import java.io.{File, PrintWriter}
 import java.time.LocalDateTime
 
-import importExport.ImportGeoTiff
+import importExport.{ImportGeoTiff, PathFormatter, TifType}
 import clustering.ClusterHotSpots
 import com.typesafe.scalalogging.LazyLogging
 import export.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
@@ -89,13 +89,14 @@ abstract class GenericScenario extends LazyLogging {
   }
 
   def getRaster(settings : Settings): Tile = {
-    val serializer = new SerializeTile(settings.serilizeDirectory)
     var raster : Tile = null
-    if(!settings.fromFile){
-      raster = creatRaster(settings)
-      serializer.write(raster)
+    var imporTer = new ImportGeoTiff
+    if (!PathFormatter.exist(settings, TifType.Raw,false)) {
+      val transform = new Transformation
+      val raster = transform.transformCSVtoRaster(settings)
+      imporTer.writeGeoTiff(raster, settings, TifType.Raw)
     } else {
-      raster = serializer.read()
+      raster = imporTer.readGeoTiff(settings, TifType.Raw)
     }
     aggregateToZoom(raster, settings.aggregationLevel)
   }
