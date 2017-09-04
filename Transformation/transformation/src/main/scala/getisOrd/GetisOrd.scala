@@ -84,6 +84,19 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
     tileG
   }
 
+  def gStarDoubleComplete(): Tile ={
+    sumOfTile = this.getSummForTile(tile)
+    xMean = this.getXMean(tile)
+    standardDeviation= this.getStandartDeviationForTile(tile)
+    val tileG = DoubleArrayTile.ofDim(tile.cols, tile.rows)
+    for(i <- 0 to tile.cols-1){
+      for(j <- 0 to tile.rows-1){
+        tileG.setDouble(i,j,gStarForTileDouble((i,j)))
+      }
+    }
+    tileG
+  }
+
   override def createNewWeight(para : Settings) : Tile = {
     para.weightMatrix match {
       case Weight.One => weight = getWeightMatrix(para.weightRadius,para.weightRadius)
@@ -119,12 +132,33 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
     (sumP1-xMean*sumOfWeight)
   }
 
+  def getNumeratorDouble(index: (Int, Int)): Double={
+    val xShift = Math.floor(weight.cols/2).toInt
+    val yShift = Math.floor(weight.rows/2).toInt
+    var sumP1 = 0.0
+    for(i <- 0 to weight.cols-1){
+      for(j <- 0 to weight.rows-1){
+        if(index._1-xShift+i<0 || index._1-xShift+i>tile.cols-1 || index._2-yShift+j<0 || index._2-yShift+j>tile.rows-1){
+          //TODO handle bound Cases
+        } else {
+          sumP1 += tile.getDouble(index._1-xShift+i, index._2-yShift+j)*weight.get(i,j)
+        }
+
+      }
+    }
+    (sumP1-xMean*sumOfWeight)
+  }
+
   def getDenominator(): Double = {
     (standardDeviation*Math.sqrt((tile.size*powerOfWeight-getSummPowerForWeight())/(tile.size-1)))
   }
 
   def gStarForTile(index : (Int, Int)) : Double ={
     getNumerator(index)/getDenominator()
+  }
+
+  def gStarForTileDouble(index : (Int, Int)) : Double ={
+    getNumeratorDouble(index)/getDenominator()
   }
 
   def getStandartDeviationForTile(tile: Tile): Double ={

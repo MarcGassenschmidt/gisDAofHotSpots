@@ -159,5 +159,68 @@ class Transformation {
     new ArrayMultibandTile(multibandTile.map(arrayTile => arrayTile.toArrayTile()))
   }
 
+  def transformCSVPolygon(): Tile ={
+    val settings = new Settings()
+    settings.lonMax = 10.05*settings.multiToInt
+    settings.lonMin = 10.01*settings.multiToInt
+    settings.latMax = 48.85*settings.multiToInt
+    settings.latMin = 48.80*settings.multiToInt
+    settings.sizeOfRasterLat = 100
+    settings.sizeOfRasterLon = 100
+
+
+    val rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt
+    val rasterLonLength = ((settings.lonMax-settings.lonMin)/settings.sizeOfRasterLon).toInt
+    val bufferedSource = Source.fromFile("/home/marc/Downloads/Forecast_Aalen.csv")
+
+    val tile = DoubleArrayTile.ofDim(rasterLonLength,rasterLatLength)
+
+//    val lin = bufferedSource.getLines().drop(6).next().split(";").map(_.trim)
+//    val l = lin(7).substring(11).split(",").map(_.trim)
+//    val lo = l(0).split("48\\.")(0).toDouble
+//    val la = l(0).substring(16)
+//    val lat = la.startsWith("48.")
+//    val latD = la.toDouble
+      val file = bufferedSource.getLines.drop(1).map(line => {
+      val cols = line.split(";").map(_.trim)
+
+      val result = new NotDataRowTransformationValue(0,0,null,true,0)
+      if(cols.length>7 && cols(7).length>15) {
+        result.data = false
+        var polygon = cols(7).substring(11).split(",").map(_.trim)
+
+        val sort = cols.drop(9).sortWith(_ < _)
+        result.value = sort(sort.size / 2).toDouble
+
+
+        result.lon = (polygon(0).split("48\\.")(0).toDouble * settings.multiToInt).toInt
+        var i = 10
+        while (polygon(0).length>i && !(polygon(0).substring(i)).startsWith("48.") && i < 20) {
+          i += 1
+        }
+        if(polygon(0).length>i) {
+          result.lat = (polygon(0).substring(i).toDouble * settings.multiToInt).toInt
+        } else {
+          result.data = true
+        }
+
+      }
+      result
+    }).filter(row => row.lon>=settings.lonMin && row.lon<=settings.lonMax && row.lat>=settings.latMin && row.lat<=settings.latMax && row.data==false)
+    val t = false
+    for(row <- file) {
+      val rowIndex = ((row.lat-settings.latMin)/settings.sizeOfRasterLat).toInt
+      val colIndex = ((row.lon-settings.lonMin)/settings.sizeOfRasterLon).toInt
+      if(tile.getDouble(colIndex,rowIndex)==0){
+        tile.setDouble(colIndex,rowIndex,row.value)
+      } else {
+        tile.setDouble(colIndex,rowIndex,(tile.getDouble(colIndex,rowIndex)+row.value)/2)
+      }
+    }
+
+    bufferedSource.close()
+    tile
+  }
+
 
 }

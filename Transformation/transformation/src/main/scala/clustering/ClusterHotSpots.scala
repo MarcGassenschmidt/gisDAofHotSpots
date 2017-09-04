@@ -80,6 +80,33 @@ class ClusterHotSpots(tile : Tile) {
     findClusters(1.9,5)._1
   }
 
+  def findClustersTest() : Tile ={
+    val breaks = tile.histogramDouble.quantileBreaks(100)
+    var q = 1.96
+
+
+    var counterCluster = 0
+
+    var tempCluster = 0;
+    var visit = IntArrayTile.fill(0,tile.cols,tile.rows)
+    var clusterTile = IntArrayTile.fill(0,tile.cols,tile.rows)
+    for(c <- 0 to tile.cols-1){
+      for(r <- 0 to tile.rows-1){
+        if((tile.getDouble(c,r))>q) {
+          if (clusterTile.get(c,r) == 0) {
+            counterCluster += 1
+            visit.set(c,r, 1)
+            clusterTile.set(c,r, counterCluster)
+            expandCluster(clusterTile, 1, q, visit, counterCluster, regionQuery(1, q, c,r, visit))
+          }
+        }
+
+      }
+
+    }
+    clusterTile
+  }
+
   //inspired by dbscan
   def findClusters(range : Double, critical : Double) : (Tile,Int) ={
     //TODO if range is different then 1 regionQuery need to be fixed

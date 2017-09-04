@@ -89,14 +89,14 @@ abstract class GenericScenario extends LazyLogging {
   }
 
   def getRaster(settings : Settings): Tile = {
+    val serializer = new SerializeTile(settings.serilizeDirectory)
     var raster : Tile = null
-    var imporTer = new ImportGeoTiff
-    if (!PathFormatter.exist(settings, TifType.Raw,false)) {
-      val transform = new Transformation
-      val raster = transform.transformCSVtoRaster(settings)
-      imporTer.writeGeoTiff(raster, settings, TifType.Raw)
+    if(!settings.fromFile){
+      raster = creatRaster(settings)
+      serializer.write(raster)
+      settings.fromFile = false
     } else {
-      raster = imporTer.readGeoTiff(settings, TifType.Raw)
+      raster = serializer.read()
     }
     aggregateToZoom(raster, settings.aggregationLevel)
   }

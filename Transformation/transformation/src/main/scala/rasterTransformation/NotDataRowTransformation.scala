@@ -12,3 +12,12 @@ class NotDataRowTransformation(lon : Int,
 
 
 }
+
+class NotDataRowTransformationValue(lon : Int,
+                               lat : Int,
+                               time : LocalDateTime,
+                               var data : Boolean,
+                               var value : Double) extends RowTransformationTime(lon,lat,time){
+
+
+}
