@@ -6,6 +6,9 @@ import java.time.format.DateTimeFormatter
 
 import parmeters.Settings
 
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.io.Source
+
 /**
   * Created by marc on 05.06.17.
   */
@@ -14,7 +17,7 @@ object PathFormatter {
     if(settings.test){
       settings.ouptDirectory = "/tmp/"
     }
-    var sub = "GIS_Daten/"+settings.csvYear+"/"+settings.csvMonth+"/"+resultType+"/"
+    var sub = "server/"+settings.csvYear+"/"+settings.csvMonth+"/"+resultType+"/"
     if(settings.focal){
       sub += "focal/"
     } else {
@@ -24,6 +27,49 @@ object PathFormatter {
     val f = new File(dir)
     f.mkdirs()
     dir+"a"+settings.aggregationLevel+"_w"+settings.weightRadius+"_wT"+settings.weightRadiusTime+"_f"+settings.focalRange+"_fT"+settings.focalRangeTime+"result.txt"
+  }
+
+  def getAllResultsFor(settings: Settings): Results ={
+    val results = new Results(
+    getResultDirectoryAndName(settings,ResultType.Metrik),
+    getResultDirectoryAndName(settings,ResultType.Validation),
+    getResultDirectoryAndName(settings,ResultType.Time))
+    results
+  }
+  class Results(metrik : String, validation : String, time : String){
+    val bufferedSourceMetrik = Source.fromFile(metrik)
+    val bufferedSourceValidation = Source.fromFile(validation)
+    val bufferedSourceTime = Source.fromFile(time)
+
+    def getMedian(): Double ={
+      var validation = bufferedSourceValidation.getLines().map(x=>x.toDouble).toSeq.sortWith(_>_)
+      val halfSize = validation.size/2
+      validation.drop(halfSize-1).head
+    }
+    def getValidation(): Array[(String,Array[Double])] ={
+      val validations = bufferedSourceMetrik.getLines().drop(1).take(13).toSeq.map(x=>{
+        val tuple = x.replace("(","").replace(")","").split(",")
+        var res : (String,Array[Double]) = null
+        if(tuple.size>2){
+          res = (tuple(0),Array(tuple(1).toDouble,tuple(2).toDouble,
+                          tuple(3).toDouble,tuple(4).toDouble,
+                          tuple(5).toDouble,tuple(6).toDouble))
+        } else {
+          res = (tuple(0),Array(tuple(1).toDouble))
+        }
+        res
+      })
+      validations.toArray
+    }
+    def getTime(): Array[(String,Double)] ={
+      val time = bufferedSourceTime.getLines().map(x=>{
+        var tuple = x.split(":")
+        (tuple(0),tuple(1).toDouble)
+      }).toSeq
+      time.toArray
+    }
+
+
   }
 
 
@@ -82,6 +128,7 @@ object PathFormatter {
   def exist(settings: Settings, tifType: TifType.Value, isMultiband : Boolean): Boolean ={
     (new File(getDirectoryAndName(settings,tifType, isMultiband))).exists()
   }
+
 
 }
 

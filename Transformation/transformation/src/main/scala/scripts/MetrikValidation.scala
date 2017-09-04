@@ -69,6 +69,15 @@ object MetrikValidation {
 //    downloader.downloadNewYorkTaxiFiles(setting)
 
     val validation = new MetrikValidation()
+    val experiments = getScenarioSettings
+    for(setting <- experiments){
+      println("Start of experiment:"+setting.toString)
+      validation.oneTestRun(setting)
+    }
+
+  }
+
+  def getScenarioSettings(): Array[Settings] = {
     val monthToTest = 2 //1 to 3
     val weightToTest = 2
     val weightStepSize = 5 //10 to 10+2*weightToTest
@@ -77,16 +86,16 @@ object MetrikValidation {
     val timeDimensionStep = 2
     val aggregationSteps = 2 //400, 800
     val zoom = 3
-    val experiments = new Array[Settings](monthToTest*weightToTest*focalRangeToTest*timeDimensionStep*timeDimensionStep*aggregationSteps*zoom)
+    val experiments = new Array[Settings](monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps * zoom)
     var counter = 0
-    for(m <- 0 to monthToTest-1){
-      for(w <- 0 to weightToTest-1){
-        for(f <- 0 to focalRangeToTest-1) {
-          for(a <- 0 to aggregationSteps-1) {
-            for(tf <- 0 to timeDimensionStep-1) {
-              for(tw <- 0 to timeDimensionStep-1) {
-                for(z <- 1 to zoom) {
-                  experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 4 + a, 1 + m,z)
+    for (m <- 0 to monthToTest - 1) {
+      for (w <- 0 to weightToTest - 1) {
+        for (f <- 0 to focalRangeToTest - 1) {
+          for (a <- 0 to aggregationSteps - 1) {
+            for (tf <- 0 to timeDimensionStep - 1) {
+              for (tw <- 0 to timeDimensionStep - 1) {
+                for (z <- 1 to zoom) {
+                  experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 4 + a, 1 + m, z)
                   counter += 1
                 }
               }
@@ -95,11 +104,7 @@ object MetrikValidation {
         }
       }
     }
-    for(setting <- experiments){
-      println("Start of experiment:"+setting.toString)
-      validation.oneTestRun(setting)
-    }
-
+    experiments
   }
 }
 class MetrikValidation {
