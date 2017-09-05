@@ -1,33 +1,59 @@
 package scripts
 
-import importExport.ImportGeoTiff
+import clustering.ClusterRelations
+import geotrellis.raster.IntRawArrayTile
+import getisOrd.SoH
+import importExport.{ImportGeoTiff, PathFormatter, TifType}
 import parmeters.Scenario
 import rasterTransformation.Transformation
+import timeUtils.MultibandUtils
 
 /**
   * Created by marc on 05.09.17.
   */
 object ZoomScript {
   def main(args: Array[String]): Unit = {
-    val csv = new Transformation
-    val raster1 = csv.transformCSVtoTimeRaster(MetrikValidation.defaultSetting())
-    val settings = MetrikValidation.defaultSetting()
-//    var buttom = (40.699607, -74.020265 + add)
-//    var top = (40.769239 + 0.010368 - add, -73.948286 + 0.008021 -add)
-//    settings.scenario = Scenario.Time.toString
-//    settings.shiftToPostive = -1 * buttom._2 * multiToInt
-//    settings.latMin = buttom._1 * multiToInt
-//    settings.lonMin = buttom._2 * multiToInt + settings.shiftToPostive
-//    settings.latMax = top._1 * multiToInt
-//    settings.lonMax = top._2 * multiToInt + settings.shiftToPostive
-//    settings.aggregationLevel = aggregationLevel
-//    settings.sizeOfRasterLat = Math.pow(2.toDouble,settings.aggregationLevel.toDouble-1).toInt * 50 //meters
-//    settings.sizeOfRasterLon = Math.pow(2.toDouble,settings.aggregationLevel.toDouble-1).toInt * 50 //meters
-//    settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
-//    settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
-//    val raster2 = csv.transformCSVtoTimeRaster()
     val export = new ImportGeoTiff
+    val settings = MetrikValidation.defaultSetting()
+    var validate = new ClusterRelations()
 
+    settings.focal = true
+    settings.zoomlevel = 1
+    val f1 = export.getMulitGeoTiff(settings,TifType.Cluster)
+    settings.zoomlevel = 2
+    val f2 = export.getMulitGeoTiff(settings,TifType.Cluster)
 
+    val flessRows = f2.rows-f1.rows
+    val flessCols = f2.cols-f1.cols
+
+    val fpart = MultibandUtils.getEmptyIntMultibandArray(f1)
+    for(j<- 0 to g1.rows-1){
+      for(i <- 0 to g1.cols-1){
+        for(k <- 0 to g1.bandCount-1){
+          fpart.band(k).asInstanceOf[IntRawArrayTile].set(i,j,f2.band(k).get(flessCols/2+i,flessRows/2+j))
+        }
+      }
+    }
+
+    println("Focal"+validate.getPercentualFitting(fpart,f1))
+
+    settings.focal = false
+    settings.zoomlevel = 1
+    val g1 = export.getMulitGeoTiff(settings,TifType.Cluster)
+    settings.zoomlevel = 2
+    val g2 = export.getMulitGeoTiff(settings,TifType.Cluster)
+
+    val glessRows = g2.rows-g1.rows
+    val glessCols = g2.cols-g1.cols
+    val part = MultibandUtils.getEmptyIntMultibandArray(g1)
+    for(j<- 0 to g1.rows-1){
+      for(i <- 0 to g1.cols-1){
+        for(k <- 0 to g1.bandCount-1){
+          part.band(k).asInstanceOf[IntRawArrayTile].set(i,j,g2.band(k).get(glessCols/2+i,glessRows/2+j))
+        }
+      }
+    }
+
+    println("GStar"+validate.getPercentualFitting(part,g1))
   }
 }
