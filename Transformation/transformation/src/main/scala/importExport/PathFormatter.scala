@@ -29,14 +29,14 @@ object PathFormatter {
     dir+"a"+settings.aggregationLevel+"_w"+settings.weightRadius+"_wT"+settings.weightRadiusTime+"_f"+settings.focalRange+"_fT"+settings.focalRangeTime+"result.txt"
   }
 
-  def getAllResultsFor(settings: Settings): Results ={
-    val results = new Results(
+  def getAllResultsFor(settings: Settings): ResultStore ={
+    val results = new ResultStore(
     getResultDirectoryAndName(settings,ResultType.Metrik),
     getResultDirectoryAndName(settings,ResultType.Validation),
     getResultDirectoryAndName(settings,ResultType.Time))
     results
   }
-  class Results(metrik : String, validation : String, time : String){
+  class ResultStore(metrik : String, validation : String, time : String){
     val bufferedSourceMetrik = Source.fromFile(metrik)
     val bufferedSourceValidation = Source.fromFile(validation)
     val bufferedSourceTime = Source.fromFile(time)
@@ -46,7 +46,7 @@ object PathFormatter {
       val halfSize = validation.size/2
       validation.drop(halfSize-1).head
     }
-    def getValidation(): Array[(String,Array[Double])] ={
+    def getMetrik(): Array[(String,Array[Double])] ={
       val validations = bufferedSourceMetrik.getLines().drop(1).take(13).toSeq.map(x=>{
         val tuple = x.replace("(","").replace(")","").split(",")
         var res : (String,Array[Double]) = null
@@ -59,7 +59,18 @@ object PathFormatter {
         }
         res
       })
-      validations.toArray
+      val array = validations.toArray
+      val result = new Array[(String,Array[Double])](array.length-2)
+      var counter = 0
+      for(i<- 0 to array.length-1){
+        if(i==4 || i==8){
+
+        } else {
+          result(counter) = array(i)
+          counter+=1
+        }
+      }
+      result
     }
     def getTime(): Array[(String,Double)] ={
       val time = bufferedSourceTime.getLines().map(x=>{
@@ -114,9 +125,9 @@ object PathFormatter {
     val f = new File(dir)
     f.mkdirs()
     if(tifType==TifType.Raw){
-      return dir+"a"+settings.aggregationLevel+"_.tif"
+      return dir+"a"+settings.aggregationLevel+"_z"+settings.zoomlevel+"_.tif"
     } else {
-      return dir+"a"+settings.aggregationLevel+"_w"+settings.weightRadius+"_wT"+settings.weightRadiusTime+"_f"+settings.focalRange+"_fT"+settings.focalRangeTime+"_.tif"
+      return dir+"a"+settings.aggregationLevel+"_w"+settings.weightRadius+"_wT"+settings.weightRadiusTime+"_f"+settings.focalRange+"_fT"+settings.focalRangeTime+"_z"+settings.zoomlevel+".tif"
     }
 
   }

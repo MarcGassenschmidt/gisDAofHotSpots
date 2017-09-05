@@ -44,6 +44,7 @@ object MetrikValidation {
     settings.lonMin = buttom._2 * multiToInt + settings.shiftToPostive
     settings.latMax = top._1 * multiToInt
     settings.lonMax = top._2 * multiToInt + settings.shiftToPostive
+    settings.zoomlevel = zoom
     settings.aggregationLevel = aggregationLevel
     settings.sizeOfRasterLat = Math.pow(2.toDouble,settings.aggregationLevel.toDouble-1).toInt * 50 //meters
     settings.sizeOfRasterLon = Math.pow(2.toDouble,settings.aggregationLevel.toDouble-1).toInt * 50 //meters
@@ -78,24 +79,24 @@ object MetrikValidation {
   }
 
   def getScenarioSettings(): Array[Settings] = {
-    val monthToTest = 2 //1 to 3
+    val monthToTest = 3 //1 to 3
     val weightToTest = 2
     val weightStepSize = 5 //10 to 10+2*weightToTest
     val focalRangeToTest = 2
-    val focalRangeStepSize = 5 //30 to 30+2*focalRangeToTest
+    val focalRangeStepSize = 8 //30 to 30+2*focalRangeToTest
     val timeDimensionStep = 2
     val aggregationSteps = 2 //400, 800
     val zoom = 3
     val experiments = new Array[Settings](monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps * zoom)
     var counter = 0
-    for (m <- 0 to monthToTest - 1) {
+    for (m <- 1 to monthToTest) {
       for (w <- 0 to weightToTest - 1) {
         for (f <- 0 to focalRangeToTest - 1) {
           for (a <- 0 to aggregationSteps - 1) {
             for (tf <- 0 to timeDimensionStep - 1) {
               for (tw <- 0 to timeDimensionStep - 1) {
                 for (z <- 1 to zoom) {
-                  experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 4 + a, 1 + m, z)
+                  experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 4 + a, m, z)
                   counter += 1
                 }
               }
