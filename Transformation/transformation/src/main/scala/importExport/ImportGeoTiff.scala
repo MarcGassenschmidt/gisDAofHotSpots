@@ -70,12 +70,13 @@ class ImportGeoTiff {
     val tiled: RDD[(SpatialKey, MultibandTile)] =
       inputRdd
         .tileToLayout(rasterMetaData.cellType, rasterMetaData.layout, NearestNeighbor)
-        .repartition(8)
+        .repartition(4)
     tiled
   }
 
   def readGeoTiff(file : String): Tile = {
-    GeoTiffReader.readSingleband(file).tile
+    val tiff = GeoTiffReader.readSingleband(file)//, new Extent(3574113.2199997901916504,5407261.9099998474121094,3581419.2199997901916504,5413584.9099998474121094))
+    tiff.tile
   }
 
   def readGeoTiff(settings: Settings, tifType: TifType.Value): Tile = {

@@ -44,6 +44,16 @@ class TestGetisOrdFocal extends FunSuite with BeforeAndAfter {
     getis.createNewWeight(setting)
   }
 
+  test("Test NaN values"){
+    val testTile = Array.fill(1200)(Double.NaN)
+    val rasterTile = new DoubleRawArrayTile(testTile, 30, 40)
+    rasterTile.setDouble(0,0,100.0)
+    val array = rasterTile.toArrayDouble()
+    assert(rasterTile.focalSum(Circle(1)).getDouble(0,0)==100.0)
+    assert(rasterTile.focalMean(Circle(1)).getDouble(0,0)==100.0)
+    assert(rasterTile.focalStandardDeviation(Circle(1)).getDouble(0,0)==0)
+  }
+
   test("Test focal Mean 0,0"){
     val sum = (rasterTile.get(0,0)+rasterTile.get(0,1)+rasterTile.get(1,0)+rasterTile.get(1,1)+rasterTile.get(2,0)+rasterTile.get(0,2))
     assert(rasterTile.focalMean(Circle(setting.focalRange)).getDouble(0,0)==sum/6)

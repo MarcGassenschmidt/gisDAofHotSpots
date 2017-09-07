@@ -27,9 +27,9 @@ object ZoomScript {
     val flessCols = f2.cols-f1.cols
 
     val fpart = MultibandUtils.getEmptyIntMultibandArray(f1)
-    for(j<- 0 to g1.rows-1){
-      for(i <- 0 to g1.cols-1){
-        for(k <- 0 to g1.bandCount-1){
+    for(j<- 0 to f1.rows-1){
+      for(i <- 0 to f1.cols-1){
+        for(k <- 0 to f1.bandCount-1){
           fpart.band(k).asInstanceOf[IntRawArrayTile].set(i,j,f2.band(k).get(flessCols/2+i,flessRows/2+j))
         }
       }

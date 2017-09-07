@@ -162,7 +162,7 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
   }
 
   def getStandartDeviationForTile(tile: Tile): Double ={
-    val deviation = Math.sqrt(powerOfTile.toFloat/tile.size.toFloat-xMean)
+    val deviation = Math.sqrt((tile.mapDouble(x=>(Math.pow(x-xMean,2))).toArrayDouble().reduce(_+_))/(tile.size.toDouble-1))
     if(deviation<=0 || deviation==Double.NaN){
       return 1 //TODO handle equal distribution case
     }

@@ -3,6 +3,7 @@ package getisOrd
 
 import java.util.Random
 
+import geotrellis.raster.mapalgebra.focal.Circle
 import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntArrayTile, IntRawArrayTile}
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import parmeters.Settings
@@ -62,6 +63,20 @@ class TestGetisOrd extends FunSuite {
     assert(gStart.gStarForTile(150,200) >= (-8.517 - 0.01) || gStart.gStarForTile(150,200) <= (-8.517 + 0.01))
   }
 
+  ignore("Test NaN values"){
+    val testTile = Array.fill(1200)(Double.NaN)
+    val rasterTile = new DoubleRawArrayTile(testTile, 30, 40)
+    rasterTile.setDouble(0,0,100.0)
+    rasterTile.setDouble(0,1,0.0)
+    val mean = rasterTile.statisticsDouble.get.mean
+    val sd = rasterTile.statisticsDouble.get.stddev
+    assert(rasterTile.focalSum(Circle(3)).getDouble(0,0)==150.0)
+    assert(rasterTile.focalMean(Circle(1)).getDouble(0,0)==50.0)
+    assert(rasterTile.focalStandardDeviation(Circle(1)).getDouble(0,0)==0)
+  }
+
+
+
   test("Test GetisOrt with Random"){
     val rnd = new Random(1)
     val testTile = Array.fill(100)(rnd.nextInt(100))
@@ -77,6 +92,18 @@ class TestGetisOrd extends FunSuite {
     println("Standard Devivation="+gStart.getStandartDeviationForTile(rasterTile))
     println("Denominator="+gStart.getDenominator())
     println(gStart.printG_StarComplete())
+  }
+
+  test("sd"){
+    val testTile = getTestTile()
+    val mean = testTile.toArrayDouble().reduce(_+_)/testTile.size.toDouble
+    assert(mean==(7*7-20)/(7*7).toDouble)
+    val gStart = new GetisOrd(testTile, set)
+    val zeros = 20*(-mean * -mean)
+    val one = ((1.0-mean)*(1.0-mean))
+    val ones = (7*7-20)*one
+    gStart.calculateStats((0,0))
+    assert(Math.sqrt((zeros+ones)/(7*7-1).toDouble)==gStart.getStandartDeviationForTile(testTile))
   }
 
   ignore("Test Weight"){
