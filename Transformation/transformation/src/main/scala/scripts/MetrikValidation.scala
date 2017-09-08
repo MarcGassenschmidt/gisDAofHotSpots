@@ -28,12 +28,20 @@ object MetrikValidation {
     getBasicSettings(10,1,30,2,4,1,1)
   }
 
+  def getAdd(zoom: Int,start : Int, fak : Int): Int = {
+    if(zoom==2){
+      return start
+    } else {
+      return getAdd(zoom-1,start+fak/10,fak/10)
+    }
+  }
+
   def getBasicSettings(weight : Int, weightTime : Int, focalWeight : Int, focalTime : Int, aggregationLevel : Int, month : Int, zoom : Int): Settings = {
     val settings = new Settings()
     var multiToInt = 1000000
     var add = 0.0
     if(zoom!=1){
-      add = (37500*Math.pow(10,zoom-1))/multiToInt.toDouble
+      add = (getAdd(zoom,72000,72000)/2)/multiToInt.toDouble
     }
 
     var buttom = (40.699607+add, -74.020265 + add)
@@ -114,6 +122,7 @@ class MetrikValidation {
   def oneTestRun(secenarioSettings: Settings): Unit = {
     settings = secenarioSettings
     writeBand()
+
     val origin = importTer.getMulitGeoTiff(settings, TifType.Raw)
     assert(origin.cols % 4 == 0 && origin.rows % 4 == 0)
     settings.layoutTileSize = ((origin.cols / 4.0).floor.toInt, (origin.rows / 4.0).floor.toInt)
