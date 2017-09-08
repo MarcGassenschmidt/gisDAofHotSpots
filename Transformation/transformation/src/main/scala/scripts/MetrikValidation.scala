@@ -105,7 +105,8 @@ object MetrikValidation {
               for (tw <- 0 to timeDimensionStep - 1) {
                 for (z <- 1 to zoom) {
                   experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 4 + a, m, z)
-                  if(experiments(counter).sizeOfRasterLon % 4 == 0) {
+                  val settings = experiments(counter)
+                  if(((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt % 4 == 0) {
                     counter += 1
                   }
                 }
