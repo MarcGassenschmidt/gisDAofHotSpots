@@ -95,7 +95,7 @@ object MetrikValidation {
     val timeDimensionStep = 2
     val aggregationSteps = 2 //400, 800
     val zoom = 3
-    val experiments = new Array[Settings](monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps * zoom)
+    val experiments = new Array[Settings](145) //monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps * zoom)
     var counter = 0
     for (m <- 1 to monthToTest) {
       for (w <- 0 to weightToTest - 1) {

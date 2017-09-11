@@ -26,7 +26,7 @@ object PathFormatter {
     val dir = settings.ouptDirectory+"/"+sub
     val f = new File(dir)
     f.mkdirs()
-    dir+"a"+settings.aggregationLevel+"_w"+settings.weightRadius+"_wT"+settings.weightRadiusTime+"_f"+settings.focalRange+"_fT"+settings.focalRangeTime+"result.txt"
+    dir+"a"+settings.aggregationLevel+"_w"+settings.weightRadius+"_wT"+settings.weightRadiusTime+"_f"+settings.focalRange+"_fT"+settings.focalRangeTime+"_z"+settings.zoomlevel+"result.txt"
   }
 
   def getAllResultsFor(settings: Settings): ResultStore ={
