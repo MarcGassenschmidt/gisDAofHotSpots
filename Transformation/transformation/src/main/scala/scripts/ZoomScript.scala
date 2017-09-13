@@ -1,10 +1,10 @@
 package scripts
 
-import clustering.ClusterRelations
+import clustering.{ClusterHotSpotsTime, ClusterRelations}
 import geotrellis.raster.IntRawArrayTile
-import getisOrd.SoH
+import getisOrd.{SoH, TimeGetisOrd}
 import importExport.{ImportGeoTiff, PathFormatter, TifType}
-import parmeters.Scenario
+import parmeters.{Scenario, Settings}
 import rasterTransformation.Transformation
 import timeUtils.MultibandUtils
 
@@ -14,14 +14,19 @@ import timeUtils.MultibandUtils
 object ZoomScript {
   def main(args: Array[String]): Unit = {
     val export = new ImportGeoTiff
-    val settings = MetrikValidation.defaultSetting()
-    var validate = new ClusterRelations()
 
+    var validate = new ClusterRelations()
+    val transform = new Transformation
+
+    //weight , weightTime , focalWeight , focalTime , aggregationLevel , month , zoom
+    var settings = MetrikValidation.getBasicSettings(5,1,10,2,1,1,1)
     settings.focal = true
-    settings.zoomlevel = 1
-    val f1 = export.getMulitGeoTiff(settings,TifType.Cluster)
-    settings.zoomlevel = 2
+    writeBand(settings, export)
     val f2 = export.getMulitGeoTiff(settings,TifType.Cluster)
+    settings = MetrikValidation.getBasicSettings(5,1,10,2,1,1,2)
+    settings.focal = true
+    writeBand(settings, export)
+    val f1 = export.getMulitGeoTiff(settings,TifType.Cluster)
 
     val flessRows = f2.rows-f1.rows
     val flessCols = f2.cols-f1.cols
@@ -37,11 +42,14 @@ object ZoomScript {
 
     println("Focal"+validate.getPercentualFitting(fpart,f1))
 
+    settings = MetrikValidation.getBasicSettings(5,1,10,2,1,1,1)
     settings.focal = false
-    settings.zoomlevel = 1
-    val g1 = export.getMulitGeoTiff(settings,TifType.Cluster)
-    settings.zoomlevel = 2
+    writeBand(settings, export)
     val g2 = export.getMulitGeoTiff(settings,TifType.Cluster)
+    settings = MetrikValidation.getBasicSettings(5,1,10,2,1,1,2)
+    settings.focal = false
+    writeBand(settings, export)
+    val g1 = export.getMulitGeoTiff(settings,TifType.Cluster)
 
     val glessRows = g2.rows-g1.rows
     val glessCols = g2.cols-g1.cols
@@ -55,5 +63,19 @@ object ZoomScript {
     }
 
     println("GStar"+validate.getPercentualFitting(part,g1))
+  }
+
+  def writeBand(settings : Settings, importer : ImportGeoTiff): Unit = {
+//    if (PathFormatter.exist(settings, TifType.Cluster)) {
+//      return
+//    }
+    val transform = new Transformation()
+    val mulitBand = transform.transformCSVtoTimeRaster(settings)
+    importer.writeMultiGeoTiff(mulitBand, settings, TifType.Raw)
+    val rdd = importer.repartitionFiles(settings)
+    val gStar = TimeGetisOrd.getGetisOrd(rdd,settings,mulitBand)
+    importer.writeMultiGeoTiff(gStar, settings, TifType.GStar)
+    val hotspot = new ClusterHotSpotsTime(gStar)
+    importer.writeMultiGeoTiff(hotspot.findClusters(), settings, TifType.GStar)
   }
 }

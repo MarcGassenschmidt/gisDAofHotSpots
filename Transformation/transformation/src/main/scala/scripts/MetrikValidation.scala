@@ -46,6 +46,8 @@ object MetrikValidation {
 
     var buttom = (40.699607+add, -74.020265 + add)
     var top = (40.769239 + 0.010368 - add, -73.948286 + 0.008021 -add)
+    settings.buttom = buttom
+    settings.top = top
     settings.scenario = Scenario.Time.toString
     settings.shiftToPostive = -1 * buttom._2 * multiToInt
     settings.latMin = buttom._1 * multiToInt
