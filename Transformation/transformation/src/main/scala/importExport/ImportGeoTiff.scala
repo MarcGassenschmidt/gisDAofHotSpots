@@ -70,7 +70,7 @@ class ImportGeoTiff {
     val tiled: RDD[(SpatialKey, MultibandTile)] =
       inputRdd
         .tileToLayout(rasterMetaData.cellType, rasterMetaData.layout, NearestNeighbor)
-        .repartition(4)
+        .repartition(8)
     tiled
   }
 

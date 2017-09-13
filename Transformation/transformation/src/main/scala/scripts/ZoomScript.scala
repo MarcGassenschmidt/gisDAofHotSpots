@@ -19,11 +19,11 @@ object ZoomScript {
     val transform = new Transformation
 
     //weight , weightTime , focalWeight , focalTime , aggregationLevel , month , zoom
-    var settings = MetrikValidation.getBasicSettings(5,1,10,2,1,1,1)
+    var settings = MetrikValidation.getBasicSettings(5,1,10,2,3,1,1)
     settings.focal = true
     writeBand(settings, export)
     val f2 = export.getMulitGeoTiff(settings,TifType.Cluster)
-    settings = MetrikValidation.getBasicSettings(5,1,10,2,1,1,2)
+    settings = MetrikValidation.getBasicSettings(5,1,10,2,3,1,2)
     settings.focal = true
     writeBand(settings, export)
     val f1 = export.getMulitGeoTiff(settings,TifType.Cluster)
@@ -42,11 +42,11 @@ object ZoomScript {
 
     println("Focal"+validate.getPercentualFitting(fpart,f1))
 
-    settings = MetrikValidation.getBasicSettings(5,1,10,2,1,1,1)
+    settings = MetrikValidation.getBasicSettings(5,1,10,2,3,1,1)
     settings.focal = false
     writeBand(settings, export)
     val g2 = export.getMulitGeoTiff(settings,TifType.Cluster)
-    settings = MetrikValidation.getBasicSettings(5,1,10,2,1,1,2)
+    settings = MetrikValidation.getBasicSettings(5,1,10,2,3,1,2)
     settings.focal = false
     writeBand(settings, export)
     val g1 = export.getMulitGeoTiff(settings,TifType.Cluster)
@@ -66,9 +66,9 @@ object ZoomScript {
   }
 
   def writeBand(settings : Settings, importer : ImportGeoTiff): Unit = {
-//    if (PathFormatter.exist(settings, TifType.Cluster)) {
-//      return
-//    }
+   if (PathFormatter.exist(settings, TifType.Cluster)) {
+      return
+    }
     val transform = new Transformation()
     val mulitBand = transform.transformCSVtoTimeRaster(settings)
     importer.writeMultiGeoTiff(mulitBand, settings, TifType.Raw)
@@ -76,6 +76,6 @@ object ZoomScript {
     val gStar = TimeGetisOrd.getGetisOrd(rdd,settings,mulitBand)
     importer.writeMultiGeoTiff(gStar, settings, TifType.GStar)
     val hotspot = new ClusterHotSpotsTime(gStar)
-    importer.writeMultiGeoTiff(hotspot.findClusters(), settings, TifType.GStar)
+    importer.writeMultiGeoTiff(hotspot.findClusters(), settings, TifType.Cluster)
   }
 }

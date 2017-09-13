@@ -60,7 +60,7 @@ object MetrikValidation {
     settings.sizeOfRasterLon = Math.pow(2.toDouble,settings.aggregationLevel.toDouble-1).toInt * 50 //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
-
+    settings.layoutTileSize = (settings.rasterLatLength,settings.rasterLonLength)
     settings.weightRadius = weight
     settings.weightRadiusTime = weightTime
 
@@ -108,9 +108,9 @@ object MetrikValidation {
                 for (z <- 1 to zoom) {
                   experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 4 + a, m, z)
                   val settings = experiments(counter)
-                  if(((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt % 4 == 0) {
-                    counter += 1
-                  }
+//                  if(((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt % 4 == 0) {
+//                    counter += 1
+//                  }
                 }
               }
             }
