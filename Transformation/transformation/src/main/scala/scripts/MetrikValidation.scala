@@ -60,7 +60,7 @@ object MetrikValidation {
     settings.sizeOfRasterLon = Math.pow(2.toDouble,settings.aggregationLevel.toDouble-1).toInt * 50 //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
-    settings.layoutTileSize = (settings.rasterLatLength,settings.rasterLonLength)
+    settings.layoutTileSize = (settings.rasterLatLength/4,settings.rasterLonLength/4)
     settings.weightRadius = weight
     settings.weightRadiusTime = weightTime
 
@@ -96,8 +96,8 @@ object MetrikValidation {
     val focalRangeStepSize = 8 //30 to 30+2*focalRangeToTest
     val timeDimensionStep = 2
     val aggregationSteps = 2 //400, 800
-    val zoom = 3
-    val experiments = new Array[Settings](145) //monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps * zoom)
+    val zoom = 2
+    val experiments = new Array[Settings](monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps * zoom)
     var counter = 0
     for (m <- 1 to monthToTest) {
       for (w <- 0 to weightToTest - 1) {
@@ -109,7 +109,7 @@ object MetrikValidation {
                   experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 4 + a, m, z)
                   val settings = experiments(counter)
 //                  if(((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt % 4 == 0) {
-//                    counter += 1
+                    counter += 1
 //                  }
                 }
               }
@@ -129,8 +129,8 @@ class MetrikValidation {
     writeBand()
 
     val origin = importTer.getMulitGeoTiff(settings, TifType.Raw)
-    assert(origin.cols % 4 == 0 && origin.rows % 4 == 0)
-    settings.layoutTileSize = ((origin.cols / 4.0).floor.toInt, (origin.rows / 4.0).floor.toInt)
+//    assert(origin.cols % 4 == 0 && origin.rows % 4 == 0)
+//    settings.layoutTileSize = ((origin.cols / 4.0).floor.toInt, (origin.rows / 4.0).floor.toInt)
     val rdd = importTer.repartitionFiles(settings)
     //(new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(origin,settings,dir+"raster.tif"))
     //----------------------------------GStar----------------------------------
