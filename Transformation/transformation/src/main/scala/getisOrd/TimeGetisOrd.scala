@@ -4,7 +4,7 @@ package getisOrd
 import datastructure.{MeasuersFocal, MeasuersGloabl}
 import geotrellis.{Spheroid, TimeNeighbourhood}
 import geotrellis.raster.stitch.Stitcher.MultibandTileStitcher
-import geotrellis.raster.{DoubleRawArrayTile, GridBounds, MultibandTile, Tile, TileLayout}
+import geotrellis.raster.{DoubleRawArrayTile, GridBounds, IntRawArrayTile, MultibandTile, Tile, TileLayout}
 import geotrellis.spark.SpatialKey
 import geotrellis.vector.Extent
 import importExport.{ImportGeoTiff, PathFormatter, ResultType, StringWriter}
@@ -385,8 +385,21 @@ object TimeGetisOrd {
 //    println("Time for own split"+System.currentTimeMillis()-start1)
 //    val split = raster.split(new TileLayout(origin.cols,origin.rows,origin.cols,origin.rows))(0)
     println("Raster,c,r"+raster.cols+","+raster.rows)
+    println("origion,c,r"+origin.cols+","+origin.rows)
     val path = PathFormatter.getDirectory(setting, "partitions")
-    assert(raster.dimensions==origin.dimensions)
+    if(raster.dimensions!=origin.dimensions){
+      if(Math.abs(raster.dimensions-origin.dimensions)>10){
+        assert(false)
+      }
+      val part = MultibandUtils.getEmptyIntMultibandArray(origin)
+      for(j<- 0 to raster.rows-1){
+        for(i <- 0 to raster.cols-1){
+          for(k <- 0 to raster.bandCount-1){
+            part.band(k).asInstanceOf[IntRawArrayTile].set(i,j,raster.band(k).get(i,j))
+          }
+        }
+      }
+    }
     //(new ImportGeoTiff().writeMulitGeoTiff(tiles,setting,path+"all.tif"))
     val startWriting = System.currentTimeMillis()
 
