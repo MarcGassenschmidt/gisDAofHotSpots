@@ -66,9 +66,9 @@ object ZoomScript {
   }
 
   def writeBand(settings : Settings, importer : ImportGeoTiff): Unit = {
-   if (PathFormatter.exist(settings, TifType.Cluster)) {
-      return
-    }
+//   if (PathFormatter.exist(settings, TifType.Cluster)) {
+//      return
+//    }
     val transform = new Transformation()
     val mulitBand = transform.transformCSVtoTimeRaster(settings)
     importer.writeMultiGeoTiff(mulitBand, settings, TifType.Raw)

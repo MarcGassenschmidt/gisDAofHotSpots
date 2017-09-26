@@ -41,7 +41,17 @@ object MetrikValidation {
     var multiToInt = 1000000
     var add = 0.0
     if(zoom!=1){
-      add = (getAdd(zoom,72000,72000)/2)/multiToInt.toDouble
+      //add = (getAdd(zoom,72000,72000)/2)/multiToInt.toDouble
+      if(zoom==2){
+        add = 4000.0/multiToInt.toDouble
+      } else if(zoom==3){
+        add = 16000.0/multiToInt.toDouble
+      } else {
+        println("Zoom="+zoom)
+        println("Not implemented")
+        assert(false)
+      }
+
     }
 
     var buttom = (40.699607+add, -74.020265 + add)
@@ -96,28 +106,33 @@ object MetrikValidation {
     val focalRangeStepSize = 8 //30 to 30+2*focalRangeToTest
     val timeDimensionStep = 2
     val aggregationSteps = 2 //400, 800
-    val zoom = 2
-    val experiments = new Array[Settings](monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps * zoom)
+    val zoom = 3
+    val experiments = new Array[Settings](monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps +
+                                          monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * zoom)
     var counter = 0
     for (m <- 1 to monthToTest) {
       for (w <- 0 to weightToTest - 1) {
         for (f <- 0 to focalRangeToTest - 1) {
-          for (a <- 0 to aggregationSteps - 1) {
-            for (tf <- 0 to timeDimensionStep - 1) {
-              for (tw <- 0 to timeDimensionStep - 1) {
-                for (z <- 1 to zoom) {
-                  experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 4 + a, m, z)
+          for (tf <- 0 to timeDimensionStep - 1) {
+            for (tw <- 0 to timeDimensionStep - 1) {
+              for (a <- 0 to aggregationSteps - 1)  {
+                  experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 4 + a, m, 1)
                   val settings = experiments(counter)
 //                  if(((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt % 4 == 0) {
                     counter += 1
 //                  }
-                }
+              }
+              for (z <- 1 to zoom) {
+               experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 4, m, z)
+               val settings = experiments(counter)
+                counter += 1
               }
             }
           }
         }
       }
     }
+
     experiments
   }
 }
@@ -129,8 +144,8 @@ class MetrikValidation {
     writeBand()
 
     val origin = importTer.getMulitGeoTiff(settings, TifType.Raw)
-//    assert(origin.cols % 4 == 0 && origin.rows % 4 == 0)
-//    settings.layoutTileSize = ((origin.cols / 4.0).floor.toInt, (origin.rows / 4.0).floor.toInt)
+    //assert(origin.cols % 4 == 0 && origin.rows % 4 == 0)
+    //settings.layoutTileSize = ((origin.cols / 4.0).floor.toInt, (origin.rows / 4.0).floor.toInt)
     val rdd = importTer.repartitionFiles(settings)
     //(new ImportGeoTiff().writeMultiTimeGeoTiffToSingle(origin,settings,dir+"raster.tif"))
     //----------------------------------GStar----------------------------------
@@ -139,9 +154,9 @@ class MetrikValidation {
     //----------------------------------GStar-End---------------------------------
     println("deb1")
     //---------------------------------Calculate Metrik----------------------------------
-    if(!StringWriter.exists(ResultType.Metrik, settings)) {
-      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
-    }
+//    if(!StringWriter.exists(ResultType.Metrik, settings)) {
+//      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
+//    }
     //---------------------------------Calculate Metrik-End---------------------------------
     println("deb2")
     //---------------------------------Validate-Focal-GStar----------------------------------
@@ -157,9 +172,9 @@ class MetrikValidation {
     //---------------------------------Focal-GStar-End---------------------------------
     println("deb4")
     //---------------------------------Calculate Metrik----------------------------------
-    if(!StringWriter.exists(ResultType.Metrik, settings)) {
-      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
-    }
+//    if(!StringWriter.exists(ResultType.Metrik, settings)) {
+//      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
+//    }
     //---------------------------------Calculate Metrik-End---------------------------------
     //---------------------------------Cluster-Focal-GStar----------------------------------
     //clusterHotspots(settings, dir, importTer)
