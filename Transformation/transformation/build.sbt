@@ -40,7 +40,8 @@ libraryDependencies ++= Seq(
 
 )
 
-
+//mainClass in (Compile, run) := Some("demo.Main")
+mainClass in (Compile, run) := Some("scripts.MetrikValidation")
 
 // When creating fat jar, remote some files with
 // bad signatures and resolve conflicts by taking the first

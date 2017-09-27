@@ -70,7 +70,7 @@ object MetrikValidation {
     settings.sizeOfRasterLon = Math.pow(2.toDouble,settings.aggregationLevel.toDouble-1).toInt * 50 //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
-    settings.layoutTileSize = (settings.rasterLatLength,settings.rasterLonLength)
+    settings.layoutTileSize = (settings.rasterLatLength/4,settings.rasterLonLength/4)
     settings.weightRadius = weight
     settings.weightRadiusTime = weightTime
 
@@ -154,9 +154,9 @@ class MetrikValidation {
     //----------------------------------GStar-End---------------------------------
     println("deb1")
     //---------------------------------Calculate Metrik----------------------------------
-    if(!StringWriter.exists(ResultType.Metrik, settings)) {
-      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
-    }
+//    if(!StringWriter.exists(ResultType.Metrik, settings)) {
+//      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
+//    }
     //---------------------------------Calculate Metrik-End---------------------------------
     println("deb2")
     //---------------------------------Validate-Focal-GStar----------------------------------
@@ -172,9 +172,9 @@ class MetrikValidation {
     //---------------------------------Focal-GStar-End---------------------------------
     println("deb4")
     //---------------------------------Calculate Metrik----------------------------------
-    if(!StringWriter.exists(ResultType.Metrik, settings)) {
-      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
-    }
+//    if(!StringWriter.exists(ResultType.Metrik, settings)) {
+//      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
+//    }
     //---------------------------------Calculate Metrik-End---------------------------------
     //---------------------------------Cluster-Focal-GStar----------------------------------
     //clusterHotspots(settings, dir, importTer)

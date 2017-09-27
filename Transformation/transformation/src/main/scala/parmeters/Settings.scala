@@ -10,7 +10,7 @@ class Settings extends Serializable with Cloneable{
   var zoomlevel = 1
 
   var test = false
-
+  var zoomlevel = 1
 
   var aggregationLevel = 1
 
@@ -33,7 +33,7 @@ class Settings extends Serializable with Cloneable{
   var weightMatrix = Weight.Square
   var weightRadius = 10
   var weightRadiusTime = 1
-  var fromFile = false
+  var fromFile = true
   var clusterRange = 1.0
   var critivalValue = 5
   var focal = false
@@ -43,11 +43,19 @@ class Settings extends Serializable with Cloneable{
   var inputDirectory = "/home/marc/Masterarbeit/outPut/raster"
 
   //var serilizeDirectory = "/home/marc/Masterarbeit/outPut/raster"
-  var serilizeDirectory = "/home/marc/media/SS_17/output/raster"
-  var statDirectory = "/home/marc/media/SS_17/output/"
 
-  //var ouptDirectory = "/home/marc/Masterarbeit/outPut/"
-  var ouptDirectory = "/home/marc/media/SS_17/output/"
+//  var serilizeDirectory = "/home/marc/media/SS_17/output/raster"
+//  var statDirectory = "/home/marc/media/SS_17/output/"
+//
+//  //var ouptDirectory = "/home/marc/Masterarbeit/outPut/"
+//  var ouptDirectory = "/home/marc/media/SS_17/output/"
+
+
+  var serilizeDirectory = "/home/ubuntu/data/raster.ser"
+  var statDirectory = "/home/ubuntu/data2/"
+
+  //var ouptDirectory = "/data/"
+  var ouptDirectory = "/home/ubuntu/data2/"
 
   //var inputDirectoryCSV = "/home/marc/Downloads/in.csv"
   var inputDirectoryCSV = "/home/media/Downloads/"
