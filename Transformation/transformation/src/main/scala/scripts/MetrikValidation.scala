@@ -43,7 +43,7 @@ object MetrikValidation {
     if(zoom!=1){
       //add = (getAdd(zoom,72000,72000)/2)/multiToInt.toDouble
       if(zoom==2){
-        add = 4000/2/multiToInt.toDouble
+        add = 4000/multiToInt.toDouble
       } else if(zoom==3){
         add = 16000/multiToInt.toDouble
       } else {
@@ -70,7 +70,7 @@ object MetrikValidation {
     settings.sizeOfRasterLon = Math.pow(2.toDouble,settings.aggregationLevel.toDouble-1).toInt * 50 //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
-    settings.layoutTileSize = (settings.rasterLatLength/4,settings.rasterLonLength/4)
+    settings.layoutTileSize = ((settings.rasterLatLength)/4.ceil.toInt,(settings.rasterLonLength)/4.ceil.toInt)
     settings.weightRadius = weight
     settings.weightRadiusTime = weightTime
 

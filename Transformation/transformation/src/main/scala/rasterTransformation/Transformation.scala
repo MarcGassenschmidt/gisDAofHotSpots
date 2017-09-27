@@ -133,10 +133,13 @@ class Transformation {
     }).filter(row => row.lon>=settings.lonMin && row.lon<=settings.lonMax && row.lat>=settings.latMin && row.lat<=settings.latMax && row.data==false)
     val multibandTile = new Array[IntArrayTile](24)
 
-    val rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).ceil.toInt
-    val rasterLonLength = ((settings.lonMax-settings.lonMin)/settings.sizeOfRasterLon).ceil.toInt
+    var rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).ceil.toInt
+    var rasterLonLength = ((settings.lonMax-settings.lonMin)/settings.sizeOfRasterLon).ceil.toInt
 
-
+    rasterLatLength = rounding(rasterLatLength)
+    rasterLonLength = rounding(rasterLonLength)
+    println("Raster(Lat,Long)"+rasterLatLength+","+rasterLonLength)
+    assert(rasterLatLength%20==0 && rasterLonLength%20==0)
     var colIndex = 0
     var rowIndex = 0
     for (row <- file) {
@@ -157,6 +160,17 @@ class Transformation {
 
     bufferedSource.close()
     new ArrayMultibandTile(multibandTile.map(arrayTile => arrayTile.toArrayTile()))
+  }
+
+  def rounding(rasterLatOrLongLength: Int): Int = {
+    if (rasterLatOrLongLength % 20 != 0) {
+      if (rasterLatOrLongLength % 20 < 10) {
+        return rasterLatOrLongLength - (rasterLatOrLongLength % 20)
+      } else {
+        return rasterLatOrLongLength - ((rasterLatOrLongLength+20) % 20)
+      }
+    }
+    return rasterLatOrLongLength
   }
 
   def transformCSVPolygon(): Tile ={

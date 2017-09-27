@@ -427,6 +427,9 @@ object SoH {
     def getDownUp() : (Double,Double) ={
       return (down,up)
     }
+    def getDownUpString() : String ={
+      "("+down+","+up+")"
+    }
   }
 
   class SoHResults(downUp: SoHR, neighbours: (Int,Int,Int,Int,Int,Int), jaccard: Double, percentual: Double,

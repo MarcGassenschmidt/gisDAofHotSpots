@@ -23,7 +23,7 @@ object ZoomScript {
     settings.focal = true
     writeBand(settings, export)
     val f2 = export.getMulitGeoTiff(settings,TifType.Cluster)
-    settings = MetrikValidation.getBasicSettings(5,1,10,2,4,1,2)
+    settings = MetrikValidation.getBasicSettings(5,1,10,2,4,1,3)
     settings.focal = true
     writeBand(settings, export)
     val f1 = export.getMulitGeoTiff(settings,TifType.Cluster)
@@ -41,12 +41,12 @@ object ZoomScript {
     }
 
     println("Focal"+validate.getPercentualFitting(fpart,f1))
-    println("SOH-Focal"+SoH.getSoHDowAndUp(fpart,f1))
+    println("SOH-Focal"+SoH.getSoHDowAndUp(fpart,f1).getDownUpString())
     settings = MetrikValidation.getBasicSettings(5,1,10,2,4,1,1)
     settings.focal = false
     writeBand(settings, export)
     val g2 = export.getMulitGeoTiff(settings,TifType.Cluster)
-    settings = MetrikValidation.getBasicSettings(5,1,10,2,4,1,2)
+    settings = MetrikValidation.getBasicSettings(5,1,10,2,4,1,3)
     settings.focal = false
     writeBand(settings, export)
     val g1 = export.getMulitGeoTiff(settings,TifType.Cluster)
@@ -63,13 +63,13 @@ object ZoomScript {
     }
 
     println("GStar"+validate.getPercentualFitting(part,g1))
-    println("SOH-Gstar"+SoH.getSoHDowAndUp(part,g1))
+    println("SOH-Gstar"+SoH.getSoHDowAndUp(part,g1).getDownUpString())
   }
 
   def writeBand(settings : Settings, importer : ImportGeoTiff): Unit = {
-//   if (PathFormatter.exist(settings, TifType.Cluster)) {
-//      return
-//    }
+   if (PathFormatter.exist(settings, TifType.Cluster)) {
+      return
+    }
     val transform = new Transformation()
     val mulitBand = transform.transformCSVtoTimeRaster(settings)
     importer.writeMultiGeoTiff(mulitBand, settings, TifType.Raw)
