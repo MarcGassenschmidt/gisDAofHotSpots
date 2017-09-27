@@ -360,11 +360,11 @@ object SoH {
     val tmp = getSoHDowAndUp(child,parent)
     println("neigbours,"+neighbours+","+tmp)
     if(neighbours==Neighbours.Aggregation){
-      return tmp.getDownUp()>(0.1,0.1)
+      return tmp.getDownUp()>(0.6,0.001)
     } else if(neighbours==Neighbours.Weight){
-      return tmp.getDownUp()>(0.5,0.5)
+      return tmp.getDownUp()>(0.8,0.01)
     } else if(neighbours==Neighbours.Focal){
-      return tmp.getDownUp()>(0.6,0.4)
+      return tmp.getDownUp()>(0.8,0.2)
     }
     return false
   }

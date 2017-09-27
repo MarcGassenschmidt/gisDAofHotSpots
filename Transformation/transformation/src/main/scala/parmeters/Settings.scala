@@ -8,7 +8,7 @@ import org.apache.spark.SparkConf
   */
 class Settings extends Serializable with Cloneable{
   var test = false
-
+  var zoomlevel = 1
 
   var aggregationLevel = 1
 
@@ -16,8 +16,8 @@ class Settings extends Serializable with Cloneable{
   var multiToInt = 1000000
   //40.701915, -74.018704
   //40.763458, -73.967244
-  val buttom = (40.699607, -74.020265)
-  val top = (40.769239, -73.948286)
+  var buttom = (40.699607, -74.020265)
+  var top = (40.769239, -73.948286)
   //val top = (40.769239+0.010368, -73.948286+0.008021)
   var shiftToPostive = -1*buttom._2*multiToInt
   var latMin = buttom._1*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
@@ -31,7 +31,7 @@ class Settings extends Serializable with Cloneable{
   var weightMatrix = Weight.Square
   var weightRadius = 10
   var weightRadiusTime = 1
-  var fromFile = false
+  var fromFile = true
   var clusterRange = 1.0
   var critivalValue = 5
   var focal = false
@@ -41,11 +41,11 @@ class Settings extends Serializable with Cloneable{
   var inputDirectory = "/home/ubuntu/data/"
 
   //var serilizeDirectory = "/home/marc/Masterarbeit/outPut/raster"
-  var serilizeDirectory = "/home/ubuntu/data/"
-  var statDirectory = "/home/ubuntu/data/"
+  var serilizeDirectory = "/home/ubuntu/data/raster.ser"
+  var statDirectory = "/home/ubuntu/data2/"
 
   //var ouptDirectory = "/data/"
-  var ouptDirectory = "/home/ubuntu/data/"
+  var ouptDirectory = "/home/ubuntu/data2/"
   //var inputDirectoryCSV = "/home/marc/Downloads/in.csv"
   var inputDirectoryCSV = "/home/ubuntu/data/"
   var csvMonth = 1
