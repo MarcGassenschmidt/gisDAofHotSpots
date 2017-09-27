@@ -43,9 +43,9 @@ object MetrikValidation {
     if(zoom!=1){
       //add = (getAdd(zoom,72000,72000)/2)/multiToInt.toDouble
       if(zoom==2){
-        add = 4000.0/multiToInt.toDouble
+        add = 4000/2/multiToInt.toDouble
       } else if(zoom==3){
-        add = 16000.0/multiToInt.toDouble
+        add = 16000/multiToInt.toDouble
       } else {
         println("Zoom="+zoom)
         println("Not implemented")

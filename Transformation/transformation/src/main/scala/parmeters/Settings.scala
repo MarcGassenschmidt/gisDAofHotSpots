@@ -7,6 +7,8 @@ import org.apache.spark.SparkConf
   * Created by marc on 12.05.17.
   */
 class Settings extends Serializable with Cloneable{
+  var zoomlevel = 1
+
   var test = false
 
 
@@ -16,8 +18,8 @@ class Settings extends Serializable with Cloneable{
   var multiToInt = 1000000
   //40.701915, -74.018704
   //40.763458, -73.967244
-  val buttom = (40.699607, -74.020265)
-  val top = (40.769239, -73.948286)
+  var buttom = (40.699607, -74.020265)
+  var top = (40.769239, -73.948286)
   //val top = (40.769239+0.010368, -73.948286+0.008021)
   var shiftToPostive = -1*buttom._2*multiToInt
   var latMin = buttom._1*multiToInt//Math.max(file.map(row => row.lat).min,40.376048)
@@ -38,16 +40,17 @@ class Settings extends Serializable with Cloneable{
   var focalRange = weightRadius+20
   var focalRangeTime = weightRadiusTime+1
   var parent = true
-  var inputDirectory = "/home/ubuntu/data/"
+  var inputDirectory = "/home/marc/Masterarbeit/outPut/raster"
 
   //var serilizeDirectory = "/home/marc/Masterarbeit/outPut/raster"
-  var serilizeDirectory = "/home/ubuntu/data/"
-  var statDirectory = "/home/ubuntu/data/"
+  var serilizeDirectory = "/home/marc/media/SS_17/output/raster"
+  var statDirectory = "/home/marc/media/SS_17/output/"
 
-  //var ouptDirectory = "/data/"
-  var ouptDirectory = "/home/ubuntu/data/"
+  //var ouptDirectory = "/home/marc/Masterarbeit/outPut/"
+  var ouptDirectory = "/home/marc/media/SS_17/output/"
+
   //var inputDirectoryCSV = "/home/marc/Downloads/in.csv"
-  var inputDirectoryCSV = "/home/ubuntu/data/"
+  var inputDirectoryCSV = "/home/media/Downloads/"
   var csvMonth = 1
   var csvYear = 2016
   var hour = 0
@@ -55,7 +58,6 @@ class Settings extends Serializable with Cloneable{
 
   var layoutTileSize: (Int,Int) = (300,300)
   val conf = new SparkConf().setAppName("Test")
-
   conf.setMaster("local[*]")
 
   override def toString: String = {
