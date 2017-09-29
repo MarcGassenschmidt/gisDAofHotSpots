@@ -70,7 +70,7 @@ object MetrikValidation {
     settings.sizeOfRasterLon = Math.pow(2.toDouble,settings.aggregationLevel.toDouble-1).toInt * 50 //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
-    settings.layoutTileSize = ((settings.rasterLatLength)/4.ceil.toInt,(settings.rasterLonLength)/4.ceil.toInt)
+    settings.layoutTileSize = ((settings.rasterLatLength)/2.ceil.toInt,(settings.rasterLonLength)/2.ceil.toInt)
     settings.weightRadius = weight
     settings.weightRadiusTime = weightTime
 
@@ -110,20 +110,21 @@ object MetrikValidation {
     val experiments = new Array[Settings](monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps +
                                           monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * zoom)
     var counter = 0
-    for (m <- 1 to monthToTest) {
+    //for (m <- 2 to monthToTest) {
+    var m = 3
       for (w <- 0 to weightToTest - 1) {
         for (f <- 0 to focalRangeToTest - 1) {
           for (tf <- 0 to timeDimensionStep - 1) {
             for (tw <- 0 to timeDimensionStep - 1) {
               for (a <- 0 to aggregationSteps - 1)  {
-                  experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 4 + a, m, 1)
+                  experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 3 + a, m, 1)
                   val settings = experiments(counter)
 //                  if(((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt % 4 == 0) {
                     counter += 1
 //                  }
               }
               for (z <- 1 to zoom) {
-               experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 4, m, z)
+               experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 3, m, z)
                val settings = experiments(counter)
                 counter += 1
               }
@@ -131,7 +132,7 @@ object MetrikValidation {
           }
         }
       }
-    }
+    //}
 
     experiments
   }
@@ -154,9 +155,9 @@ class MetrikValidation {
     //----------------------------------GStar-End---------------------------------
     println("deb1")
     //---------------------------------Calculate Metrik----------------------------------
-//    if(!StringWriter.exists(ResultType.Metrik, settings)) {
-//      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
-//    }
+    if(!StringWriter.exists(ResultType.Metrik, settings)) {
+      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
+    }
     //---------------------------------Calculate Metrik-End---------------------------------
     println("deb2")
     //---------------------------------Validate-Focal-GStar----------------------------------
@@ -172,9 +173,9 @@ class MetrikValidation {
     //---------------------------------Focal-GStar-End---------------------------------
     println("deb4")
     //---------------------------------Calculate Metrik----------------------------------
-//    if(!StringWriter.exists(ResultType.Metrik, settings)) {
-//      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
-//    }
+    if(!StringWriter.exists(ResultType.Metrik, settings)) {
+      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
+    }
     //---------------------------------Calculate Metrik-End---------------------------------
     //---------------------------------Cluster-Focal-GStar----------------------------------
     //clusterHotspots(settings, dir, importTer)
@@ -282,6 +283,7 @@ class MetrikValidation {
     settings.sizeOfRasterLon = settings.sizeOfRasterLon*2 //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
+    settings.layoutTileSize = ((settings.rasterLatLength)/2.ceil.toInt,(settings.rasterLonLength)/2.ceil.toInt)
     var gStarP : MultibandTile = null
     var clusterP : MultibandTile = null
     if (!PathFormatter.exist(settings, TifType.GStar)) {
@@ -306,6 +308,7 @@ class MetrikValidation {
     settings.sizeOfRasterLon = settings.sizeOfRasterLon/4 //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
+    settings.layoutTileSize = ((settings.rasterLatLength)/2.ceil.toInt,(settings.rasterLonLength)/2.ceil.toInt)
     var gStarN : MultibandTile = null
     var clusterN : MultibandTile = null
     if (!PathFormatter.exist(settings, TifType.GStar)) {
@@ -328,6 +331,7 @@ class MetrikValidation {
     settings.sizeOfRasterLon = 2*settings.sizeOfRasterLon //meters
     settings.rasterLatLength = ((settings.latMax - settings.latMin) / settings.sizeOfRasterLat).ceil.toInt
     settings.rasterLonLength = ((settings.lonMax - settings.lonMin) / settings.sizeOfRasterLon).ceil.toInt
+    settings.layoutTileSize = ((settings.rasterLatLength)/2.ceil.toInt,(settings.rasterLonLength)/2.ceil.toInt)
     new GStarClusterNeighbours(new PartResult(focalP, focalN), new PartResult(weightP, weightN), new PartResult(aggregateP, aggregateN))
   }
 

@@ -67,6 +67,7 @@ object ZoomScript {
   }
 
   def writeBand(settings : Settings, importer : ImportGeoTiff): Unit = {
+    println(PathFormatter.getDirectoryAndName(settings, TifType.Cluster))
    if (PathFormatter.exist(settings, TifType.Cluster)) {
       return
     }

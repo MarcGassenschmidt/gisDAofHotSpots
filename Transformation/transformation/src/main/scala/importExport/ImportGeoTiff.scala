@@ -61,6 +61,7 @@ class ImportGeoTiff {
 
   def repartitionFiles(file : String,setting: Settings): RDD[(SpatialKey, MultibandTile)] ={
     val sc = SparkContext.getOrCreate(setting.conf)
+    val origion = getMulitGeoTiff(file)
     val inputRdd: RDD[(ProjectedExtent, MultibandTile)] =
       sc.hadoopMultibandGeoTiffRDD(file)
 
@@ -70,7 +71,11 @@ class ImportGeoTiff {
     val tiled: RDD[(SpatialKey, MultibandTile)] =
       inputRdd
         .tileToLayout(rasterMetaData.cellType, rasterMetaData.layout, NearestNeighbor)
-        .repartition(8)
+        .repartition(4)
+    tiled.foreach(f=>{
+      println(f._2.cols+","+origion.cols/2 +","+ f._2.rows+","+origion.rows/2)
+      assert(f._2.cols==origion.cols/2 && f._2.rows==origion.rows/2)
+    })
     tiled
   }
 
