@@ -326,9 +326,9 @@ object TimeGetisOrd {
     timeMeasuresFocal = new MeasuersFocal
     timeMeasuresGlobal = new MeasuersGloabl
     val start = System.currentTimeMillis()
-    val keys = rdd.keys.collect().max
-    val keyCount = rdd.keys.count()
-    val band = rdd.first()._2.band(0)
+//    val keys = rdd.keys.collect().max
+//    val keyCount = rdd.keys.count()
+//    val band = rdd.first()._2.band(0)
 
     var st : StatsGlobal= null
     if(!setting.focal){

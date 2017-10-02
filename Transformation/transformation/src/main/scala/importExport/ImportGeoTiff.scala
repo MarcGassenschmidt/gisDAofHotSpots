@@ -51,6 +51,7 @@ class ImportGeoTiff {
   }
 
   def getMulitGeoTiff(file : String): MultibandTile = {
+    println(file)
     GeoTiffReader.readMultiband(file)
   }
 
