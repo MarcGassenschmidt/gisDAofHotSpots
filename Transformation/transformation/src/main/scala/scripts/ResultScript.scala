@@ -31,7 +31,7 @@ object ResultScript {
   }
 
   def main(args: Array[String]): Unit = {
-    val settings = MetrikValidation.getScenarioSettings()
+    val settings = MetrikValidation.getScenarioSettings().slice(0,40)
     val colorMap = new Array[(Array[Int],Boolean)](settings.length)
     val detailMap = new Array[(Array[(String, Array[Double])],Array[(String, Array[Double])],Double,Double)](settings.length)
     val time = new Array[(Array[Double],Array[Double])](settings.length)
@@ -57,7 +57,7 @@ object ResultScript {
     writer.close()
     for (i <- 0 to colorMap(0)._1.length-1) {
       writer = new PrintWriter("/home/marc/media/SS_17/output/server/evaluation/" + (i) + ".csv")
-      out = "predictedCondition,trueCondition"
+      out = "predictedCondition,trueCondition\n"
       (colorMap.map(x => (x._1(i),x._2)).foreach(x => out += x._1+","+x._2 + "\n"))
       writer.write(out)
       writer.flush()
@@ -66,8 +66,19 @@ object ResultScript {
 
     for (i <- 0 to colorMap(0)._1.length-1) {
       writer = new PrintWriter("/home/marc/media/SS_17/output/server/evaluation/detail" + (i) + ".csv")
-      out = "gStar,focal,medianGstar,medianFocal"
-      (detailMap.map(x => (x._1(i),x._2,x._3,x._4)).foreach(x => out += x._1+","+x._2+","+x._3+","+x._4 + "\n"))
+      out = "gStar,focal,medianGstar,medianFocal\n"
+      //(detailMap.map(x => (x._1(i),x._2(i),x._3,x._4)).zipWithIndex.foreach(x => out += x._1._1._2(x._2)+","+x._1._2._2(x._2)+","+x._1._3+","+x._1._4 + "\n"))
+
+      detailMap.map(x=> (x._1(i),x._2(i),x._3,x._4)).foreach(x=> out += x._1._2.reduce(_+_)+","+x._2._2.reduce(_+_)+","+x._3+","+x._4+"\n")
+      writer.write(out)
+      writer.flush()
+      writer.close()
+    }
+
+    for (i <- 0 to colorMap(0)._1.length-1) {
+      writer = new PrintWriter("/home/marc/media/SS_17/output/server/evaluation/detailSetting" + (i) + ".csv")
+      out = settings(i).getHeader()+"\n"
+      out += settings(i).runToString()
       writer.write(out)
       writer.flush()
       writer.close()

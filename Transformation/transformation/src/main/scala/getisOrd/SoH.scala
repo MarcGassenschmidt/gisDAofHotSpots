@@ -242,7 +242,7 @@ object SoH {
     println("deb.6")
     val sturcture = -1 //measureStructure(mbT) //Struktur
     println("deb.7")
-    var distnace = getDistance(mbTCluster,weightPNCluster._2)
+    var distnace = -1 //getDistance(mbTCluster,weightPNCluster._2)
     println("deb.8")
     val top100 = getTop100Values(mbT, settings)
     println("deb.9")
@@ -440,12 +440,12 @@ object SoH {
       "SoH_Up,"+downUp.getUp()+"\n" +
       "neighbours,"+neighbours+"\n" +
       "jaccard,"+jaccard+"\n" +
-      "percentual,"+percentual+"\n"+
+      "percentual,"+percentual+"\n"+ //not
       "time_Down,"+time.getDown()+"\n" +
       "time_Up,"+time.getUp()+"\n" +
       "KL,"+kl+"\n" +
-      "structure,"+sturcture+"\n" +
-      "distance,"+distance+"\n"+
+      "structure,"+sturcture+"\n" + //not
+      "distance,"+distance+"\n"+ //not
       "moransI,"+moransI+"\n"+
       "f1,"+f1score+"\n"+
       "gisCup,"+gisCup+"\n"+

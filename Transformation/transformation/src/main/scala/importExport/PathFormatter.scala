@@ -60,10 +60,10 @@ object PathFormatter {
         res
       })
       val array = validations.toArray
-      val result = new Array[(String,Array[Double])](array.length-2)
+      val result = new Array[(String,Array[Double])](array.length-3)
       var counter = 0
       for(i<- 0 to array.length-1){
-        if(i==4 || i==8){
+        if(i==4 || i==7 || i==8){
 
         } else {
           result(counter) = array(i)
