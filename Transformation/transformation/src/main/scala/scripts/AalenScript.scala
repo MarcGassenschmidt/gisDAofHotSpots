@@ -10,7 +10,7 @@ import importExport.{ImportGeoTiff, TifType}
 import org.apache.commons.collections.map.HashedMap
 import parmeters.Settings
 import rasterTransformation.Transformation
-import scenarios.GenericScenario
+import scenarios.{DifferentRatio, GenericScenario}
 import timeUtils.MultibandUtils
 
 import scala.collection.mutable
@@ -54,33 +54,37 @@ object AalenScript {
     val csv = new Transformation
 //    val raster = csv.transformCSVPolygon()
     val export = new ImportGeoTiff
-    var raster = export.readGeoTiff("/home/marc/Downloads/test/Rplot.tif")
+    var raster = export.readGeoTiff("/home/marc/media/SS_17/output/Output.tif")
     //raster = export.readGeoTiff("/home/marc/media/SS_17/output/GIS_Daten/Mulitbandfalse/2016/1/Raster/a2_.tif")
-    raster = raster.mapDouble(x=>x*10)
+    //raster = raster.mapDouble(x=>x*10)
     val settings = new Settings()
     settings.scenario = "Special"
-    settings.focalRange = 10
-    settings.weightRadius = 5
+    settings.focalRange = 50
+    settings.weightRadius = 30
     settings.focal = false
-
+    raster = aggregateToZoom(raster, 4)
+    export.writeGeoTiff(raster,settings,TifType.Raw)
     var tmp = raster.toArrayDouble().reduce(_+_)
     println(raster.histogramDouble().toString)
     println(raster.histogramDouble().mean())
     println(raster.histogramDouble().minMaxValues())
-    raster = aggregateToZoom(raster,2)
+//    raster = aggregateToZoom(raster,2)
 //    tmp = raster.toArrayDouble().reduce(_+_)
 //    export.writeGeoTiff(new IntRawArrayTile(raster.toArrayDouble().map(x=>x.toInt),raster.cols,raster.rows),settings,TifType.Raw)
 //    println(raster.histogramDouble().toString)
 //    println(raster.histogramDouble().mean())
 //    println(raster.histogramDouble().minMaxValues())
 //    raster.histogramDouble().values().map(x=>println(x))
-//   val gStar = new GetisOrd(raster,settings)
-//   val gStarR = gStar.gStarDoubleComplete()
+   val gStar = new GetisOrd(raster,settings)
+   val gStarR = gStar.gStarDoubleComplete()
 //    gStarR.histogramDouble().values().map(x=>println(x))
-//    export.writeGeoTiff(gStarR,settings,TifType.GStar)
-//    val clustering = new ClusterHotSpots(gStarR)
-//    export.writeGeoTiff(clustering.findClustersTest(),settings,TifType.Cluster)
+    export.writeGeoTiff(gStarR,settings,TifType.GStar)
+    val clustering = new ClusterHotSpots(gStarR)
+    export.writeGeoTiff(clustering.findClustersTest(),settings,TifType.Cluster)
 
+
+
+   // raster = gen.aggregateTile(raster)
     settings.focal = true
     val gStarFocal = new GetisOrdFocal(raster,settings)
     var gStarFocalR = gStarFocal.gStarComplete()
@@ -91,4 +95,6 @@ object AalenScript {
     val clustering2 = new ClusterHotSpots(gStarFocalR)
     export.writeGeoTiff(clustering2.findClustersTest(),settings,TifType.Cluster)
   }
+
+
 }

@@ -31,7 +31,7 @@ object ResultScript {
   }
 
   def main(args: Array[String]): Unit = {
-    val settings = MetrikValidation.getScenarioSettings().slice(0,40)
+    val settings = MetrikValidation.getScenarioSettings().slice(0,52)
     val colorMap = new Array[(Array[Int],Boolean)](settings.length)
     val detailMap = new Array[(Array[(String, Array[Double])],Array[(String, Array[Double])],Double,Double)](settings.length)
     val time = new Array[(Array[Double],Array[Double])](settings.length)
@@ -41,8 +41,8 @@ object ResultScript {
       var gStar = PathFormatter.getAllResultsFor(s)
       s.focal = true
       var focalGStar = PathFormatter.getAllResultsFor(s)
-      detailMap(i) = (gStar.getMetrik(), focalGStar.getMetrik(), gStar.getMedian() , focalGStar.getMedian())
-      colorMap(i) = count(detailMap(i)._1,detailMap(i)._2,detailMap(i)._3>detailMap(i)._4)
+      detailMap(i) = (gStar.getMetrik(false), focalGStar.getMetrik(true), gStar.getMedian() , focalGStar.getMedian())
+      colorMap(i) = count(detailMap(i)._1,detailMap(i)._2,detailMap(i)._3>=detailMap(i)._4)
         //count(gStar.getMetrik(), focalGStar.getMetrik(), gStar.getMedian() > focalGStar.getMedian())
 
       time(i) = (gStar.getTime().map(x=> x._2),focalGStar.getTime().map(x=> x._2))
@@ -74,6 +74,14 @@ object ResultScript {
       writer.flush()
       writer.close()
     }
+
+    writer = new PrintWriter("/home/marc/media/SS_17/output/server/evaluation/detailSetting" + ".csv")
+    out = settings(0).runToStringHead()+"\n"
+    MetrikValidation.getScenarioSettings().filter(x=> x!=null).zipWithIndex.map(x => out += (x._2+1)+","+x._1.runToString() +"\n")
+    writer.write(out)
+    writer.flush()
+    writer.close()
+
 
     for (i <- 0 to colorMap(0)._1.length-1) {
       writer = new PrintWriter("/home/marc/media/SS_17/output/server/evaluation/detailSetting" + (i) + ".csv")

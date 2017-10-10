@@ -123,7 +123,7 @@ object MetrikValidation {
                     counter += 1
 //                  }
               }
-              for (z <- 1 to zoom) {
+              for (z <- 2 to zoom) {
                experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 10 + f * focalRangeStepSize, 2 + tf, 3, m, z)
                val settings = experiments(counter)
                 counter += 1

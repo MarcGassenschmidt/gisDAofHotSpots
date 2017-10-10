@@ -46,14 +46,20 @@ object PathFormatter {
       val halfSize = validation.size/2
       validation.drop(halfSize-1).head
     }
-    def getMetrik(): Array[(String,Array[Double])] ={
+    def getMetrik(focal : Boolean): Array[(String,Array[Double])] ={
       val validations = bufferedSourceMetrik.getLines().drop(1).take(13).toSeq.map(x=>{
         val tuple = x.replace("(","").replace(")","").split(",")
         var res : (String,Array[Double]) = null
         if(tuple.size>2){
-          res = (tuple(0),Array(tuple(1).toDouble,tuple(2).toDouble,
-                          tuple(3).toDouble,tuple(4).toDouble,
-                          tuple(5).toDouble,tuple(6).toDouble))
+          if(!focal){
+            res = (tuple(0), Array(tuple(1).toDouble, tuple(2).toDouble,
+              1, 1,
+              tuple(5).toDouble, tuple(6).toDouble))
+          }else {
+            res = (tuple(0), Array(tuple(1).toDouble, tuple(2).toDouble,
+              tuple(3).toDouble, tuple(4).toDouble,
+              tuple(5).toDouble, tuple(6).toDouble))
+          }
         } else {
           res = (tuple(0),Array(tuple(1).toDouble))
         }
