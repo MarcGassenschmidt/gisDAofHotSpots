@@ -58,7 +58,7 @@ class DifferentFocal extends GenericScenario{
       globalSettings.aggregationLevel = k
       //globalSettings.weightRadius = 1+k*2
       for (j <- 0 to 9) {
-        globalSettings.weightRadius =3+j*2
+        globalSettings.weightRadius =1+j*2
         //globalSettings.focalRange = 2+j*6
         for (i <- 0 to 9) {
           logger.info("k,j,i:"+k+","+j+","+i)
@@ -69,7 +69,7 @@ class DifferentFocal extends GenericScenario{
           } else {
             globalSettings.fromFile = false
           }
-          val f = 8+(i)*6
+          val f = 2+(i)*6
           if(globalSettings.weightRadius<f){
             //globalSettings.weightRadius = weightRatio(globalSettings, runs, j)
             val (para: Settings, chs: ((Tile, Int), (Tile, Int)), sohVal: SoHR, lat: (Int, Int)) = oneCase(globalSettings, i, runs)
@@ -92,7 +92,7 @@ class DifferentFocal extends GenericScenario{
     globalSettings.sizeOfRasterLon = 100
 
     //globalSettings.zoomLevel = i
-    globalSettings.focalRange = 8+i*6
+    globalSettings.focalRange = 2+i*6
     //globalSettings.weightRadius = 1+i*2
     val raster : Tile = getRasterFromGeoTiff(globalSettings, "raster", getRaster(globalSettings))
     val gStarParent = getRasterFromGeoTiff(globalSettings, "gStar", gStar(raster, globalSettings, true))
@@ -101,7 +101,7 @@ class DifferentFocal extends GenericScenario{
 
 
     //globalSettings.zoomLevel = i+1
-    globalSettings.focalRange = 8+(i+1)*6
+    globalSettings.focalRange = 2+(i+1)*6
     //globalSettings.weightRadius = 1+(i+1)*2
     val rasterParent : Tile = getRasterFromGeoTiff(globalSettings, "raster", getRaster(globalSettings))
     val gStarChild = getRasterFromGeoTiff(globalSettings, "gStar", gStar(rasterParent, globalSettings, true))

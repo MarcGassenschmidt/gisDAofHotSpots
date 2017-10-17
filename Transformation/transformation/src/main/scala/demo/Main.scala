@@ -18,11 +18,11 @@ object Main {
 
 //    (new SpaceTimeScenario).runScenario()
 
-    var scenario : GenericScenario = new DifferentRatio()
-    scenario.runScenario()
-    scenario = new DifferentRasterSizes()
-    scenario.runScenario()
-    scenario = new DifferentFocal()
+//    var scenario : GenericScenario = new DifferentRatio()
+//    scenario.runScenario()
+//    scenario = new DifferentRasterSizes()
+//    scenario.runScenario()
+var scenario : GenericScenario  = new DifferentFocal()
     scenario.runScenario()
   }
 

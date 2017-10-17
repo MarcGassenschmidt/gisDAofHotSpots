@@ -13,11 +13,12 @@ import scala.io.Source
   * Created by marc on 05.06.17.
   */
 object PathFormatter {
+
   def getResultDirectoryAndName(settings: Settings, resultType: ResultType.Value) : String = {
     if(settings.test){
       settings.ouptDirectory = "/tmp/"
     }
-    var sub = "server/"+settings.csvYear+"/"+settings.csvMonth+"/"+resultType+"/"
+    var sub = "server2/"+settings.csvYear+"/"+settings.csvMonth+"/"+resultType+"/"
     if(settings.focal){
       sub += "focal/"
     } else {
@@ -69,7 +70,7 @@ object PathFormatter {
       val result = new Array[(String,Array[Double])](array.length-3)
       var counter = 0
       for(i<- 0 to array.length-1){
-        if(i==4 || i==7 || i==8){
+        if(i==4 || i==9 || i==8){
 
         } else {
           result(counter) = array(i)

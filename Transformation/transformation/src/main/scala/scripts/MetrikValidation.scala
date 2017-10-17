@@ -111,7 +111,7 @@ object MetrikValidation {
                                           monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * zoom)
     var counter = 0
     //for (m <- 2 to monthToTest) {
-    var m = 3
+    var m = 2
       for (w <- 0 to weightToTest - 1) {
         for (f <- 0 to focalRangeToTest - 1) {
           for (tf <- 0 to timeDimensionStep - 1) {

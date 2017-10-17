@@ -7,7 +7,6 @@ import org.apache.spark.SparkConf
   * Created by marc on 12.05.17.
   */
 class Settings extends Serializable with Cloneable{
-  var zoomlevel = 1
 
   var test = false
   var zoomlevel = 1
@@ -40,22 +39,22 @@ class Settings extends Serializable with Cloneable{
   var focalRange = weightRadius+20
   var focalRangeTime = weightRadiusTime+1
   var parent = true
-  var inputDirectory = "/home/marc/Masterarbeit/outPut/raster"
+  //var inputDirectory = "/home/marc/Masterarbeit/outPut/raster"
 
   //var serilizeDirectory = "/home/marc/Masterarbeit/outPut/raster"
 
-//  var serilizeDirectory = "/home/marc/media/SS_17/output/raster"
-//  var statDirectory = "/home/marc/media/SS_17/output/"
+  var serilizeDirectory = "/home/marc/media/SS_17/output/raster"
+  var statDirectory = "/home/marc/media/SS_17/output/"
+
+  //var ouptDirectory = "/home/marc/Masterarbeit/outPut/"
+  var ouptDirectory = "/home/marc/media/SS_17/output/"
+
+
+//  var serilizeDirectory = "/home/ubuntu/data/raster.ser"
+//  var statDirectory = "/home/ubuntu/data2/"
 //
-//  //var ouptDirectory = "/home/marc/Masterarbeit/outPut/"
-//  var ouptDirectory = "/home/marc/media/SS_17/output/"
-
-
-  var serilizeDirectory = "/home/ubuntu/data/raster.ser"
-  var statDirectory = "/home/ubuntu/data2/"
-
-  //var ouptDirectory = "/data/"
-  var ouptDirectory = "/home/ubuntu/data2/"
+//  //var ouptDirectory = "/data/"
+//  var ouptDirectory = "/home/ubuntu/data2/"
 
   //var inputDirectoryCSV = "/home/marc/Downloads/in.csv"
   var inputDirectoryCSV = "/home/media/Downloads/"
@@ -68,6 +67,13 @@ class Settings extends Serializable with Cloneable{
   val conf = new SparkConf().setAppName("Test")
   conf.setMaster("local[*]")
 
+  def runToStringHead() : String ={
+    "Versuchsnummer,A,Wr,Wz,Fa,Fc,Z"
+  }
+
+  def runToString() : String = {
+    aggregationLevel+","+weightRadius+","+weightRadiusTime+","+focalRange+","+focalRangeTime+","+zoomlevel
+  }
   override def toString: String = {
     scenario+","+sizeOfRasterLat+","+weightRadius+","+weightRadiusTime+","+focalRange+","+focalRangeTime+","+csvMonth
   }
