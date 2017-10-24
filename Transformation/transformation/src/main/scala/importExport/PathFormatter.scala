@@ -18,7 +18,7 @@ object PathFormatter {
     if(settings.test){
       settings.ouptDirectory = "/tmp/"
     }
-    var sub = "server2/"+settings.csvYear+"/"+settings.csvMonth+"/"+resultType+"/"
+    var sub = "server1/"+settings.csvYear+"/"+settings.csvMonth+"/"+resultType+"/"
     if(settings.focal){
       sub += "focal/"
     } else {
@@ -38,15 +38,36 @@ object PathFormatter {
     results
   }
   class ResultStore(metrik : String, validation : String, time : String){
+
+
     val bufferedSourceMetrik = Source.fromFile(metrik)
     val bufferedSourceValidation = Source.fromFile(validation)
     val bufferedSourceTime = Source.fromFile(time)
 
+    def getMinMax() : (Double,Double) ={
+      val validation = bufferedSourceValidation.reset().getLines().map(x=>x.toDouble).toSeq
+
+      (validation.min,validation.max)
+    }
+
     def getMedian(): Double ={
-      var validation = bufferedSourceValidation.getLines().map(x=>x.toDouble).toSeq.sortWith(_>_)
+      val validation = bufferedSourceValidation.getLines().map(x=>x.toDouble).toSeq.sortWith(_>_)
       val halfSize = validation.size/2
       validation.drop(halfSize-1).head
     }
+
+    def getMean() : Double ={
+      var validation = bufferedSourceValidation.getLines().map(x => x.toDouble).toSeq
+      var size = validation.length
+      validation.toSeq.reduce(_+_)/size.toDouble
+    }
+
+    def getYear() : Double ={
+      var validation = bufferedSourceValidation.getLines().map(x => x.toDouble).toSeq
+      var size = validation.length
+      validation.toSeq.take(4).head
+    }
+
     def getMetrik(focal : Boolean): Array[(String,Array[Double])] ={
       val validations = bufferedSourceMetrik.getLines().drop(1).take(13).toSeq.map(x=>{
         val tuple = x.replace("(","").replace(")","").split(",")

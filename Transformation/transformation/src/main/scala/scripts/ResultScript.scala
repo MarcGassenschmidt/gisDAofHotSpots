@@ -10,17 +10,23 @@ import parmeters.{Scenario, Settings}
   */
 object ResultScript {
 
-  def count(tuples: Array[(String, Array[Double])], tuples1: Array[(String, Array[Double])], b: Boolean): (Array[Int],Boolean) = {
+  def count(tuples: Array[(String, Array[Double])], tuples1: Array[(String, Array[Double])], b: Boolean, equals : Boolean): (Array[Int],Boolean) = {
     assert(tuples.length==tuples1.length)
     var matches = new Array[Int](tuples.length)
     for(i <- 0 to tuples.length-1){
-      matches(i) = getMatch(tuples(i), tuples1(i), b)
+      matches(i) = getMatch(tuples(i), tuples1(i), b, equals)
     }
     return (matches,b)
   }
 
-  def getMatch(tuples: (String, Array[Double]), tuples1: (String, Array[Double]), b: Boolean): Int = {
-     if (tuples._2.reduce(_ + _) > tuples1._2.reduce(_ + _)) {
+  def getMatch(tuples: (String, Array[Double]), tuples1: (String, Array[Double]), b: Boolean, equals : Boolean): Int = {
+    if(equals){
+      if (tuples._2.reduce(_ + _) > tuples1._2.reduce(_ + _)) {
+         return 2
+      } else {
+        return 3
+      }
+    } else if (tuples._2.reduce(_ + _) > tuples1._2.reduce(_ + _)) {
         if (b) {
           return 1
         }
@@ -31,10 +37,10 @@ object ResultScript {
   }
 
   def main(args: Array[String]): Unit = {
-    val month = "_2" //"",2,1
+    val month = "" //"",2,1
     val settings = MetrikValidation.getScenarioSettings().slice(0,64)
     val colorMap = new Array[(Array[Int],Boolean)](settings.length)
-    val detailMap = new Array[(Array[(String, Array[Double])],Array[(String, Array[Double])],Double,Double)](settings.length)
+    val detailMap = new Array[(Array[(String, Array[Double])],Array[(String, Array[Double])],Double,Double,(Double,Double),(Double,Double))](settings.length)
     val time = new Array[(Array[Double],Array[Double])](settings.length)
     for (i <- 0 to settings.length - 1) {
       val s = settings(i)
@@ -42,16 +48,22 @@ object ResultScript {
       var gStar = PathFormatter.getAllResultsFor(s)
       s.focal = true
       var focalGStar = PathFormatter.getAllResultsFor(s)
-      detailMap(i) = (gStar.getMetrik(false), focalGStar.getMetrik(true), gStar.getMedian() , focalGStar.getMedian())
-      colorMap(i) = count(detailMap(i)._1,detailMap(i)._2,detailMap(i)._3>=detailMap(i)._4)
+      detailMap(i) = (gStar.getMetrik(false), focalGStar.getMetrik(true), gStar.getMedian() , focalGStar.getMedian(), gStar.getMinMax(), focalGStar.getMinMax())
+      colorMap(i) = count(detailMap(i)._1,detailMap(i)._2,detailMap(i)._3>detailMap(i)._4, detailMap(i)._3==detailMap(i)._4)
         //count(gStar.getMetrik(), focalGStar.getMetrik(), gStar.getMedian() > focalGStar.getMedian())
 
       time(i) = (gStar.getTime().map(x=> x._2),focalGStar.getTime().map(x=> x._2))
     }
     println("next")
 
-    var writer = new PrintWriter("/home/marc/media/SS_17/output/server/evaluation/all"+month+".csv")
-    var out = ""
+    var writer = new PrintWriter("/home/marc/media/SS_17/output/server/evaluation/validationMedian"+month+".csv")
+    var out = "median,medianFocal,min,max,maxFocal,minFocal \n"
+    (detailMap.map(x => (x._3,x._4,x._5,x._6)).foreach(x => out += x._1+ ","+ x._2 +","+ x._3._1 +","+ x._3._2 +","+ x._4._1 +","+ x._4._2 + "\n"))
+    writer.write(out)
+    writer.flush()
+    writer.close()
+    writer = new PrintWriter("/home/marc/media/SS_17/output/server/evaluation/all"+month+".csv")
+    out = "v \n"
     (colorMap.map(x => x._1.reduce(_ + _)).foreach(x => out += x + "\n"))
     writer.write(out)
     writer.flush()
