@@ -128,7 +128,7 @@ class TestSoH extends FunSuite{
     assert(SoH.isStable(TestMultibandUtils.getMultiband(getParent1()),TestMultibandUtils.getMultiband(getChild3),SoH.Neighbours.Aggregation)==true)
     assert(SoH.isStable(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild4),SoH.Neighbours.Aggregation)==false)
     assert(SoH.isStable(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild1),SoH.Neighbours.Aggregation)==false)
-    assert(SoH.isStable(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild5),SoH.Neighbours.Aggregation)==true)
+    assert(SoH.isStable(TestMultibandUtils.getMultiband(getParent2()),TestMultibandUtils.getMultiband(getChild5),SoH.Neighbours.Aggregation)==false)
   }
 
   test("compare with Tile"){
