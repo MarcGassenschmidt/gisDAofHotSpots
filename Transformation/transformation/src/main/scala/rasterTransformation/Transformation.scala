@@ -133,8 +133,9 @@ class Transformation {
     }).filter(row => row.lon>=settings.lonMin && row.lon<=settings.lonMax && row.lat>=settings.latMin && row.lat<=settings.latMax && row.data==false)
     val multibandTile = new Array[IntArrayTile](24)
 
-    var rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).ceil.toInt
-    var rasterLonLength = ((settings.lonMax-settings.lonMin)/settings.sizeOfRasterLon).ceil.toInt
+
+    var rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat.toDouble).ceil.toInt
+    var rasterLonLength = ((settings.lonMax-settings.lonMin)/settings.sizeOfRasterLon.toDouble).ceil.toInt
 
     rasterLatLength = rounding(rasterLatLength)
     rasterLonLength = rounding(rasterLonLength)

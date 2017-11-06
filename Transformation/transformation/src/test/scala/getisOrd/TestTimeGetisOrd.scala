@@ -192,7 +192,7 @@ class TestTimeGetisOrd extends FunSuite {
     val setting = new Settings
     setting.focal = false
     setting.test = true
-    setting.layoutTileSize = (50,30)
+    setting.layoutTileSize = (50,45)
     val rnd = new Random(1)
     val bands = new Array[Tile](24)
     for(i <- 0 to 23){
@@ -203,6 +203,7 @@ class TestTimeGetisOrd extends FunSuite {
     importTer.writeMultiGeoTiff(multiBand, setting, "/tmp/firstTimeBand.tif")
     var rdd = importTer.repartitionFiles("/tmp/firstTimeBand.tif", setting)
     var result = TimeGetisOrd.getGetisOrd(rdd,setting, multiBand)
+
     setting.focal = true
     setting.layoutTileSize = (5,6)
     for(i <- 0 to 23){
@@ -266,7 +267,7 @@ class TestTimeGetisOrd extends FunSuite {
     for(i <- 0 to 23){
       bands(i) = new DoubleRawArrayTile(Array.fill(10000)(rnd.nextInt(100)), 100, 100)
     }
-    setting.layoutTileSize = (10,10)
+    setting.layoutTileSize = (50,50)
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
     importTer.writeMultiGeoTiff(multiBand, setting, "/tmp/firstTimeBand.tif")
     val rdd = importTer.repartitionFiles("/tmp/firstTimeBand.tif", setting)
@@ -278,7 +279,7 @@ class TestTimeGetisOrd extends FunSuite {
     assert(r.contains(new SpatialKey(1,1)))
 
     r = TimeGetisOrd.getNeigbours(new SpatialKey(1,1), broadcast)
-    assert(r.size==8)
+    assert(r.size==3)
   }
 
 

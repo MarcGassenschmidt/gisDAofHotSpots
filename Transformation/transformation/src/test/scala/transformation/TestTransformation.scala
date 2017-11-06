@@ -55,8 +55,8 @@ class TestTransformation extends FunSuite{
     val settings = new Settings()
     settings.latMin = 0
     settings.lonMin = 0
-    settings.latMax = 100
-    settings.lonMax = 100
+    settings.latMax = 1000
+    settings.lonMax = 1000
     settings.sizeOfRasterLat = 10
     settings.sizeOfRasterLon = 10
     settings.multiToInt = 1
