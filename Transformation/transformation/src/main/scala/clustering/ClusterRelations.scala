@@ -38,6 +38,8 @@ class ClusterRelations {
     (childSet.size, parentSet.size)
   }
 
+
+
   def getNumberChildrenAndParentsWhichIntersect(parentTile : MultibandTile, childTile : MultibandTile): (Int, Int) ={
     val scaled = rescaleBiggerTile(parentTile,childTile)
 
@@ -123,6 +125,27 @@ class ClusterRelations {
           }
         }
       }
+    }
+    fit/total.toDouble
+  }
+
+  def getPercentualFitting(origionCluster : Tile, compareCluster : Tile): Double ={
+    var fit = 0
+    var total = 0
+      for(r <- 0 to origionCluster.rows-1){
+        for(c <- 0 to origionCluster.cols-1){
+          if(origionCluster.getDouble(c,r)!=0){
+            if(compareCluster.getDouble(c,r)!=0){
+              fit += 1
+              total += 1
+            } else {
+              total += 1
+            }
+          }
+        }
+      }
+    if(total<=0){
+      return 0
     }
     fit/total.toDouble
   }

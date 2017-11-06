@@ -16,6 +16,35 @@ import scalaz.std.java.enum
   * Created by marc on 09.05.17.
   */
 object SoH {
+  def getJaccardIndexPercent(parent: MultibandTile, child: MultibandTile): Double = {
+    val intersect = (new ClusterRelations()).getPercentualFitting(parent,child)
+    intersect
+  }
+
+  def getJaccardIndexPercent(mbT: MultibandTile, tile: Tile): Double = {
+    val sohs = mbT.bands.map(x=>(new ClusterRelations()).getPercentualFitting(x,tile))
+    val size = sohs.length
+    val sum = sohs.reduce(_+_)
+    sum/24.0
+  }
+
+  def getJaccardIndex(parent : MultibandTile, child :MultibandTile): Double ={
+    val intersect = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(parent,child)._2
+    var histogrammParent = MultibandUtils.getHistogramInt(parent)
+    var histogrammChild = MultibandUtils.getHistogramInt(child)
+    val union = histogrammChild.merge(histogrammParent).values().length-1
+    intersect/union.toDouble
+  }
+
+  def getJaccardIndex(parent : MultibandTile, child :Tile): Double ={
+    val intersect = parent.bands.map(x => (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(x,child)._2)
+    val sum = intersect.reduce(_+_)
+    var histogrammParent = MultibandUtils.getHistogramInt(parent)
+    var histogrammChild = child.histogram
+    val union = histogrammChild.merge(histogrammParent).values().length-1
+    sum/(union.toDouble*24)
+  }
+
 
   implicit class TripleAdd(t: (Double, Double, Double)) {
     def +(p: (Double, Double, Double)) = (p._1 + t._1, p._2 + t._2, p._3 + t._3)
@@ -254,13 +283,7 @@ object SoH {
     new SoHResults(downUp,neighbours,jaccard,percentual,time,kl,sturcture,distnace,top100,f1,morans,ref)
   }
 
-  def getJaccardIndex(parent : MultibandTile, child :MultibandTile): Double ={
-    val intersect = (new ClusterRelations()).getNumberChildrenAndParentsWhichIntersect(parent,child)._2
-    var histogrammParent = MultibandUtils.getHistogramInt(parent)
-    var histogrammChild = MultibandUtils.getHistogramInt(child)
-    val union = histogrammChild.merge(histogrammParent).values().length-1
-    intersect/union.toDouble
-  }
+
 
   def getSDForPercentualTiles(mbT : MultibandTile, settings: Settings): Double ={
     val spheroid = new Spheroid(settings.focalRange,settings.focalRangeTime)
@@ -430,6 +453,15 @@ object SoH {
     def getDownUpString() : String ={
       "("+down+","+up+")"
     }
+  }
+
+  class ResultsSpe(jaccardPercent : Double, jaccardPercentTime : Double , jaccard : Double, jaccardTime : Double, sohTime : Double){
+    override def toString: String = "Metrik results are: \n" +
+      "jaccard,"+jaccard+"\n" +
+      "percentual,"+jaccardPercent+"\n"+
+      "jaccardTime,"+jaccardTime+"\n" +
+      "percentualTime,"+jaccardPercentTime+"\n"+
+      "time_Down,"+sohTime+"\n"
   }
 
   class SoHResults(downUp: SoHR, neighbours: (Int,Int,Int,Int,Int,Int), jaccard: Double, percentual: Double,

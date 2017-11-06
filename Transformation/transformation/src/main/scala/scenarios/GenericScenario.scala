@@ -60,7 +60,7 @@ abstract class GenericScenario extends LazyLogging {
       lat._1)
     val dir = globalSettings.ouptDirectory+globalSettings.scenario+"/"
     val pwShort = new PrintWriter(new File(dir+"focal_"+globalSettings.focal+"d3.csv"))
-    pwShort.println("F,W,Z,Down,Up")
+    pwShort.println("F,W,Z,Up,Down")
     pwShort.println(outPutResultPrinter.getFormatedResultsListShort(outPutResults))
     pwShort.flush()
     pwShort.close()

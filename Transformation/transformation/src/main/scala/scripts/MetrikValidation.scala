@@ -1,13 +1,13 @@
 package scripts
 
-import java.io.File
+import java.io.{File, PrintWriter}
 
 import clustering.{ClusterHotSpots, ClusterHotSpotsTime, ClusterRelations}
 import com.typesafe.scalalogging.Logger
 import datastructure.{GStarClusterNeighbours, PartResult, ResultTuple}
 import geotrellis.raster.{MultibandTile, Tile}
 import geotrellis.spark.SpatialKey
-import getisOrd.SoH.SoHResults
+import getisOrd.SoH.{ResultsSpe, SoHResults}
 import getisOrd.{GetisOrd, SoH, TimeGetisOrd, Weight}
 import importExport.{PathFormatter, _}
 import org.apache.spark.SparkContext
@@ -44,8 +44,10 @@ object MetrikValidation {
       //add = (getAdd(zoom,72000,72000)/2)/multiToInt.toDouble
       if(zoom==2){
         add = 4000/multiToInt.toDouble
-      } else if(zoom==3){
-        add = 16000/multiToInt.toDouble
+      } else if(zoom==3) {
+        add = 16000 / multiToInt.toDouble
+      } else if(zoom==4){
+          add = 32000/multiToInt.toDouble
       } else {
         println("Zoom="+zoom)
         println("Not implemented")
@@ -107,31 +109,46 @@ object MetrikValidation {
     val timeDimensionStep = 2
     val aggregationSteps = 2 //400, 800
     val zoom = 3
-    val experiments = new Array[Settings](monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps +
-                                          monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * zoom)
+    val experiments = new Array[Settings](5)
+//    monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps +
+//                                          monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * zoom)
     var counter = 0
+
+    experiments(0) = getBasicSettings(5, 2, 20, 2, 3, 3, 3)
+    experiments(1) = getBasicSettings(5, 2, 25, 2, 3, 3, 3)
+    experiments(2) = getBasicSettings(5, 2, 30, 2, 3, 3, 3)
+  //  experiments(3) = getBasicSettings(5, 2, 30, 2, 1, 1, 3)
+    experiments(3) = getBasicSettings(5, 4, 30, 2, 2, 2, 3)
+    experiments(4) = getBasicSettings(5, 4, 30, 2, 2, 2, 4)
+//    val writer = new PrintWriter("/home/marc/media/SS_17/output/server/evaluation/detailSettingspezial.csv")
+//    var out = experiments(0).runToStringHead()+"\n"
+//    experiments.filter(x=> x!=null).zipWithIndex.map(x => out += (x._2+1)+","+x._1.runToString() +"\n")
+//    writer.write(out)
+//    writer.flush()
+//    writer.close()
+//    assert(false)
     //for (m <- 2 to monthToTest) {
-    var m = 2
-      for (w <- 0 to weightToTest - 1) {
-        for (f <- 0 to focalRangeToTest - 1) {
-          for (tf <- 0 to timeDimensionStep - 1) {
-            for (tw <- 0 to timeDimensionStep - 1) {
-              for (a <- 0 to aggregationSteps - 1)  {
-                  experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 10 + f * focalRangeStepSize, 2 + tf, 3 + a, m, 1)
-                  val settings = experiments(counter)
-//                  if(((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt % 4 == 0) {
-                    counter += 1
-//                  }
-              }
-              for (z <- 2 to zoom) {
-               experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 10 + f * focalRangeStepSize, 2 + tf, 3, m, z)
-               val settings = experiments(counter)
-                counter += 1
-              }
-            }
-          }
-        }
-      }
+//    var m = 3
+//      for (w <- 0 to weightToTest - 1) {
+//        for (f <- 0 to focalRangeToTest - 1) {
+//          for (tf <- 0 to timeDimensionStep - 1) {
+//            for (tw <- 0 to timeDimensionStep - 1) {
+//              for (a <- 0 to aggregationSteps - 1)  {
+//                  experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 3 + a, m, 3)
+//                  val settings = experiments(counter)
+////                  if(((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt % 4 == 0) {
+//                    counter += 1
+////                  }
+//              }
+//              for (z <- 2 to zoom) {
+//               experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 10 + f * focalRangeStepSize, 2 + tf, 3, m, z)
+//               val settings = experiments(counter)
+//                counter += 1
+//              }
+//            }
+//          }
+//        }
+//      }
     //}
 
     experiments
@@ -155,8 +172,12 @@ class MetrikValidation {
     //----------------------------------GStar-End---------------------------------
     println("deb1")
     //---------------------------------Calculate Metrik----------------------------------
-    if(!StringWriter.exists(ResultType.Metrik, settings)) {
-      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
+    if(true || !StringWriter.exists(ResultType.Metrik, settings)) {
+      val metrik = writeExtraMetrikRasters(origin, rdd)
+      println("---------------------------------------0ö-------------------------")
+      println(metrik.toString)
+      println("---------------------------------------1ö-------------------------")
+      StringWriter.writeFile(metrik.toString, ResultType.Metrik, settings)
     }
     //---------------------------------Calculate Metrik-End---------------------------------
     println("deb2")
@@ -173,8 +194,12 @@ class MetrikValidation {
     //---------------------------------Focal-GStar-End---------------------------------
     println("deb4")
     //---------------------------------Calculate Metrik----------------------------------
-    if(!StringWriter.exists(ResultType.Metrik, settings)) {
-      StringWriter.writeFile(writeExtraMetrikRasters(origin, rdd).toString, ResultType.Metrik, settings)
+    if(true || !StringWriter.exists(ResultType.Metrik, settings)) {
+      val metrik = writeExtraMetrikRasters(origin, rdd)
+      println("---------------------------------------2ö-------------------------")
+      println(metrik.toString)
+      println("---------------------------------------3ö-------------------------")
+      StringWriter.writeFile(metrik.toString, ResultType.Metrik, settings)
     }
     //---------------------------------Calculate Metrik-End---------------------------------
     //---------------------------------Cluster-Focal-GStar----------------------------------
@@ -385,23 +410,32 @@ class MetrikValidation {
     res
   }
 
-  def writeExtraMetrikRasters(origin: MultibandTile, rdd: RDD[(SpatialKey, MultibandTile)]): SoHResults = {
-    val neighbours = getNeighbours(settings: Settings, importTer: ImportGeoTiff, origin, rdd)
+  def writeExtraMetrikRasters(origin: MultibandTile, rdd: RDD[(SpatialKey, MultibandTile)]): ResultsSpe = {
+//    val neighbours = getNeighbours(settings: Settings, importTer: ImportGeoTiff, origin, rdd)
     val gStar = importTer.getMulitGeoTiff(settings, TifType.GStar)
-    val clusterNeighbours = neighbours.getClusterNeighbours()
+    settings.weightRadius += 1
+    val old = writeOrGetGStar(rdd, origin)
+    settings.weightRadius -= 1
+//    val clusterNeighbours = neighbours.getClusterNeighbours()
     val month: Tile = getMonthTile()
-    val gisCups = getMonthTileGisCup(origin,rdd)
+//    val gisCups = getMonthTileGisCup(origin,rdd)
     val cluster = clusterHotspots()
-    StringWriter.writeFile(SoH.getPoints(cluster,settings),ResultType.HotSpots,settings)
-    SoH.getMetrikResults(gStar,
-      cluster,
-      clusterNeighbours._3,
-      clusterNeighbours._2,
-      clusterNeighbours._1,
-      neighbours.gStar._2._2,
-      month,
-      settings,
-      (new ClusterHotSpotsTime(gisCups)).findClusters())
+//    StringWriter.writeFile(SoH.getPoints(cluster,settings),ResultType.HotSpots,settings)
+    //jaccardPercent : Double, jaccardPercentTime : Double , jaccard : Double, jaccardTime : Double, sohTime : Double
+    new ResultsSpe(SoH.getJaccardIndexPercent(cluster,old.getCluster()),
+                  SoH.getJaccardIndexPercent(cluster,month),
+                  SoH.getJaccardIndex(cluster,old.getCluster()),
+                  SoH.getJaccardIndex(cluster,month),
+                  SoH.getSoHDowAndUp(cluster,old.getCluster()).getDown())
+//      getMetrikResults(gStar,
+//      null, //cluster,
+//      null, //clusterNeighbours._3,
+//      null, //clusterNeighbours._2,
+//      null, //clusterNeighbours._1,
+//      neighbours.gStar._2._2,
+//      month,
+//      settings,
+//      (new ClusterHotSpotsTime(gisCups)).findClusters())
   }
 
   def clusterHotspots(): MultibandTile = {
