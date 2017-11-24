@@ -55,7 +55,7 @@ class ImportGeoTiff {
     GeoTiffReader.readMultiband(file)
   }
 
-  def repartitionFiles(setting: Settings): RDD[(SpatialKey, MultibandTile)] ={
+  def repartitionFiles(setting: Settings): RDD[(SpatialKey, MultibandTile)] with Metadata[TileLayerMetadata[SpatialKey]] ={
     val file = PathFormatter.getDirectoryAndName(setting, TifType.Raw)
     repartitionFiles(file,setting)
   }
@@ -77,7 +77,9 @@ class ImportGeoTiff {
       println(f._2.cols+","+origion.cols/2 +","+ f._2.rows+","+origion.rows/2)
       assert(f._2.cols==origion.cols/2 && f._2.rows==origion.rows/2)
     })
-    tiled
+
+    val rddWithContext: RDD[(SpatialKey, MultibandTile)] with Metadata[TileLayerMetadata[SpatialKey]] = ContextRDD(tiled, rasterMetaData)
+    rddWithContext
   }
 
   def readGeoTiff(file : String): Tile = {

@@ -2,10 +2,11 @@ package getisOrd
 
 
 import datastructure.{MeasuersFocal, MeasuersGloabl}
+import geotrellis.raster.mapalgebra.focal.{Circle, Kernel}
 import geotrellis.{Spheroid, TimeNeighbourhood}
 import geotrellis.raster.stitch.Stitcher.MultibandTileStitcher
 import geotrellis.raster.{DoubleRawArrayTile, GridBounds, IntRawArrayTile, MultibandTile, Tile, TileLayout}
-import geotrellis.spark.SpatialKey
+import geotrellis.spark.{Metadata, SpatialKey, TileLayerMetadata}
 import geotrellis.vector.Extent
 import importExport.{ImportGeoTiff, PathFormatter, ResultType, StringWriter}
 import org.apache.spark.SparkContext
@@ -320,11 +321,26 @@ object TimeGetisOrd {
     !r
   }
 
+  def getGStar(band : Int, tile : Tile, mb : MultibandTile) : Tile = {
+    null
+  }
 
+  def getGetisOrdNew(rdd : RDD[(SpatialKey, MultibandTile)] with Metadata[TileLayerMetadata[SpatialKey]], setting : Settings, origin : MultibandTile): MultibandTile = {
+    val focalKernel = Kernel.circle(setting.focalRange, setting.focalRange, setting.focalRange)
 
-  def getGetisOrd(rdd : RDD[(SpatialKey, MultibandTile)], setting : Settings, origin : MultibandTile): MultibandTile ={
+    rdd.withContext { x => x.
+      bufferTiles(100)
+      .mapValues { v => v.tile.mapBands((i, t) => getGStar(i, t, v.tile))
+      }
+    }.stitch()
+
+  }
+
+  def getGetisOrd(rdd : RDD[(SpatialKey, MultibandTile)] with Metadata[TileLayerMetadata[SpatialKey]], setting : Settings, origin : MultibandTile): MultibandTile ={
     timeMeasuresFocal = new MeasuersFocal
     timeMeasuresGlobal = new MeasuersGloabl
+
+
     val start = System.currentTimeMillis()
 //    val keys = rdd.keys.collect().max
 //    val keyCount = rdd.keys.count()
