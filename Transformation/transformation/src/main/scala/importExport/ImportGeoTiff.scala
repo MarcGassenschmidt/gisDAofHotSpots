@@ -60,7 +60,7 @@ class ImportGeoTiff {
     repartitionFiles(file,setting)
   }
 
-  def repartitionFiles(file : String,setting: Settings): RDD[(SpatialKey, MultibandTile)] ={
+  def repartitionFiles(file : String,setting: Settings): RDD[(SpatialKey, MultibandTile)] with Metadata[TileLayerMetadata[SpatialKey]] ={
     val sc = SparkContext.getOrCreate(setting.conf)
     val origion = getMulitGeoTiff(file)
     val inputRdd: RDD[(ProjectedExtent, MultibandTile)] =

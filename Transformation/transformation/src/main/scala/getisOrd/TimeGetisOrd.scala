@@ -322,14 +322,19 @@ object TimeGetisOrd {
   }
 
   def getGStar(band : Int, tile : Tile, mb : MultibandTile) : Tile = {
-    null
+    for (r <- 0 to tile.rows - 1) {
+      for (c <- 0 to tile.cols - 1) {
+
+      }
+    }
+    tile.mapDouble(x => 3)
   }
 
   def getGetisOrdNew(rdd : RDD[(SpatialKey, MultibandTile)] with Metadata[TileLayerMetadata[SpatialKey]], setting : Settings, origin : MultibandTile): MultibandTile = {
     val focalKernel = Kernel.circle(setting.focalRange, setting.focalRange, setting.focalRange)
 
     rdd.withContext { x => x.
-      bufferTiles(100)
+      bufferTiles(10)
       .mapValues { v => v.tile.mapBands((i, t) => getGStar(i, t, v.tile))
       }
     }.stitch()
