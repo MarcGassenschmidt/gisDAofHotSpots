@@ -28,9 +28,9 @@ class TestTimeGetisOrd extends FunSuite {
       bands(i) = new DoubleRawArrayTile(Array.fill(10000)(rnd.nextInt(100)), 100, 100)
     }
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
-    var hashMap  = new mutable.HashMap[SpatialKey,MultibandTile]()
-    var myKey = new SpatialKey(0,0)
-    val result = TimeGetisOrd.getMultibandFocalGetisOrd(multiBand,ownSettings, myKey,hashMap)
+    
+    
+    val result = TimeGetisOrd.getMultibandFocalGetisOrd(multiBand,ownSettings)
     assert(result.bandCount==multiBand.bandCount)
     assert(result.rows==multiBand.rows)
     assert(result.band(0).getDouble(0,0)!=multiBand.band(0).getDouble(0,0))
@@ -40,11 +40,10 @@ class TestTimeGetisOrd extends FunSuite {
     val getSetupResult: (Spheroid, MultibandTile, mutable.HashMap[SpatialKey, MultibandTile], SpatialKey) = getSetup
     val spheroid: Spheroid = getSetupResult._1
     val multiBand: MultibandTile = getSetupResult._2
-    var hashMap: mutable.HashMap[SpatialKey, MultibandTile] = getSetupResult._3
-    var myKey: SpatialKey = getSetupResult._4
+    
 
     var mean = 1
-    val r = TimeGetisOrd.getSD(0,10,10, multiBand, spheroid, myKey, hashMap, 1)
+    val r = TimeGetisOrd.getSD(0,10,10, multiBand, spheroid, mean)
 
 
     assert(r == Math.sqrt((1.0/(spheroid.getSum().toDouble-1.0))*spheroid.getSum().toDouble))
@@ -69,10 +68,10 @@ class TestTimeGetisOrd extends FunSuite {
     val getSetupResult: (Spheroid, MultibandTile, mutable.HashMap[SpatialKey, MultibandTile], SpatialKey) = getSetup
     val spheroid: Spheroid = getSetupResult._1
     val multiBand: MultibandTile = getSetupResult._2
-    var hashMap: mutable.HashMap[SpatialKey, MultibandTile] = getSetupResult._3
-    var myKey: SpatialKey = getSetupResult._4
+    
+    
 
-    val r = TimeGetisOrd.getNM(0,10,10, multiBand, spheroid, myKey, hashMap)
+    val r = TimeGetisOrd.getNM(0,10,10, multiBand, spheroid)
     assert(r._1==spheroid.getSum())
     assert(r._2==2)
   }
@@ -82,11 +81,11 @@ class TestTimeGetisOrd extends FunSuite {
     val spheroidWeight: Spheroid = getSetupResult._1
 //    val spheroidFocal: Spheroid = new Spheroid(spheroidWeight.a+2,spheroidWeight.c+1)
     val multiBand: MultibandTile = getSetupResult._2
-    var hashMap: mutable.HashMap[SpatialKey, MultibandTile] = getSetupResult._3
-    var myKey: SpatialKey = getSetupResult._4
+    
+    
 
-    val corner = TimeGetisOrd.getRMWNW2(0,0,0,multiBand, spheroidWeight,myKey, hashMap, (10,1))
-    val normal = TimeGetisOrd.getRMWNW2(0,10,10,multiBand, spheroidWeight,myKey, hashMap, (10,1))
+    val corner = TimeGetisOrd.getRMWNW2(0,0,0,multiBand, spheroidWeight, (10,1))
+    val normal = TimeGetisOrd.getRMWNW2(0,10,10,multiBand, spheroidWeight, (10,1))
     assert(corner.equals(new StatsRNMW(2*8,10,1,8,8*10,8*8)))
     assert(normal.equals(new StatsRNMW(spheroidWeight.getSum()*2,10,1,spheroidWeight.getSum(),10*spheroidWeight.getSum(),Math.pow(spheroidWeight.getSum(),2))))
   }
@@ -103,7 +102,7 @@ class TestTimeGetisOrd extends FunSuite {
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
     var hashMap  = new mutable.HashMap[SpatialKey,MultibandTile]()
     var myKey = new SpatialKey(0,0)
-    val result = TimeGetisOrd.getMultibandGetisOrd(multiBand,ownSettings, TimeGetisOrd.getSTGlobal(multiBand), myKey,hashMap)
+    val result = TimeGetisOrd.getMultibandGetisOrd(multiBand,ownSettings, TimeGetisOrd.getSTGlobal(multiBand))
     assert(result.bandCount==multiBand.bandCount)
     assert(result.rows==multiBand.rows)
     assert(result.band(0).getDouble(0,0)!=multiBand.band(0).getDouble(0,0))
@@ -120,10 +119,8 @@ class TestTimeGetisOrd extends FunSuite {
 
     val multiBand : MultibandTile = new ArrayMultibandTile(bands)
 
-    var hashMap  = new mutable.HashMap[SpatialKey,MultibandTile]()
 
-    var myKey = new SpatialKey(0,0)
-    val result = TimeGetisOrd.getSum(multiBand,spheroid, myKey,hashMap)
+    val result = TimeGetisOrd.getSum(multiBand,spheroid)
 
     val corner = 8
     val normal = spheroid.getSum()
@@ -147,42 +144,26 @@ class TestTimeGetisOrd extends FunSuite {
     val spheroid = new Spheroid(2,1)
     val corner = 8
     val normal = spheroid.getSum()
-    var hashMap  = new mutable.HashMap[SpatialKey,MultibandTile]()
-    var myKey = new SpatialKey(0,0)
-    assert(TimeGetisOrd.getSum(0,50,50,multiBand,spheroid, myKey, hashMap)==normal)
-    assert(TimeGetisOrd.getSum(0,0,0,multiBand,spheroid, myKey,hashMap)==corner)
+    assert(TimeGetisOrd.getSum(0,50,50,multiBand,spheroid)==normal)
+    assert(TimeGetisOrd.getSum(0,0,0,multiBand,spheroid)==corner)
 
-    assert(TimeGetisOrd.getSum(1,50,50,multiBand,spheroid, myKey,hashMap)==normal)
-    assert(TimeGetisOrd.getSum(1,0,0,multiBand,spheroid, myKey,hashMap)==corner)
+    assert(TimeGetisOrd.getSum(1,50,50,multiBand,spheroid)==normal)
+    assert(TimeGetisOrd.getSum(1,0,0,multiBand,spheroid)==corner)
 
-    assert(TimeGetisOrd.getSum(3,50,50,multiBand,spheroid,myKey, hashMap)==normal)
-    assert(TimeGetisOrd.getSum(3,0,0,multiBand,spheroid,myKey, hashMap)==corner)
-
-    myKey = new SpatialKey(0,0)
-
-    hashMap.put(new SpatialKey(1,1), multiBand)
-    hashMap.put(new SpatialKey(0,1), multiBand)
-    hashMap.put(new SpatialKey(1,0), multiBand)
+    assert(TimeGetisOrd.getSum(3,50,50,multiBand,spheroid)==normal)
+    assert(TimeGetisOrd.getSum(3,0,0,multiBand,spheroid)==corner)
 
 
-    assert(TimeGetisOrd.getSum(0,50,50,multiBand,spheroid,myKey, hashMap)==normal)
-    assert(TimeGetisOrd.getSum(0,0,0,multiBand,spheroid,myKey, hashMap)==corner)
-    assert(TimeGetisOrd.getSum(0,99,99,multiBand,spheroid, myKey,hashMap)==normal)
+
+    assert(TimeGetisOrd.getSum(0,50,50,multiBand,spheroid)==normal)
+    assert(TimeGetisOrd.getSum(0,0,0,multiBand,spheroid)==corner)
+    assert(TimeGetisOrd.getSum(0,99,99,multiBand,spheroid)==normal)
 
 
-    hashMap  = new mutable.HashMap[SpatialKey,MultibandTile]()
-    myKey = new SpatialKey(1,1)
-    hashMap.put(new SpatialKey(0,0), multiBand)
-    hashMap.put(new SpatialKey(0,1), multiBand)
-    hashMap.put(new SpatialKey(0,2), multiBand)
-    hashMap.put(new SpatialKey(1,0), multiBand)
-    hashMap.put(new SpatialKey(2,0), multiBand)
-    hashMap.put(new SpatialKey(1,2), multiBand)
-    hashMap.put(new SpatialKey(2,1), multiBand)
-    hashMap.put(new SpatialKey(2,2), multiBand)
 
-    assert(TimeGetisOrd.getSum(0,50,50,multiBand,spheroid,myKey, hashMap)==normal)
-    assert(TimeGetisOrd.getSum(0,0,0,multiBand,spheroid, myKey,hashMap)==normal)
+
+    assert(TimeGetisOrd.getSum(0,50,50,multiBand,spheroid)==normal)
+    assert(TimeGetisOrd.getSum(0,0,0,multiBand,spheroid)==normal)
 
 
   }

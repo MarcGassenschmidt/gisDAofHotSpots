@@ -37,7 +37,7 @@ object ResultScript {
   }
 
   def main(args: Array[String]): Unit = {
-    val month = "" //"",2,1
+    val month = "_1" //"",2,1
     val settings = MetrikValidation.getScenarioSettings().slice(0,64)
     val colorMap = new Array[(Array[Int],Boolean)](settings.length)
     val detailMap = new Array[(Array[(String, Array[Double])],Array[(String, Array[Double])],Double,Double,(Double,Double),(Double,Double))](settings.length)

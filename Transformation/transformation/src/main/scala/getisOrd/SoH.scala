@@ -1,7 +1,6 @@
 package getisOrd
 
 import clustering.{ClusterHotSpotsTime, ClusterRelations}
-import export.TileVisualizer
 import geotrellis.{Spheroid, SpheroidHelper}
 import geotrellis.raster.{IntArrayTile, IntRawArrayTile, MultibandTile, Tile}
 import osm.ConvertPositionToCoordinate

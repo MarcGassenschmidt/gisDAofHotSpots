@@ -6,7 +6,7 @@ import clustering.{ClusterHotSpots, ClusterHotSpotsTime, ClusterRelations}
 import com.typesafe.scalalogging.Logger
 import datastructure.{GStarClusterNeighbours, PartResult, ResultTuple}
 import geotrellis.raster.{MultibandTile, Tile}
-import geotrellis.spark.SpatialKey
+import geotrellis.spark.{Metadata, SpatialKey, TileLayerMetadata}
 import getisOrd.SoH.{ResultsSpe, SoHResults}
 import getisOrd.{GetisOrd, SoH, TimeGetisOrd, Weight}
 import importExport.{PathFormatter, _}
@@ -109,47 +109,34 @@ object MetrikValidation {
     val timeDimensionStep = 2
     val aggregationSteps = 2 //400, 800
     val zoom = 3
-    val experiments = new Array[Settings](5)
-//    monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps +
-//                                          monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * zoom)
+    val experiments = new Array[Settings](monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * aggregationSteps +
+                                          monthToTest * weightToTest * focalRangeToTest * timeDimensionStep * timeDimensionStep * zoom)
+
     var counter = 0
 
-    experiments(0) = getBasicSettings(5, 2, 20, 2, 3, 3, 3)
-    experiments(1) = getBasicSettings(5, 2, 25, 2, 3, 3, 3)
-    experiments(2) = getBasicSettings(5, 2, 30, 2, 3, 3, 3)
-  //  experiments(3) = getBasicSettings(5, 2, 30, 2, 1, 1, 3)
-    experiments(3) = getBasicSettings(5, 4, 30, 2, 2, 2, 3)
-    experiments(4) = getBasicSettings(5, 4, 30, 2, 2, 2, 4)
-//    val writer = new PrintWriter("/home/marc/media/SS_17/output/server/evaluation/detailSettingspezial.csv")
-//    var out = experiments(0).runToStringHead()+"\n"
-//    experiments.filter(x=> x!=null).zipWithIndex.map(x => out += (x._2+1)+","+x._1.runToString() +"\n")
-//    writer.write(out)
-//    writer.flush()
-//    writer.close()
-//    assert(false)
-    //for (m <- 2 to monthToTest) {
-//    var m = 3
-//      for (w <- 0 to weightToTest - 1) {
-//        for (f <- 0 to focalRangeToTest - 1) {
-//          for (tf <- 0 to timeDimensionStep - 1) {
-//            for (tw <- 0 to timeDimensionStep - 1) {
-//              for (a <- 0 to aggregationSteps - 1)  {
-//                  experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 20 + f * focalRangeStepSize, 2 + tf, 3 + a, m, 3)
-//                  val settings = experiments(counter)
-////                  if(((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt % 4 == 0) {
-//                    counter += 1
-////                  }
-//              }
-//              for (z <- 2 to zoom) {
-//               experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 10 + f * focalRangeStepSize, 2 + tf, 3, m, z)
-//               val settings = experiments(counter)
-//                counter += 1
-//              }
-//            }
-//          }
-//        }
-//      }
-    //}
+
+
+    for (m <- 2 to monthToTest) {
+    var m = 1
+      for (w <- 0 to weightToTest - 1) {
+        for (f <- 0 to focalRangeToTest - 1) {
+          for (tf <- 0 to timeDimensionStep - 1) {
+            for (tw <- 0 to timeDimensionStep - 1) {
+              for (a <- 0 to aggregationSteps - 1)  {
+                  experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 10 + f * focalRangeStepSize, 2 + tf, 3 + a, m, 1)
+                  val settings = experiments(counter)
+                    counter += 1
+              }
+              for (z <- 2 to zoom) {
+               experiments(counter) = getBasicSettings(5 + w * weightStepSize, 1 + tw, 10 + f * focalRangeStepSize, 2 + tf, 3, m, z)
+               val settings = experiments(counter)
+                counter += 1
+              }
+            }
+          }
+        }
+      }
+    }
 
     experiments
   }
@@ -246,7 +233,7 @@ class MetrikValidation {
     settings.csvYear = old
   }
 
-  def writeOrGetGStar(rdd: RDD[(SpatialKey, MultibandTile)], origin: MultibandTile): ResultTuple = {
+  def writeOrGetGStar(rdd: RDD[(SpatialKey, MultibandTile)] with Metadata[TileLayerMetadata[SpatialKey]], origin: MultibandTile): ResultTuple = {
     var gStar : MultibandTile = null
     var cluster : MultibandTile = null
     println("deb.001")
@@ -269,7 +256,7 @@ class MetrikValidation {
   def getNeighbours(settings: Settings,
                     importTer: ImportGeoTiff,
                     origin: MultibandTile,
-                    rdd: RDD[(SpatialKey, MultibandTile)]
+                    rdd: RDD[(SpatialKey, MultibandTile)] with Metadata[TileLayerMetadata[SpatialKey]]
                    ): GStarClusterNeighbours = {
 
     var focalP: ResultTuple = null
@@ -381,7 +368,7 @@ class MetrikValidation {
     cluster
   }
 
-  def getMonthTileGisCup(origin: MultibandTile, rdd: RDD[(SpatialKey, MultibandTile)]): MultibandTile = {
+  def getMonthTileGisCup(origin: MultibandTile, rdd: RDD[(SpatialKey, MultibandTile)] with Metadata[TileLayerMetadata[SpatialKey]]): MultibandTile = {
     println("deb.005")
     val timeOld = settings.weightRadiusTime
     val radiusOld = settings.weightRadius
@@ -410,7 +397,7 @@ class MetrikValidation {
     res
   }
 
-  def writeExtraMetrikRasters(origin: MultibandTile, rdd: RDD[(SpatialKey, MultibandTile)]): ResultsSpe = {
+  def writeExtraMetrikRasters(origin: MultibandTile, rdd: RDD[(SpatialKey, MultibandTile)] with Metadata[TileLayerMetadata[SpatialKey]]) : ResultsSpe = {
 //    val neighbours = getNeighbours(settings: Settings, importTer: ImportGeoTiff, origin, rdd)
     val gStar = importTer.getMulitGeoTiff(settings, TifType.GStar)
     settings.weightRadius += 1
