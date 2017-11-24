@@ -1,22 +1,17 @@
 package scripts
 
-import java.io.{File, PrintWriter}
-
 import clustering.{ClusterHotSpots, ClusterHotSpotsTime, ClusterRelations}
-import com.typesafe.scalalogging.Logger
 import datastructure.{GStarClusterNeighbours, PartResult, ResultTuple}
+import geotrellis.Weight
 import geotrellis.raster.{MultibandTile, Tile}
 import geotrellis.spark.{Metadata, SpatialKey, TileLayerMetadata}
-import getisOrd.SoH.{ResultsSpe, SoHResults}
-import getisOrd.{GetisOrd, SoH, TimeGetisOrd, Weight}
+import getisOrd.SoH.ResultsSpe
+import getisOrd.{SoH, TimeGetisOrd}
 import importExport.{PathFormatter, _}
-import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SparkSession
 import parmeters.{Scenario, Settings}
 import rasterTransformation.Transformation
 import scenarios.GenericScenario
-import timeUtils.MultibandUtils
 
 
 /**

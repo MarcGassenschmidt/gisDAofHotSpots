@@ -1,6 +1,6 @@
 package parmeters
 
-import getisOrd.Weight
+import geotrellis.Weight
 import org.apache.spark.SparkConf
 
 /**

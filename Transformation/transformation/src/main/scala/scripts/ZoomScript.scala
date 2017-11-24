@@ -4,7 +4,7 @@ import clustering.{ClusterHotSpotsTime, ClusterRelations}
 import geotrellis.raster.IntRawArrayTile
 import getisOrd.{SoH, TimeGetisOrd}
 import importExport.{ImportGeoTiff, PathFormatter, TifType}
-import parmeters.{Scenario, Settings}
+import parmeters.Settings
 import rasterTransformation.Transformation
 import timeUtils.MultibandUtils
 

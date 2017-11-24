@@ -3,7 +3,6 @@ package scripts
 import java.io.PrintWriter
 
 import importExport.PathFormatter
-import parmeters.{Scenario, Settings}
 
 /**
   * Created by marc on 04.09.17.

@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import clustering.Row
+import datastructure.{NotDataRowTransformation, NotDataRowTransformationValue, RowTransformationTime}
 import geotrellis.raster.{Tile, _}
 import geotrellis.spark._
 import geotrellis.spark.io._
@@ -27,42 +27,6 @@ import scalaz.stream.nio.file
   */
 class Transformation {
 
-
-  def transformOneFileOld(rootPath: String, config: SparkConf, para : Settings): DoubleArrayTile ={
-    val spark = SparkSession.builder.config(config).getOrCreate()
-
-
-    val files = spark.read.format("CSV").option("header","true").option("delimiter", ",").textFile(rootPath)
-
-    val tile = DoubleArrayTile.ofDim(para.rasterLatLength,para.rasterLonLength)
-
-    tile
-  }
-
-  def transformOneFile(rootPath: String, config: SparkConf, para : Settings): IntArrayTile ={
-    val sc = SparkContext.getOrCreate(config)
-    val files = sc.textFile(rootPath)
-    val tile = IntArrayTile.ofDim(para.rasterLatLength,para.rasterLonLength)
-    println(files.count())
-    val file = files.map(line => line.drop(1)).map(line => {
-      val cols = line.split(",").map(_.trim)
-      val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-      val result = new RowTransformationTime(
-        lon = (cols(9).toDouble*para.multiToInt+para.shiftToPostive).toInt,
-        lat = (cols(10).toDouble*para.multiToInt).toInt,
-        time = LocalDateTime.from(formatter.parse(cols(2)))
-      )
-      result
-    })//.filter(row => row.lon>para.lonMin && row.lon<para.lonMax && row.lat>para.latMin && row.lat<para.latMax)
-
-    file.map(row => {
-      val colIndex = ((row.lat-para.latMin)/para.sizeOfRasterLat).toInt
-      val rowIndex = ((row.lon-para.lonMin)/para.sizeOfRasterLon).toInt
-      tile.set(colIndex,rowIndex,tile.get(colIndex,rowIndex)+1)
-    })
-    tile
-  }
-
   def transformCSVtoRaster(settings : Settings): IntArrayTile ={
     //https://www.google.com/maps/place/40%C2%B033'06.6%22N+74%C2%B007'46.0%22W/@40.7201276,-74.0195387,11.25z/data=!4m5!3m4!1s0x0:0x0!8m2!3d40.551826!4d-74.129441
     //lat = 40.551826, lon=-74.129441
@@ -74,7 +38,7 @@ class Transformation {
     //40.800296, -73.928375
     //40.703286, -74.019012
 
-   // val bufferedSource = Source.fromFile(settings.inputDirectoryCSV+settings.csvYear+"_"+settings.csvMonth+".csv")
+    // val bufferedSource = Source.fromFile(settings.inputDirectoryCSV+settings.csvYear+"_"+settings.csvMonth+".csv")
     transformCSVtoRasterParametrised(settings,settings.inputDirectoryCSV+settings.csvYear+"_"+settings.csvMonth+".csv",5,6,1)
   }
 
@@ -157,13 +121,11 @@ class Transformation {
         }
 
     }
-
-
     bufferedSource.close()
     new ArrayMultibandTile(multibandTile.map(arrayTile => arrayTile.toArrayTile()))
   }
 
-  def rounding(rasterLatOrLongLength: Int): Int = {
+  private def rounding(rasterLatOrLongLength: Int): Int = {
     if (rasterLatOrLongLength % 20 != 0) {
       if (rasterLatOrLongLength % 20 < 10) {
         return rasterLatOrLongLength - (rasterLatOrLongLength % 20)
@@ -174,68 +136,7 @@ class Transformation {
     return rasterLatOrLongLength
   }
 
-  def transformCSVPolygon(): Tile ={
-    val settings = new Settings()
-    settings.lonMax = 10.05*settings.multiToInt
-    settings.lonMin = 10.01*settings.multiToInt
-    settings.latMax = 48.85*settings.multiToInt
-    settings.latMin = 48.80*settings.multiToInt
-    settings.sizeOfRasterLat = 100
-    settings.sizeOfRasterLon = 100
 
-
-    val rasterLatLength = ((settings.latMax-settings.latMin)/settings.sizeOfRasterLat).toInt
-    val rasterLonLength = ((settings.lonMax-settings.lonMin)/settings.sizeOfRasterLon).toInt
-    val bufferedSource = Source.fromFile("/home/marc/Downloads/Forecast_Aalen.csv")
-
-    val tile = DoubleArrayTile.ofDim(rasterLonLength,rasterLatLength)
-
-//    val lin = bufferedSource.getLines().drop(6).next().split(";").map(_.trim)
-//    val l = lin(7).substring(11).split(",").map(_.trim)
-//    val lo = l(0).split("48\\.")(0).toDouble
-//    val la = l(0).substring(16)
-//    val lat = la.startsWith("48.")
-//    val latD = la.toDouble
-      val file = bufferedSource.getLines.drop(1).map(line => {
-      val cols = line.split(";").map(_.trim)
-
-      val result = new NotDataRowTransformationValue(0,0,null,true,0)
-      if(cols.length>7 && cols(7).length>15) {
-        result.data = false
-        var polygon = cols(7).substring(11).split(",").map(_.trim)
-
-        val sort = cols.drop(9).sortWith(_ < _)
-        result.value = sort(sort.size / 2).toDouble
-
-
-        result.lon = (polygon(0).split("48\\.")(0).toDouble * settings.multiToInt).toInt
-        var i = 10
-        while (polygon(0).length>i && !(polygon(0).substring(i)).startsWith("48.") && i < 20) {
-          i += 1
-        }
-        if(polygon(0).length>i) {
-          result.lat = (polygon(0).substring(i).toDouble * settings.multiToInt).toInt
-        } else {
-          result.data = true
-        }
-
-      }
-      result
-    }).filter(row => row.lon>=settings.lonMin && row.lon<=settings.lonMax && row.lat>=settings.latMin && row.lat<=settings.latMax && row.data==false)
-    val t = false
-    for(row <- file) {
-      val rowIndex = ((row.lat-settings.latMin)/settings.sizeOfRasterLat).toInt
-      val colIndex = ((row.lon-settings.lonMin)/settings.sizeOfRasterLon).toInt
-      if(tile.getDouble(colIndex,rowIndex)==0){
-        tile.setDouble(colIndex,rowIndex,row.value)
-      } else {
-        tile.setDouble(colIndex,rowIndex,(tile.getDouble(colIndex,rowIndex)+row.value)/2)
-      }
-    }
-
-    bufferedSource.close()
-    tile
-  }
 
 
 }

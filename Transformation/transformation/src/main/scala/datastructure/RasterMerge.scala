@@ -1,6 +1,6 @@
-package rasterTransformation
+package datastructure
 
-import geotrellis.raster.{Raster, Tile}
+import geotrellis.raster.Tile
 
 
 /**

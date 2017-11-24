@@ -1,16 +1,18 @@
 package getisOrd
 
 
-import geotrellis.macros.{DoubleTileMapper, DoubleTileVisitor, IntTileMapper, IntTileVisitor}
-import geotrellis.raster.{ArrayTile, CellType, DoubleArrayTile, DoubleRawArrayTile, IntArrayTile, IntConstantTile, IntRawArrayTile, MutableArrayTile, Tile}
-import geotrellis.raster.mapalgebra.focal.{Neighborhood, Square}
-import geotrellis.spark.{Metadata, SpaceTimeKey, SpatialKey, TileLayerMetadata}
+import geotrellis.Weight
+import geotrellis.raster.mapalgebra.focal.Square
+import geotrellis.raster.{ArrayTile, DoubleArrayTile, DoubleRawArrayTile, IntRawArrayTile, Tile}
+import geotrellis.spark.{Metadata, SpaceTimeKey, TileLayerMetadata}
 import org.apache.spark.rdd.RDD
 import parmeters.Settings
 
 /**
   * Created by marc on 27.04.17.
   */
+
+
 class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
   var weight : Tile = createNewWeight(setting)
   var sumOfTile : Double = 0.0
@@ -247,7 +249,6 @@ class GetisOrd(tile : Tile, setting : Settings) extends GenericGetisOrd{
 
 }
 
-object Weight extends Enumeration {
-  type Weight = Value
-  val One, Square, Big, High, Defined, Sigmoid = Value
-}
+
+
+

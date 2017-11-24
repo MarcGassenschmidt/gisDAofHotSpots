@@ -1,5 +1,6 @@
 package osm
 
+import datastructure.ConvertPositionToCoordinate
 import org.scalatest.FunSuite
 import parmeters.Settings
 

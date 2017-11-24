@@ -2,6 +2,7 @@ package export
 
 import java.awt.Color
 
+import exportstructure.TileVisualizer
 import geotrellis.raster.{ArrayTile, DoubleRawArrayTile, IntRawArrayTile}
 import getisOrd.GetisOrd
 import org.scalatest.FunSuite

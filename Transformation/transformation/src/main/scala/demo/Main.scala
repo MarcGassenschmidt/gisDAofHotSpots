@@ -1,13 +1,14 @@
 package demo
 
+import com.typesafe.scalalogging.LazyLogging
 import importExport.DownloadFilesFromWeb
 import parmeters.Settings
 import scenarios._
 
-object Main {
-
-  def main(args: Array[String]): Unit = {
-
+/**
+  * Used to run scenarios which use [[getisOrd.GetisOrd]] and [[getisOrd.GetisOrdFocal]].
+  */
+object Main extends App with LazyLogging {
     val downloader = new DownloadFilesFromWeb()
     val setting = new Settings()
     setting.csvMonth = 1
@@ -22,6 +23,5 @@ object Main {
     scenario.runScenario()
     scenario   = new DifferentFocal()
     scenario.runScenario()
-  }
 
 }

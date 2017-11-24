@@ -1,10 +1,11 @@
 package scenarios
 
 import clustering.ClusterHotSpots
-import export.SoHResult
+import exportstructure.SoHResult
+import geotrellis.Weight
 import geotrellis.raster.Tile
+import getisOrd.SoH
 import getisOrd.SoH.SoHR
-import getisOrd.{SoH, Weight}
 import parmeters.{Scenario, Settings}
 
 import scala.collection.mutable.ListBuffer

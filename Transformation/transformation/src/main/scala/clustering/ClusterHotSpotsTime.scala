@@ -1,10 +1,12 @@
 package clustering
 
-import geotrellis.raster.{ArrayMultibandTile, ArrayTile, BitArrayTile, CellType, IntArrayTile, IntCells, IntRawArrayTile, MultibandTile, Tile, UShortRawArrayTile}
+import geotrellis.raster.{IntRawArrayTile, MultibandTile}
 import timeUtils.MultibandUtils
 
 /**
   * Created by marc on 07.07.17.
+  * Used for clustering the result of G*
+  * Same as [[ClusterHotSpots]] but for geotemporalspace
   */
 class ClusterHotSpotsTime(mbT : MultibandTile) {
 
@@ -60,7 +62,7 @@ class ClusterHotSpotsTime(mbT : MultibandTile) {
     }
   }
 
-  def regionQuery(range: Double, critical: Double, clusterBand : Int, clusterCol: Int, clusterRow: Int, visit: MultibandTile) : List[(Int,Int,Int)] = {
+  private def regionQuery(range: Double, critical: Double, clusterBand : Int, clusterCol: Int, clusterRow: Int, visit: MultibandTile) : List[(Int,Int,Int)] = {
     var neighborhood = List[(Int, Int, Int)]()
     for (i <- -range.toInt to range.toInt) {
       for (j <- -range.toInt to range.toInt) {

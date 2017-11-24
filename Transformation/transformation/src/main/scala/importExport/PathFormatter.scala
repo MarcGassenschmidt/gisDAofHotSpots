@@ -11,6 +11,7 @@ import scala.io.Source
 
 /**
   * Created by marc on 05.06.17.
+  * Used to specify where the data should be stored.
   */
 object PathFormatter {
 

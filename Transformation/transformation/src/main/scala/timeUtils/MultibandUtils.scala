@@ -1,13 +1,13 @@
 package timeUtils
 
-import geotrellis.{Cube, Spheroid, TimeNeighbourhood}
+import geotrellis.{Cube, Spheroid, TimeNeighbourhood, Weight}
 import geotrellis.raster.{DoubleRawArrayTile, IntRawArrayTile, MultibandTile, Tile}
 import geotrellis.raster.histogram.Histogram
-import getisOrd.Weight
 import parmeters.Settings
 
 /**
   * Created by marc on 11.07.17.
+  * Class for mulitband manipulation
   */
 object MultibandUtils {
 

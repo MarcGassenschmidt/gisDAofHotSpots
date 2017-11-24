@@ -1,7 +1,6 @@
 package scripts
 
-
-import export.SerializeTile
+import exportstructure.SerializeTile
 import geotrellis.raster.Tile
 import importExport.ImportGeoTiff
 import parmeters.{Scenario, Settings}

@@ -1,9 +1,9 @@
 package getisOrd
 
 import clustering.{ClusterHotSpotsTime, ClusterRelations}
+import datastructure.ConvertPositionToCoordinate
 import geotrellis.{Spheroid, SpheroidHelper}
 import geotrellis.raster.{IntArrayTile, IntRawArrayTile, MultibandTile, Tile}
-import osm.ConvertPositionToCoordinate
 import parmeters.Settings
 import timeUtils.MultibandUtils
 
@@ -15,6 +15,62 @@ import scalaz.std.java.enum
   * Created by marc on 09.05.17.
   */
 object SoH {
+
+  /**
+    * Call this Method to evaluate all metrics at once
+    * @param mbT
+    * @param mbTCluster
+    * @param zoomPNCluster
+    * @param weightPNCluster
+    * @param focalPNCluster
+    * @param weightNRaw
+    * @param month
+    * @param settings
+    * @param gisCup
+    * @return SoHResults which hold all values of the metrics
+    */
+  def getMetrikResults(mbT : MultibandTile,
+                       mbTCluster : MultibandTile,
+                       zoomPNCluster : (MultibandTile,MultibandTile),
+                       weightPNCluster : (MultibandTile,MultibandTile),
+                       focalPNCluster : (MultibandTile,MultibandTile),
+                       weightNRaw : MultibandTile,
+                       month : Tile,
+                       settings: Settings,
+                       gisCup : MultibandTile): SoHResults ={
+    val downUp = getSoHDowAndUp(mbTCluster,weightPNCluster._2)
+    //val variance = getVariance(mbTCluster)
+    println("deb.1")
+    var neighbours = (0,0,0,0,0,0)
+    if(focalPNCluster._1==null){
+      neighbours =  getSoHNeighbours(mbT,zoomPNCluster,weightPNCluster)
+    } else {
+      neighbours =  getSoHNeighbours(mbT,zoomPNCluster,weightPNCluster,focalPNCluster)
+    }
+    println("deb.2")
+    val jaccard = getJaccardIndex(mbTCluster,weightPNCluster._2) //Eine Kennzahl
+    println("deb.3")
+    val percentual = -1 //getSDForPercentualTiles(mbTCluster, settings) //Verteilung - Variationskoeffizient
+    println("deb.4")
+    val time = compareWithTile(mbTCluster,month) //Referenzbild
+    println("deb.5")
+    val kl = getKL(mbT,weightNRaw) //KL
+    println("deb.6")
+    val sturcture = -1 //measureStructure(mbT) //Struktur
+    println("deb.7")
+    var distnace = -1 //getDistance(mbTCluster,weightPNCluster._2)
+    println("deb.8")
+    val top100 = getTop100Values(mbT, settings)
+    println("deb.9")
+    val morans = getMoransI(mbT)
+    println("deb.10")
+    val f1 = getF1Score(mbTCluster,weightPNCluster._2)
+    println("deb.11")
+    val ref = (new ClusterRelations()).getPercentualFitting(mbTCluster,gisCup)
+    new SoHResults(downUp,neighbours,jaccard,percentual,time,kl,sturcture,distnace,top100,f1,morans,ref)
+  }
+
+
   def getJaccardIndexPercent(parent: MultibandTile, child: MultibandTile): Double = {
     val intersect = (new ClusterRelations()).getPercentualFitting(parent,child)
     intersect
@@ -241,46 +297,6 @@ object SoH {
     return N/W.toDouble*sum/denominator
   }
 
-  def getMetrikResults(mbT : MultibandTile,
-                       mbTCluster : MultibandTile,
-                       zoomPNCluster : (MultibandTile,MultibandTile),
-                       weightPNCluster : (MultibandTile,MultibandTile),
-                       focalPNCluster : (MultibandTile,MultibandTile),
-                       weightNRaw : MultibandTile,
-                       month : Tile,
-                       settings: Settings,
-                       gisCup : MultibandTile): SoHResults ={
-    val downUp = getSoHDowAndUp(mbTCluster,weightPNCluster._2)
-    //val variance = getVariance(mbTCluster)
-    println("deb.1")
-    var neighbours = (0,0,0,0,0,0)
-    if(focalPNCluster._1==null){
-      neighbours =  getSoHNeighbours(mbT,zoomPNCluster,weightPNCluster)
-    } else {
-      neighbours =  getSoHNeighbours(mbT,zoomPNCluster,weightPNCluster,focalPNCluster)
-    }
-    println("deb.2")
-    val jaccard = getJaccardIndex(mbTCluster,weightPNCluster._2) //Eine Kennzahl
-    println("deb.3")
-    val percentual = -1 //getSDForPercentualTiles(mbTCluster, settings) //Verteilung - Variationskoeffizient
-    println("deb.4")
-    val time = compareWithTile(mbTCluster,month) //Referenzbild
-    println("deb.5")
-    val kl = getKL(mbT,weightNRaw) //KL
-    println("deb.6")
-    val sturcture = -1 //measureStructure(mbT) //Struktur
-    println("deb.7")
-    var distnace = -1 //getDistance(mbTCluster,weightPNCluster._2)
-    println("deb.8")
-    val top100 = getTop100Values(mbT, settings)
-    println("deb.9")
-    val morans = getMoransI(mbT)
-    println("deb.10")
-    val f1 = getF1Score(mbTCluster,weightPNCluster._2)
-    println("deb.11")
-    val ref = (new ClusterRelations()).getPercentualFitting(mbTCluster,gisCup)
-    new SoHResults(downUp,neighbours,jaccard,percentual,time,kl,sturcture,distnace,top100,f1,morans,ref)
-  }
 
 
 

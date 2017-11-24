@@ -1,8 +1,8 @@
-package export
+package exportstructure
 
 import geotrellis.raster.Tile
 import getisOrd.SoH.SoHR
-import getisOrd.Weight.Weight
+import geotrellis.Weight.Weight
 import parmeters.Settings
 
 /**

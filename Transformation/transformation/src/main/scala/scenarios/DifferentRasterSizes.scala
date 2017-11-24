@@ -1,15 +1,12 @@
 package scenarios
 
-import java.io.{File, FileOutputStream, PrintWriter}
-
-import au.com.bytecode.opencsv.CSVWriter
 import clustering.ClusterHotSpots
-import export.{SerializeTile, SoHResult, TileVisualizer}
+import exportstructure.SoHResult
+import geotrellis.Weight
 import geotrellis.raster.Tile
 import getisOrd.SoH.SoHR
 import getisOrd._
 import parmeters.{Scenario, Settings}
-import rasterTransformation.Transformation
 
 import scala.collection.mutable.ListBuffer
 

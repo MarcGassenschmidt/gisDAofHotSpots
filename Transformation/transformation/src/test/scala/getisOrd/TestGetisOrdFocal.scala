@@ -3,6 +3,7 @@ package getisOrd
 import java.io.File
 import java.util.Random
 
+import geotrellis.Weight
 import geotrellis.proj4.{CRS, WebMercator}
 import geotrellis.raster.io.geotiff._
 import geotrellis.raster.mapalgebra.focal.Circle

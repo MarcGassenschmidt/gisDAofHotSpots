@@ -6,6 +6,9 @@ import geotrellis.raster.{DoubleRawArrayTile, IntArrayTile, IntRawArrayTile, Mul
 
 /**
   * Created by marc on 12.05.17.
+  * Used for SoH to get intersection and union of images.
+  * Also for scaling of two tiles to the same size and
+  * for percentual cover between two tiles
   */
 class ClusterRelations {
 

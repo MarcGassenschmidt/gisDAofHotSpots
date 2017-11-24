@@ -2,9 +2,10 @@ package getisOrd
 
 import java.io.{FileInputStream, FileOutputStream, ObjectInputStream, ObjectOutputStream}
 
+import geotrellis.Weight
 import geotrellis.raster.{CellType, DoubleArrayTile, DoubleRawArrayTile, FloatCellType, IntRawArrayTile, Tile}
 import geotrellis.raster.mapalgebra.focal.{Circle, TargetCell}
-import getisOrd.Weight.Weight
+import geotrellis.Weight.Weight
 import org.apache.spark.SparkContext
 import parmeters.Settings
 

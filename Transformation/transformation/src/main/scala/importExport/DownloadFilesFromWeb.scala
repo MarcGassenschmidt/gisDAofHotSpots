@@ -7,6 +7,7 @@ import java.io.File
 import parmeters.Settings
 /**
   * Created by marc on 15.05.17.
+  * Used to download the yellow tripdate
   */
 class DownloadFilesFromWeb {
 

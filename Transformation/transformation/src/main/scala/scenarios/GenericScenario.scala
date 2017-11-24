@@ -3,13 +3,13 @@ package scenarios
 import java.io.{File, PrintWriter}
 import java.time.LocalDateTime
 
-import importExport.{ImportGeoTiff, PathFormatter, TifType}
-import clustering.ClusterHotSpots
 import com.typesafe.scalalogging.LazyLogging
-import export.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
+import exportstructure.{SerializeTile, SoHResult, SoHResultTabell, TileVisualizer}
+import geotrellis.Weight
 import geotrellis.raster.{MultibandTile, Tile}
 import getisOrd.SoH.SoHR
-import getisOrd.{GetisOrd, GetisOrdFocal, SoH, Weight}
+import getisOrd.{GetisOrd, GetisOrdFocal}
+import importExport.ImportGeoTiff
 import parmeters.Settings
 import rasterTransformation.Transformation
 

@@ -1,9 +1,10 @@
-package osm
+package datastructure
 
 import parmeters.Settings
 
 /**
   * Created by marc on 16.05.17.
+  * Used to convert a position back to Lat and Lon
   */
 object ConvertPositionToCoordinate {
 

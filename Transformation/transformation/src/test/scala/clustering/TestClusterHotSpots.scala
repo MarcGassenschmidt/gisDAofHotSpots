@@ -25,12 +25,6 @@ class TestClusterHotSpots extends FunSuite{
 
 
 
-  test("Test replace Number"){
-    val testTile = Array.fill(500*500)(3)
-    val rasterTile = new IntRawArrayTile(testTile, 500, 500)
-    val chs = new ClusterHotSpots(rasterTile)
-    chs.replaceNumber(3,5,rasterTile)
-  }
 
   def getTestTile(): ArrayTile ={
     val arrayTile = Array[Double](

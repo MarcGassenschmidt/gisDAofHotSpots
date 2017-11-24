@@ -17,6 +17,7 @@ import geotrellis.spark.tiling.FloatingLayoutScheme
 import geotrellis.spark.{LayerId, SpatialKey, TileLayerMetadata, withProjectedExtentTilerKeyMethods, withTileRDDReprojectMethods, withTilerMethods, _}
 /**
   * Created by marc on 02.06.17.
+  * Used to read and write Tiffs
   */
 class ImportGeoTiff {
   def writeGeoTiff(tile: Tile, file: String, settings: Settings): Unit = {
