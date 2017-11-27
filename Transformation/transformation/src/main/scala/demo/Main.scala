@@ -15,8 +15,6 @@ object Main extends App with LazyLogging {
     setting.csvYear = 2016
     downloader.downloadNewYorkTaxiFiles(setting)
 
-    (new SpaceTimeScenario).runScenario()
-
     var scenario : GenericScenario = new DifferentRatio()
     scenario.runScenario()
     scenario = new DifferentRasterSizes()

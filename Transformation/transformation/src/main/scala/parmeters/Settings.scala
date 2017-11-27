@@ -39,24 +39,13 @@ class Settings extends Serializable with Cloneable{
   var focalRange = weightRadius+20
   var focalRangeTime = weightRadiusTime+1
   var parent = true
-  //var inputDirectory = "/home/marc/Masterarbeit/outPut/raster"
-
-  //var serilizeDirectory = "/home/marc/Masterarbeit/outPut/raster"
 
   var serilizeDirectory = "/home/marc/media/SS_17/output/raster"
   var statDirectory = "/home/marc/media/SS_17/output/"
 
-  //var ouptDirectory = "/home/marc/Masterarbeit/outPut/"
   var ouptDirectory = "/home/marc/media/SS_17/output/"
 
 
-//  var serilizeDirectory = "/home/ubuntu/data/raster.ser"
-//  var statDirectory = "/home/ubuntu/data2/"
-//
-//  //var ouptDirectory = "/data/"
-//  var ouptDirectory = "/home/ubuntu/data2/"
-
-  //var inputDirectoryCSV = "/home/marc/Downloads/in.csv"
   var inputDirectoryCSV = "/home/media/Downloads/"
   var csvMonth = 1
   var csvYear = 2016

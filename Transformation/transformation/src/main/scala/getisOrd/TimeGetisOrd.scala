@@ -45,7 +45,7 @@ object TimeGetisOrd {
     }
 
     val raster = r.stitch()
-    WriteTimeMeasurring(setting, origin, start, raster)
+    //WriteTimeMeasurring(setting, origin, start, raster)
     raster
   }
 
